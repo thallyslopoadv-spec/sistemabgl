@@ -711,6 +711,8 @@ button:active{transform:scale(.985)}
 .prazo-late{background:var(--red-bg);color:var(--red-hi);border:1px solid rgba(178,59,59,.24)}
 .prazo-soon{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.24)}
 .prazo-ok{background:var(--surface3);color:var(--t2);border:1px solid var(--border)}
+.prazo-antes{background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.24)}
+.prazo-sem{background:var(--surface3);color:var(--t3);border:1px dashed var(--border-med)}
 
 /* ─── ROTINA (BOARD) ─── */
 .rotina-board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
@@ -756,6 +758,30 @@ button:active{transform:scale(.985)}
 }
 .btn-nova-tarefa:hover{background:var(--navy-soft)}
 .rotina-chips{display:flex;gap:7px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.mt-conc-hint{font-size:12px;color:var(--t3);margin-top:7px;min-height:16px}
+.mt-conc-hint.atraso{color:var(--red-hi);font-weight:600}
+.mt-conc-hint.antes{color:var(--green-hi);font-weight:600}
+
+/* ─── PAINEL: CUMPRIMENTO DE PRAZOS (ROTINA) ─── */
+.desemp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.desemp-box{padding:14px 16px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2)}
+.desemp-box[data-c="green"]{background:var(--green-bg);border-color:rgba(47,125,63,.2)}
+.desemp-box[data-c="red"]{background:var(--red-bg);border-color:rgba(178,59,59,.2)}
+.desemp-lbl{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.desemp-val{font-family:var(--font-serif);font-size:26px;font-weight:600;color:var(--navy);line-height:1}
+.desemp-box[data-c="green"] .desemp-val{color:var(--green-hi)}
+.desemp-box[data-c="red"] .desemp-val{color:var(--red-hi)}
+.desemp-sub{font-size:11.5px;color:var(--t3);margin-top:5px}
+.desemp-tab-wrap{overflow-x:auto}
+.desemp-tab{width:100%;border-collapse:collapse;font-size:13px}
+.desemp-tab th{text-align:right;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:0 8px 9px;border-bottom:1px solid var(--border)}
+.desemp-tab th:first-child,.desemp-tab td:first-child{text-align:left}
+.desemp-tab td{text-align:right;padding:10px 8px;border-bottom:1px dashed var(--border);color:var(--t2)}
+.desemp-tab tr:last-child td{border-bottom:none}
+.desemp-tab td.nome{font-weight:600;color:var(--navy)}
+.desemp-tab td.atraso{color:var(--red-hi);font-weight:600}
+.desemp-tab td.ok{color:var(--green-hi);font-weight:600}
+.desemp-vazio{font-size:13px;color:var(--t3);padding:8px 0}
 
 /* ═══════════════════════════════════════════════════════════
    RESPONSIVO (celular/tablet) — só entra em telas estreitas;
@@ -783,6 +809,10 @@ button:active{transform:scale(.985)}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
   .stat-card{padding:15px 16px}
   .stat-val{font-size:26px}
+  .desemp-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .desemp-val{font-size:22px}
+  /* a tabela por responsável rola na horizontal em vez de espremer as colunas */
+  .desemp-tab{font-size:12px;min-width:480px}
   .portais-grid{grid-template-columns:repeat(2,1fr)}
   .bottom-grid{grid-template-columns:1fr}
   .fin-totais{grid-template-columns:1fr 1fr}
@@ -1576,6 +1606,23 @@ button:active{transform:scale(.985)}
       </div>
       <div class="rotina-board" id="rotina-board"></div>
 
+      <!-- cumprimento de prazos: o que foi concluído, quando, e com quantos dias de atraso -->
+      <div class="modulo-card" style="margin-top:20px">
+        <div class="card-head">
+          <h3>Cumprimento de prazos</h3>
+          <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
+        </div>
+        <div class="card-body">
+          <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
+            <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
+            <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
+            <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
+            <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+          </div>
+          <div id="rotina-desempenho"></div>
+        </div>
+      </div>
+
       <div class="chat-panel" style="margin-top:20px">
         <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
         <div class="chat-list" id="rotina-chat-list"></div>
@@ -1810,7 +1857,7 @@ button:active{transform:scale(.985)}
       <div class="fg"><label>Cliente (opcional)</label>
         <select id="mt-cli"></select>
       </div>
-      <div class="fg"><label>Prazo</label><input type="date" id="mt-prazo"></div>
+      <div class="fg"><label>Prazo</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao()"></div>
     </div>
     <div class="fg"><label>Status</label>
       <div class="seg">
@@ -1818,6 +1865,11 @@ button:active{transform:scale(.985)}
         <button type="button" id="mt-st-a" onclick="mtStatus('andamento')">Em andamento</button>
         <button type="button" id="mt-st-c" onclick="mtStatus('concluido')">Concluída</button>
       </div>
+    </div>
+    <div class="fg" id="mt-conc-wrap" style="display:none">
+      <label>Concluída em</label>
+      <input type="date" id="mt-conc" onchange="mtAtualizarHintConclusao()">
+      <div class="mt-conc-hint" id="mt-conc-hint"></div>
     </div>
     <div class="modal-btns">
       <button class="btn-del" id="mt-del" onclick="excluirTarefa()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
@@ -2801,6 +2853,12 @@ async function carregarDBRemoto(){
     DB.cadenciaRemovidaV1=true;
     if(DB.tarefas.length!==antes)precisaSalvar=true; else precisaSalvar=precisaSalvar||true;
   }
+  // data de conclusão das tarefas: as que já estavam concluídas antes deste
+  // controle ficam com data vazia (aparecem como "sem data registrada"), para
+  // não inventar um cumprimento de prazo que ninguém conferiu
+  DB.tarefas.forEach(t=>{
+    if(t.concluidoEm===undefined){t.concluidoEm='';precisaSalvar=true;}
+  });
   // créditos dependentes de terceiro: campos novos em cada lançamento financeiro previsto
   DB.clientes.forEach(c=>{
     (c.fin||[]).forEach(f=>{
@@ -3242,9 +3300,58 @@ function excluirTipoTarefa(key){
 const ST_LBL={pendente:'Pendente',andamento:'Em andamento',concluido:'Concluída'};
 function tarefasDe(cid){return DB.tarefas.filter(t=>t.cid===cid)}
 function nomeCliente(cid){const c=cid&&DB.clientes.find(x=>x.id===cid);return c?c.curto:''}
+// ─── CUMPRIMENTO DE PRAZO (tarefas concluídas) ────────────
+// Toda tarefa que entra em "Concluída" guarda a data em t.concluidoEm
+// (ISO aaaa-mm-dd). Com ela e o prazo dá para saber se a tarefa saiu
+// adiantada, no dia ou com atraso — e quantos dias.
+// diferença em dias entre duas datas ISO (b − a), sem risco de fuso
+function diasEntreISO(a,b){
+  if(!a||!b)return null;
+  const[ay,am,ad]=a.split('-').map(Number);
+  const[by,bm,bd]=b.split('-').map(Number);
+  return Math.round((new Date(by,bm-1,bd).getTime()-new Date(ay,am-1,ad).getTime())/86400000);
+}
+function plural(n,s){return n+' dia'+(n>1?'s':'')+(s||'')}
+// data curta (dd/mm) para caber nos badges dos cards
+function fmtDataCurta(iso){return iso?fmtData(iso).slice(0,5):''}
+// classifica a conclusão: antecipada | noprazo | atrasada | semprazo | semregistro
+function conclusaoInfo(t){
+  if(!t||t.status!=='concluido')return null;
+  const data=t.concluidoEm||'';
+  if(!data)return {cat:'semregistro',dias:null,data:'',cls:'prazo-sem',
+    txt:'sem data',titulo:'Tarefa concluída antes deste controle existir — sem data registrada. Edite a tarefa para informar quando foi concluída.'};
+  if(!t.prazo)return {cat:'semprazo',dias:null,data,cls:'prazo-ok',
+    txt:'✓ '+fmtDataCurta(data),titulo:'Concluída em '+fmtData(data)+' · a tarefa não tinha prazo definido'};
+  const dias=diasEntreISO(t.prazo,data); // >0 atraso · 0 no dia · <0 antes
+  if(dias>0)return {cat:'atrasada',dias,data,cls:'prazo-late',
+    txt:'✓ '+fmtDataCurta(data)+' · '+dias+'d de atraso',
+    titulo:'Prazo em '+fmtData(t.prazo)+' · concluída em '+fmtData(data)+' — '+plural(dias,' de atraso')};
+  if(dias===0)return {cat:'noprazo',dias,data,cls:'prazo-ok',
+    txt:'✓ '+fmtDataCurta(data)+' · no prazo',
+    titulo:'Prazo em '+fmtData(t.prazo)+' · concluída no próprio dia do prazo'};
+  const ant=-dias;
+  return {cat:'antecipada',dias,data,cls:'prazo-antes',
+    txt:'✓ '+fmtDataCurta(data)+' · '+ant+'d antes',
+    titulo:'Prazo em '+fmtData(t.prazo)+' · concluída em '+fmtData(data)+' — '+plural(ant,' antes do prazo')};
+}
+const CONC_CAT_LBL={antecipada:'Antes do prazo',noprazo:'No dia do prazo',atrasada:'Em atraso',semprazo:'Sem prazo definido',semregistro:'Sem data registrada'};
+// muda o status de uma tarefa carimbando (ou apagando) a data de conclusão.
+// dataConclusao omitida = carimba hoje (se ainda não houver data); informada
+// (mesmo vazia) = vale exatamente o que veio, para o modal poder corrigir
+function aplicarStatusTarefa(t,novo,dataConclusao){
+  if(novo==='concluido'){
+    t.concluidoEm=dataConclusao===undefined?(t.concluidoEm||hojeISO()):dataConclusao;
+  }else{
+    t.concluidoEm='';
+  }
+  t.status=novo;
+}
 // info do prazo → classe + rótulo
 function prazoInfo(t){
-  if(t.status==='concluido')return {cls:'prazo-ok',txt:t.prazo?fmtData(t.prazo):'—'};
+  if(t.status==='concluido'){
+    const ci=conclusaoInfo(t);
+    return {cls:ci.cls,txt:ci.txt,titulo:ci.titulo};
+  }
   if(!t.prazo)return {cls:'prazo-ok',txt:'sem prazo'};
   const dias=Math.round((new Date(t.prazo).getTime()-hojeTS())/86400000);
   if(dias<0)return {cls:'prazo-late',txt:'Atrasada · '+fmtData(t.prazo)};
@@ -4634,7 +4741,8 @@ let rotinaCat={}; // categoria (tipo) selecionada por coluna/responsável
 function rotinaFiltroCat(resp,val){rotinaCat[resp]=val;renderRotina();}
 function filtroRotina(f,btn){
   rotinaFiltro=f;
-  document.querySelectorAll('.rotina-chips .chip').forEach(b=>b.classList.remove('active'));
+  // :not(.desemp-chips) — o painel de cumprimento de prazos tem os próprios chips
+  document.querySelectorAll('.rotina-chips:not(.desemp-chips) .chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderRotina();
 }
@@ -4655,7 +4763,7 @@ function taskCard(t){
       <span class="task-tipo">${tipoInfo(t.tipo).lbl}</span>
       ${cli?`<span class="task-cli" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:''}
       ${leadChip}
-      <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
+      <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
     </div>
     <div class="task-foot">
       <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status">${ST_LBL[t.status]}</span>
@@ -4676,6 +4784,7 @@ function renderRotina(){
     <div class="stat-card" data-c="green"><div class="stat-label">Concluídas</div><div class="stat-val">${conc}</div></div>
     <div class="stat-card" data-c="red"><div class="stat-label">Atrasadas</div><div class="stat-val">${atras}</div></div>`;
   renderChatGeral();
+  renderDesempenhoRotina();
   const board=document.getElementById('rotina-board');
   if(!board)return;
   board.innerHTML=RESP.map(r=>{
@@ -4690,6 +4799,8 @@ function renderRotina(){
     tsView.sort((a,b)=>{
       const o={pendente:0,andamento:1,concluido:2};
       if(o[a.status]!==o[b.status])return o[a.status]-o[b.status];
+      // concluídas: as mais recentes primeiro (pela data em que foram concluídas)
+      if(a.status==='concluido')return (b.concluidoEm||'').localeCompare(a.concluidoEm||'');
       return (a.prazo||'9999')<(b.prazo||'9999')?-1:1;
     });
     const abertas=ts.filter(t=>t.status!=='concluido').length;
@@ -4736,20 +4847,141 @@ function renderRotina(){
     </div>`;
   }).join('');
 }
+// ─── PAINEL: CUMPRIMENTO DE PRAZOS ───────────────────────
+// Responde, olhando as tarefas concluídas: quantas saíram em atraso,
+// quantos dias de atraso, quantas ficaram no prazo e quantas antes.
+let desempenhoPeriodo='tudo';
+function filtroDesempenho(p,btn){
+  desempenhoPeriodo=p;
+  document.querySelectorAll('#view-rotina .desemp-chips .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDesempenhoRotina();
+}
+// data ISO de corte do período escolhido ('' = sem corte)
+function cortePeriodoDesempenho(){
+  const hoje=hojeISO();
+  if(desempenhoPeriodo==='mes')return hoje.slice(0,8)+'01';
+  if(desempenhoPeriodo==='30'||desempenhoPeriodo==='90'){
+    const d=new Date(hojeTS()-Number(desempenhoPeriodo)*86400000);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  return '';
+}
+// resumo de um conjunto de tarefas concluídas
+function resumoConclusao(tarefas){
+  const r={total:tarefas.length,antecipada:0,noprazo:0,atrasada:0,semprazo:0,semregistro:0,
+           diasAtraso:0,maiorAtraso:0,diasAntes:0,comPrazo:0};
+  tarefas.forEach(t=>{
+    const ci=conclusaoInfo(t);
+    r[ci.cat]++;
+    if(ci.cat==='atrasada'){r.diasAtraso+=ci.dias;r.comPrazo++;if(ci.dias>r.maiorAtraso)r.maiorAtraso=ci.dias;}
+    else if(ci.cat==='noprazo'){r.comPrazo++;}
+    else if(ci.cat==='antecipada'){r.diasAntes+=-ci.dias;r.comPrazo++;}
+  });
+  r.dentroDoPrazo=r.antecipada+r.noprazo;
+  r.pctNoPrazo=r.comPrazo?Math.round(r.dentroDoPrazo*100/r.comPrazo):null;
+  r.mediaAtraso=r.atrasada?(r.diasAtraso/r.atrasada):0;
+  r.mediaAntes=r.antecipada?(r.diasAntes/r.antecipada):0;
+  return r;
+}
+function numDias(n){return (Math.round(n*10)/10).toString().replace('.',',')}
+function renderDesempenhoRotina(){
+  const el=document.getElementById('rotina-desempenho');
+  if(!el)return;
+  const corte=cortePeriodoDesempenho();
+  const concluidas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status==='concluido');
+  // o corte de período só se aplica ao que tem data registrada; as sem data
+  // ficam de fora do recorte (mas continuam contadas em "Tudo")
+  const lista=corte?concluidas.filter(t=>t.concluidoEm&&t.concluidoEm>=corte):concluidas;
+  const r=resumoConclusao(lista);
+  if(!r.total){
+    el.innerHTML='<p class="desemp-vazio">Nenhuma tarefa concluída neste período.</p>';
+    return;
+  }
+  const semData=r.semregistro;
+  const boxes=`
+    <div class="desemp-grid">
+      <div class="desemp-box" data-c="green">
+        <div class="desemp-lbl">Dentro do prazo</div>
+        <div class="desemp-val">${r.dentroDoPrazo}</div>
+        <div class="desemp-sub">${r.antecipada} antes · ${r.noprazo} no dia${r.mediaAntes?' · média '+numDias(r.mediaAntes)+'d antes':''}</div>
+      </div>
+      <div class="desemp-box" data-c="red">
+        <div class="desemp-lbl">Em atraso</div>
+        <div class="desemp-val">${r.atrasada}</div>
+        <div class="desemp-sub">${r.atrasada?'média '+numDias(r.mediaAtraso)+'d · pior '+r.maiorAtraso+'d':'nenhuma tarefa entregue com atraso'}</div>
+      </div>
+      <div class="desemp-box">
+        <div class="desemp-lbl">% no prazo</div>
+        <div class="desemp-val">${r.pctNoPrazo===null?'—':r.pctNoPrazo+'%'}</div>
+        <div class="desemp-sub">${r.comPrazo} tarefa${r.comPrazo!==1?'s':''} com prazo definido</div>
+      </div>
+      <div class="desemp-box">
+        <div class="desemp-lbl">Fora da conta</div>
+        <div class="desemp-val">${r.semprazo+semData}</div>
+        <div class="desemp-sub">${r.semprazo} sem prazo · ${semData} sem data de conclusão</div>
+      </div>
+    </div>`;
+  const linhas=RESP.map(nome=>{
+    const rr=resumoConclusao(lista.filter(t=>t.resp===nome));
+    if(!rr.total)return `<tr><td class="nome">${esc(nome)}</td><td colspan="5" style="text-align:right;color:var(--t3)">nenhuma conclusão no período</td></tr>`;
+    return `<tr>
+      <td class="nome">${esc(nome)}</td>
+      <td>${rr.total}</td>
+      <td class="ok">${rr.antecipada}</td>
+      <td>${rr.noprazo}</td>
+      <td class="${rr.atrasada?'atraso':''}">${rr.atrasada}</td>
+      <td class="${rr.atrasada?'atraso':''}">${rr.atrasada?numDias(rr.mediaAtraso)+'d':'—'}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=boxes+`
+    <div class="desemp-tab-wrap"><table class="desemp-tab">
+      <thead><tr>
+        <th>Responsável</th><th>Concluídas</th><th>Antes</th><th>No dia</th><th>Em atraso</th><th>Atraso médio</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+    </table></div>
+    ${semData?`<p class="desemp-vazio">${semData} tarefa${semData>1?'s':''} concluída${semData>1?'s':''} antes deste controle não tem data registrada — abra a tarefa e informe a data para ela entrar na conta.</p>`:''}`;
+}
+
 // avança status: pendente → andamento → concluído → pendente
+// ao entrar em "concluído" carimba a data de hoje; ao sair, apaga
 function cicloTarefa(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
-  t.status=t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente';
+  aplicarStatusTarefa(t,t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente');
   salvarDB();refreshUI();
 }
 
 // ─── MODAL: TAREFA ────────────────────────────────────────
 let mtCtx={id:null,status:'pendente'};
-function mtStatus(s){
+// naoPreencher: ao abrir uma tarefa já concluída não inventamos data —
+// se ela veio sem registro, o campo fica vazio para o usuário informar
+function mtStatus(s,naoPreencher){
   mtCtx.status=s;
   document.getElementById('mt-st-p').classList.toggle('on',s==='pendente');
   document.getElementById('mt-st-a').classList.toggle('on',s==='andamento');
   document.getElementById('mt-st-c').classList.toggle('on',s==='concluido');
+  // a data de conclusão só faz sentido (e só aparece) quando a tarefa está concluída
+  const wrap=document.getElementById('mt-conc-wrap');
+  const campo=document.getElementById('mt-conc');
+  if(!wrap||!campo)return;
+  wrap.style.display=s==='concluido'?'block':'none';
+  if(s==='concluido'&&!campo.value&&!naoPreencher)campo.value=hojeISO();
+  mtAtualizarHintConclusao();
+}
+// mostra, ainda no modal, se a data informada fica antes, no dia ou depois do prazo
+function mtAtualizarHintConclusao(){
+  const el=document.getElementById('mt-conc-hint');
+  if(!el)return;
+  el.className='mt-conc-hint';
+  const data=document.getElementById('mt-conc').value;
+  const prazo=document.getElementById('mt-prazo').value;
+  if(!data){el.textContent='Sem data informada, esta tarefa fica fora da contagem de prazos.';return;}
+  if(!prazo){el.textContent='A tarefa não tem prazo definido — só a data de conclusão é registrada.';return;}
+  const dias=diasEntreISO(prazo,data);
+  if(dias>0){el.classList.add('atraso');el.textContent='Concluída com '+plural(dias,' de atraso')+' (prazo em '+fmtData(prazo)+').';}
+  else if(dias===0){el.classList.add('antes');el.textContent='Concluída no próprio dia do prazo.';}
+  else{el.classList.add('antes');el.textContent='Concluída '+plural(-dias,' antes do prazo')+' (prazo em '+fmtData(prazo)+').';}
 }
 function abrirModalTarefa(id,respOuCid){
   mtCtx={id,status:'pendente'};
@@ -4765,7 +4997,8 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-tipo').value=t.tipo;
     selCli.value=t.cid||'';
     document.getElementById('mt-prazo').value=t.prazo||'';
-    mtStatus(t.status);
+    document.getElementById('mt-conc').value=t.concluidoEm||'';
+    mtStatus(t.status,true);
     document.getElementById('mt-del').style.display='inline-flex';
     document.getElementById('mt-desc-wrap').style.display=t.descricao?'block':'none';
     document.getElementById('mt-desc').value=t.descricao||'';
@@ -4778,6 +5011,7 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-tipo').value='peticao';
     selCli.value=(respOuCid&&!RESP.includes(respOuCid))?respOuCid:'';
     document.getElementById('mt-prazo').value='';
+    document.getElementById('mt-conc').value='';
     mtStatus('pendente');
     document.getElementById('mt-del').style.display='none';
     document.getElementById('mt-desc-wrap').style.display='none';
@@ -4795,10 +5029,15 @@ function salvarTarefa(){
     tipo:document.getElementById('mt-tipo').value,
     cid:document.getElementById('mt-cli').value||null,
     prazo:document.getElementById('mt-prazo').value,
-    status:mtCtx.status,
   };
-  if(mtCtx.id){Object.assign(DB.tarefas.find(x=>x.id===mtCtx.id),dados);}
-  else{DB.tarefas.push({id:uid(),...dados});}
+  // concluída: vale a data informada no modal; em qualquer outro status a data sai
+  const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
+  if(mtCtx.id){
+    const t=DB.tarefas.find(x=>x.id===mtCtx.id);
+    Object.assign(t,dados);
+    aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
+  }
+  else{DB.tarefas.push({id:uid(),...dados,status:mtCtx.status,concluidoEm});}
   salvarDB();fecharOverlay('overlay-tarefa');refreshUI();
 }
 function excluirTarefa(){
@@ -5190,7 +5429,7 @@ function detalheClienteHTML(c){
       <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status">${ST_LBL[t.status]}</span>
       <span class="pend-titulo">${esc(t.titulo)}</span>
       <span class="resp-chip">${esc(t.resp)}</span>
-      <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
+      <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
       <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>
     </div>`;
   }).join('')
@@ -7475,9 +7714,13 @@ function gerarRelatorioHTML(){
 
   // ── rotina ──
   S.push('<h2>Rotina — tarefas</h2>');
-  S.push(relTabela(['Tarefa','Cliente','Tipo','Responsável','Prazo','Status'],
-    DB.tarefas.map(x=>[esc(x.titulo||''),esc(nomeCliente(x.cid)||''),esc(tipoInfo(x.tipo).lbl),esc(x.resp||''),
-      esc(x.prazo?fmtData(x.prazo):''),esc(ST_LBL[x.status]||x.status||'')])));
+  S.push(relTabela(['Tarefa','Cliente','Tipo','Responsável','Prazo','Status','Concluída em','Cumprimento do prazo'],
+    DB.tarefas.map(x=>{
+      const ci=conclusaoInfo(x);
+      return [esc(x.titulo||''),esc(nomeCliente(x.cid)||''),esc(tipoInfo(x.tipo).lbl),esc(x.resp||''),
+        esc(x.prazo?fmtData(x.prazo):''),esc(ST_LBL[x.status]||x.status||''),
+        esc(ci&&ci.data?fmtData(ci.data):''),esc(ci?CONC_CAT_LBL[ci.cat]+(ci.cat==='atrasada'?' ('+plural(ci.dias,'')+')':ci.cat==='antecipada'?' ('+plural(-ci.dias,'')+')':''):'')];
+    })));
 
   // ── funil ──
   S.push('<h2>Funil de vendas (CRM)</h2>');
@@ -7577,8 +7820,12 @@ function planilhasBackup(){
        f.dependeTerceiro?'sim':'',f.aceiteVerbal?'sim':'',f.dataPrevistaRecebimento||'']))},
     {nome:'processos',cols:['numero','cliente','polo','ativo','passivo','distribuicao','status','exito','resultado','tese'],
      linhas:(DB.processos||[]).map(p=>[p.num,nomeCliente(p.cid),p.polo==='a'?'autor':'reu',p.ativo,p.passivo,p.dist,p.status,p.exito,p.resultado,p.teseTitulo])},
-    {nome:'tarefas',cols:['titulo','cliente','tipo','responsavel','prazo','status'],
-     linhas:(DB.tarefas||[]).map(t=>[t.titulo,nomeCliente(t.cid),tipoInfo(t.tipo).lbl,t.resp,t.prazo,ST_LBL[t.status]||t.status])},
+    {nome:'tarefas',cols:['titulo','cliente','tipo','responsavel','prazo','status','concluida_em','cumprimento_prazo','dias_de_atraso'],
+     linhas:(DB.tarefas||[]).map(t=>{
+       const ci=conclusaoInfo(t);
+       return [t.titulo,nomeCliente(t.cid),tipoInfo(t.tipo).lbl,t.resp,t.prazo,ST_LBL[t.status]||t.status,
+         ci?ci.data:'',ci?CONC_CAT_LBL[ci.cat]:'',ci&&ci.dias!==null?ci.dias:''];
+     })},
     {nome:'leads',cols:['area_do_funil','nome','telefone','etapa','responsavel','origem','valor_estimado','probabilidade','proposta_enviada','motivo_perda','criado_em','convertido'],
      linhas:[['leads',DB.leads||[]],['leadsCivel',DB.leadsCivel||[]]].flatMap(([mod,lista])=>lista.map(l=>
        [mod==='leadsCivel'?'civel':'trabalhista',l.nome,l.tel,l.statusCRM||l.statusLabel,l.responsavel,l.categoriaOrigem,
