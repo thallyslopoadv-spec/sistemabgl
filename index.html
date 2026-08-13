@@ -762,6 +762,116 @@ button:active{transform:scale(.985)}
 .mt-conc-hint.atraso{color:var(--red-hi);font-weight:600}
 .mt-conc-hint.antes{color:var(--green-hi);font-weight:600}
 
+/* ─── PAINEL: PROJETOS EM ANDAMENTO (ROTINA) ───
+   Painel fechado por padrão. Abre em grupos por tipo de tarefa (Iniciais,
+   Petições…) e, dentro de cada grupo, os cards de projeto com a barra de
+   carregamento — o percentual vem das etapas marcadas em cada projeto. */
+.proj-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);margin-top:20px;overflow:hidden}
+.proj-panel-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;flex-wrap:wrap}
+.proj-panel-head:hover{background:var(--surface2)}
+.proj-panel-head h3{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin:0}
+.proj-panel-head .chev{font-size:16px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.proj-panel-head .ct{font-size:12px;color:var(--t3);background:var(--surface2);padding:3px 10px;border-radius:20px}
+.proj-panel-head .sub{font-size:12px;color:var(--t3);margin-left:auto}
+.proj-panel.recolhida .proj-panel-head{border-bottom:none}
+.proj-panel.recolhida .proj-panel-head .chev{transform:rotate(-90deg)}
+.proj-panel.recolhida .proj-panel-corpo{display:none}
+.proj-panel-corpo{padding:8px 0}
+
+/* grupo (tipo de tarefa) */
+.proj-grupo{border-bottom:1px solid var(--border)}
+.proj-grupo:last-child{border-bottom:none}
+.proj-grupo-head{display:flex;align-items:center;gap:10px;padding:12px 18px;cursor:pointer;user-select:none;flex-wrap:wrap}
+.proj-grupo-head:hover{background:var(--surface2)}
+.proj-grupo-head .chev{font-size:15px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.proj-grupo.recolhida .proj-grupo-head .chev{transform:rotate(-90deg)}
+.proj-grupo.recolhida .proj-grupo-corpo{display:none}
+.proj-grupo-nome{font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);padding-left:9px;border-left:3px solid var(--navy-soft)}
+.proj-grupo-head .ct{font-size:11.5px;color:var(--t3);background:var(--surface2);padding:3px 10px;border-radius:20px}
+.proj-grupo-media{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3)}
+.proj-grupo-mini{width:74px;height:6px;border-radius:6px;background:var(--surface3);overflow:hidden}
+.proj-grupo-mini i{display:block;height:100%;background:var(--navy-soft);border-radius:6px}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:4px 18px 18px;align-items:start}
+
+/* card do projeto */
+.proj-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;display:flex;flex-direction:column;transition:.14s}
+.proj-card:hover{border-color:var(--border-med)}
+.proj-card[data-atraso="1"]{border-color:rgba(178,59,59,.28)}
+.proj-body{padding:13px 14px;display:flex;flex-direction:column;gap:10px}
+.proj-titulo{font-size:14.5px;font-weight:600;color:var(--t);line-height:1.35}
+.proj-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.proj-resp{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--t2);min-width:0}
+.proj-resp .av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.proj-resp .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* barra de carregamento (blocos) — percentual real vindo das etapas */
+.proj-load{display:flex;align-items:center;gap:10px}
+.proj-load-track{flex:1;min-width:0;height:16px;border-radius:8px;background:var(--surface3);border:1px solid var(--border-med);padding:2px;display:flex;gap:2px}
+.proj-load-seg{flex:1;border-radius:2px;background:rgba(22,36,61,.07)}
+.proj-load-seg.on{background:linear-gradient(180deg,var(--navy-soft),var(--navy))}
+.proj-load-seg.frente{animation:projPulso 1.5s ease-in-out infinite}
+.proj-card[data-pct="100"] .proj-load-seg.on{background:linear-gradient(180deg,#3a9a4f,var(--green))}
+@keyframes projPulso{0%,100%{opacity:1}50%{opacity:.35}}
+.proj-pct{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--navy);min-width:52px;text-align:right;line-height:1}
+.proj-card[data-pct="100"] .proj-pct{color:var(--green-hi)}
+.proj-load-sub{font-size:11.5px;color:var(--t3);margin-top:-4px}
+.proj-load-sub.pronto{color:var(--green-hi);font-weight:600}
+
+/* etapa atual em texto livre */
+.proj-status{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--navy-soft);border-radius:var(--rs);padding:9px 11px}
+.proj-status.clicavel{cursor:pointer;transition:.14s}
+.proj-status.clicavel:hover{border-color:var(--border-med);border-left-color:var(--navy)}
+.proj-status-lbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.proj-status-lbl .ti{font-size:12px}
+.proj-status-txt{font-size:13.5px;font-weight:600;color:var(--t);line-height:1.4;word-break:break-word}
+.proj-status-txt.vazio{font-weight:500;font-style:italic;color:var(--t3)}
+.proj-input{width:100%;font-size:13px;padding:9px 10px;border-radius:8px;border:1px solid var(--border-hi);background:var(--surface);color:var(--t);font-family:inherit}
+.proj-input:focus{outline:none;border-color:var(--navy-soft)}
+.proj-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.proj-sug button{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;border:1px dashed var(--border-hi);background:transparent;color:var(--t3);cursor:pointer;transition:.14s;text-align:left}
+.proj-sug button:hover{color:var(--navy);border-color:var(--navy-soft)}
+.proj-edit-btns{display:flex;gap:8px;margin-top:9px}
+.proj-btn{font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1px solid transparent;background:var(--navy);color:var(--cream);cursor:pointer;transition:.15s}
+.proj-btn:hover{background:var(--navy-soft)}
+.proj-btn.sec{background:transparent;color:var(--t3);border-color:var(--border-hi)}
+.proj-btn.sec:hover{color:var(--navy);background:var(--surface3)}
+
+/* etapas do projeto (o que alimenta o percentual) */
+.proj-etapas{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px}
+.proj-etapas-lbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.proj-etapa{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.proj-etapa:last-of-type{border-bottom:none}
+.proj-etapa-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border-hi);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:11px;color:transparent;transition:.14s}
+.proj-etapa-check:hover{border-color:var(--navy-soft)}
+.proj-etapa.feita .proj-etapa-check{background:var(--green);border-color:var(--green);color:#fff}
+.proj-etapa-nome{flex:1;min-width:0;font-size:12.5px;color:var(--t2);line-height:1.35;cursor:pointer}
+.proj-etapa.feita .proj-etapa-nome{text-decoration:line-through;color:var(--t3)}
+.proj-etapa-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:6px;opacity:.55}
+.proj-etapa-del:hover{color:var(--red-hi);opacity:1;background:var(--red-bg)}
+.proj-etapa-nova{display:flex;gap:6px;margin-top:8px}
+.proj-etapa-nova .proj-input{font-size:12.5px;padding:7px 9px}
+.proj-etapa-add{flex-shrink:0;font-size:12px;font-weight:600;padding:0 12px;border-radius:8px;border:1px dashed var(--border-hi);background:transparent;color:var(--t3);cursor:pointer}
+.proj-etapa-add:hover{color:var(--navy);border-color:var(--navy-soft)}
+.proj-etapas-vazio{font-size:12px;color:var(--t3);font-style:italic;line-height:1.5}
+.proj-modelo{margin-top:7px;font-size:11.5px;font-weight:600;color:var(--navy);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
+
+.proj-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--border);padding-top:9px}
+.proj-atualizado{font-size:11.5px;color:var(--t3);display:inline-flex;align-items:center;gap:5px;min-width:0}
+.proj-acoes{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.proj-vazio{padding:26px 18px;text-align:center;font-size:13px;color:var(--t3);line-height:1.6}
+.proj-card.destaque{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,50,82,.14)}
+/* selo nas tarefas da Rotina: avisa que aquela rotina é um projeto acompanhado */
+.task-proj{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  padding:2px 9px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:.14s;
+  background:var(--blue-bg);color:var(--blue-hi);border:1px solid rgba(47,93,148,.28)}
+.task-proj:hover{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.task-proj .ti{font-size:12px}
+.task-proj[data-alerta="1"]{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.34)}
+.task-proj[data-alerta="1"]:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+.task-proj[data-pronto="1"]{background:var(--green-bg);color:var(--green-hi);border-color:rgba(47,125,63,.28)}
+.task-proj[data-pronto="1"]:hover{background:var(--green);color:#fff;border-color:var(--green)}
+@media (prefers-reduced-motion:reduce){.proj-load-seg.frente{animation:none}}
+
 /* ─── PAINEL: CUMPRIMENTO DE PRAZOS (ROTINA) ─── */
 .desemp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 .desemp-box{padding:14px 16px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2)}
@@ -832,6 +942,11 @@ button:active{transform:scale(.985)}
 
   .rotina-board{grid-template-columns:1fr}
   .comercial-board{grid-template-columns:1fr}
+  .proj-grid{grid-template-columns:1fr;padding:4px 12px 14px;gap:12px}
+  .proj-panel-head{padding:13px 14px}
+  .proj-panel-head .sub{margin-left:0;width:100%}
+  .proj-grupo-head{padding:11px 14px}
+  .proj-grupo-media{margin-left:0;width:100%}
 
   .fg-row{grid-template-columns:1fr}
   .jr-followup-row{grid-template-columns:1fr}
@@ -1596,6 +1711,7 @@ button:active{transform:scale(.985)}
         <h1>Rotina do Escritório</h1>
         <p>Tarefas por sócio · status e prazos</p>
       </div>
+
       <div class="stats-row" id="rotina-stats"></div>
       <div class="rotina-chips">
         <button class="chip active" data-f="todos" onclick="filtroRotina('todos',this)">Todas</button>
@@ -1622,6 +1738,10 @@ button:active{transform:scale(.985)}
           <div id="rotina-desempenho"></div>
         </div>
       </div>
+
+      <!-- projetos em andamento: puxa automaticamente as rotinas de elaboração
+           em aberto, agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
+      <div class="proj-panel recolhida" id="proj-panel"></div>
 
       <div class="chat-panel" style="margin-top:20px">
         <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
@@ -1840,17 +1960,17 @@ button:active{transform:scale(.985)}
 <div class="overlay" id="overlay-tarefa">
   <div class="modal">
     <h3 id="mt-titulo">Nova tarefa</h3>
-    <div class="fg"><label>Descrição da tarefa</label><input type="text" id="mt-titulo-in" placeholder="Ex.: Elaborar petição inicial"></div>
+    <div class="fg"><label>Descrição da tarefa</label><input type="text" id="mt-titulo-in" placeholder="Ex.: Elaborar petição inicial" oninput="mtRecalcProjetoAuto()"></div>
     <div class="fg" id="mt-desc-wrap" style="display:none">
       <label>Detalhes / roteiro sugerido</label>
       <textarea id="mt-desc" readonly style="background:var(--surface2);color:var(--t2)"></textarea>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Responsável</label>
-        <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Escritório</option></select>
+        <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
       </div>
       <div class="fg"><label>Tipo</label>
-        <select id="mt-tipo"></select>
+        <select id="mt-tipo" onchange="mtRecalcProjetoAuto()"></select>
       </div>
     </div>
     <div class="fg-row">
@@ -1870,6 +1990,19 @@ button:active{transform:scale(.985)}
       <label>Concluída em</label>
       <input type="date" id="mt-conc" onchange="mtAtualizarHintConclusao()">
       <div class="mt-conc-hint" id="mt-conc-hint"></div>
+    </div>
+    <!-- acompanhamento em "Projetos em andamento" (painel do topo da Rotina) -->
+    <div class="fg">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="mt-proj" onchange="mtAlternarProjeto()" style="width:auto;margin:0">
+        Acompanhar em “Projetos em andamento”
+      </label>
+      <div class="mt-conc-hint" id="mt-proj-hint"></div>
+    </div>
+    <div class="fg" id="mt-status-wrap" style="display:none">
+      <label>Etapa atual da execução</label>
+      <input type="text" id="mt-status" placeholder="Ex.: COM THALLYS — elaboração dos tópicos de direito">
+      <div class="mt-conc-hint" id="mt-status-hint"></div>
     </div>
     <div class="modal-btns">
       <button class="btn-del" id="mt-del" onclick="excluirTarefa()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
@@ -3165,7 +3298,15 @@ function fecharOverlay(id){document.getElementById(id).classList.remove('open')}
 function abrirOverlay(id){document.getElementById(id).classList.add('open')}
 
 // ─── TAREFAS / ROTINA ─────────────────────────────────────
-const RESP=['Cecília','Thallys','Escritório'];
+// "Cecília e Thallys" é usado quando a execução é conjunta (projetos a quatro mãos).
+// RESP_CONTEUDO mantém o comercial exatamente como era: pauta de conteúdo continua
+// tendo um único dono.
+const RESP_DUPLA='Cecília e Thallys';
+const RESP=['Cecília','Thallys',RESP_DUPLA,'Escritório'];
+const RESP_CONTEUDO=['Cecília','Thallys','Escritório'];
+// cor e sigla do avatar de um responsável (o do escritório tem ícone próprio)
+function corResp(r){return r==='Escritório'?['#e6eaf2','#16243d']:r===RESP_DUPLA?['#efe6f3','#5c3f7e']:corDe(r)}
+function avatarResp(r){return r==='Escritório'?'<i class="ti ti-building"></i>':r===RESP_DUPLA?'C+T':iniciais(r)}
 // tipos de tarefa agora vivem em DB.tiposTarefa (editável em Configurações)
 function tiposTarefa(){return DB.tiposTarefa&&DB.tiposTarefa.length?DB.tiposTarefa:SEED_TIPOS_TAREFA}
 function tipoInfo(key){return tiposTarefa().find(x=>x.key===key)||{key,lbl:key||'—',cor:'#828b9c'}}
@@ -4763,6 +4904,7 @@ function taskCard(t){
       <span class="task-tipo">${tipoInfo(t.tipo).lbl}</span>
       ${cli?`<span class="task-cli" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:''}
       ${leadChip}
+      ${seloProjeto(t)}
       <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
     </div>
     <div class="task-foot">
@@ -4784,11 +4926,12 @@ function renderRotina(){
     <div class="stat-card" data-c="green"><div class="stat-label">Concluídas</div><div class="stat-val">${conc}</div></div>
     <div class="stat-card" data-c="red"><div class="stat-label">Atrasadas</div><div class="stat-val">${atras}</div></div>`;
   renderChatGeral();
+  renderProjetos();
   renderDesempenhoRotina();
   const board=document.getElementById('rotina-board');
   if(!board)return;
   board.innerHTML=RESP.map(r=>{
-    const av=r==='Escritório'?['#e6eaf2','#16243d']:corDe(r);
+    const av=corResp(r);
     let ts=atividades.filter(t=>t.resp===r);
     if(rotinaFiltro!=='todos')ts=ts.filter(t=>t.status===rotinaFiltro);
     // categorias (tipos de tarefa) presentes, para o filtro por coluna
@@ -4821,7 +4964,7 @@ function renderRotina(){
     return `<div class="rot-col ${colFechada?'recolhida':''}">
       <div class="rot-col-head clicavel" onclick="alternarBloco('${chaveCol}',false)" title="${colFechada?'Clique para abrir':'Clique para recolher'}">
         ${chevron()}
-        <div class="av" style="background:${av[0]};color:${av[1]}">${r==='Escritório'?'<i class="ti ti-building"></i>':iniciais(r)}</div>
+        <div class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</div>
         <span class="nm">${r}</span>
         <span class="ct">${abertas} aberta${abertas!==1?'s':''}</span>
       </div>
@@ -4847,6 +4990,331 @@ function renderRotina(){
     </div>`;
   }).join('');
 }
+// ═══════════════════════════════════════════════════════════
+//  PROJETOS EM ANDAMENTO (painel da aba Rotina)
+// ═══════════════════════════════════════════════════════════
+// Não existe uma lista separada de projetos: o painel lê as próprias tarefas da
+// Rotina. Entram as que estão em aberto e têm cara de trabalho de elaboração
+// (peça, inicial, prazo, regulamento, parecer…). Tarefa simples ou administrativa
+// fica de fora, e qualquer tarefa pode ser incluída/excluída à mão no modal.
+// O painel abre em grupos por tipo de tarefa (Iniciais, Petições…) e cada card
+// mostra o andamento em barra de carregamento — o percentual sai das etapas
+// cadastradas dentro do projeto (nada de número inventado).
+// Campos guardados na própria tarefa:
+//   projeto · statusExec · statusExecEm · statusExecPor · etapas[{id,nome,feita,feitaEm}]
+const TIPOS_PROJETO=['inicial','peticao','prazo'];
+const PALAVRAS_PROJETO=['contestacao','peticao','inicial','recurso','apelacao','agravo','embargo',
+  'memorial','alegacoes','replica','impugnacao','manifestacao','defesa','contrarrazoes','razoes',
+  'parecer','minuta','contrato','regulamento','estatuto','politica interna','compliance','projeto',
+  'tese','reclamatoria','habeas','mandado de seguranca','relatorio','laudo','elaborar','elaboracao','redigir'];
+// controle administrativo puro: nunca entra no painel, mesmo com tipo de projeto
+const PALAVRAS_NAO_PROJETO=['conferir recebimento','cobrar','cobranca','ligar para','telefonar',
+  'agendar','confirmar presenca','enviar boleto','emitir boleto','arquivar'];
+function semAcento(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+// tarefa com cara de projeto, pelo tipo ou pelo próprio título
+function ehProjetoAuto(t){
+  if(!t)return false;
+  if(t.tipo==='followup'||t.tipo==='lead')return false;
+  const tit=semAcento(t.titulo);
+  if(PALAVRAS_NAO_PROJETO.some(p=>tit.includes(p)))return false;
+  if(TIPOS_PROJETO.includes(t.tipo))return true;
+  return PALAVRAS_PROJETO.some(p=>tit.includes(p));
+}
+// t.projeto: true/false marcado à mão · ausente = decisão automática
+function projetoMarcado(t){return t&&t.projeto!==undefined?t.projeto===true:ehProjetoAuto(t)}
+function ehProjeto(t){return !!t&&t.status!=='concluido'&&projetoMarcado(t)}
+function projetosEmAndamento(){
+  const hoje=hojeISO();
+  return DB.tarefas.filter(ehProjeto).sort((a,b)=>{
+    const aAtr=!!(a.prazo&&a.prazo<hoje),bAtr=!!(b.prazo&&b.prazo<hoje);
+    if(aAtr!==bAtr)return aAtr?-1:1;                       // atrasados primeiro
+    const pa=a.prazo||'9999-99-99',pb=b.prazo||'9999-99-99';
+    if(pa!==pb)return pa<pb?-1:1;                          // depois, prazo mais próximo
+    return (b.statusExecEm||0)-(a.statusExecEm||0);        // e o que foi atualizado por último
+  });
+}
+
+// ─── ETAPAS E PERCENTUAL DE ANDAMENTO ────────────────────
+// O andamento é contado: etapas marcadas ÷ etapas cadastradas. Projeto sem
+// etapa nenhuma fica em 0% e pede o cadastro — nunca se inventa progresso.
+const ETAPAS_MODELO=['Levantamento de documentos','Estudo do caso e da tese',
+  'Elaboração dos tópicos de direito','Revisão','Protocolo / entrega'];
+function etapasDe(t){return Array.isArray(t.etapas)?t.etapas:[]}
+// null = ainda sem etapas cadastradas
+function pctProjeto(t){
+  const e=etapasDe(t);
+  if(!e.length)return null;
+  return Math.round(e.filter(x=>x.feita).length*100/e.length);
+}
+// carimba quem mexeu no projeto e quando (vale para etapa em texto e para as etapas)
+function carimbarProjeto(t){t.statusExecEm=Date.now();t.statusExecPor=EU?EU.nome:'';}
+// atalhos de etapa — o texto continua livre, isto só poupa digitação
+const STATUS_EXEC_SUGESTOES=[
+  'COM THALLYS — INÍCIO DO PROJETO',
+  'COM THALLYS — elaboração dos tópicos de direito',
+  'COM CECÍLIA — revisão da fundamentação',
+  'COM CECÍLIA E THALLYS — alinhamento da estratégia',
+  'AGUARDANDO DOCUMENTOS DO CLIENTE',
+  'EM REVISÃO',
+  'FINALIZAÇÃO',
+];
+function definirStatusExec(t,texto){
+  const novo=(texto||'').trim();
+  if(novo===(t.statusExec||'').trim())return false;
+  t.statusExec=novo;
+  carimbarProjeto(t);
+  return true;
+}
+function tempoRelativo(ts){
+  if(!ts)return '';
+  const dif=Date.now()-ts;
+  if(dif<0)return fmtDataHora(ts);
+  const min=Math.floor(dif/60000);
+  if(min<1)return 'agora há pouco';
+  if(min<60)return 'há '+min+' min';
+  const h=Math.floor(min/60);
+  if(h<24)return 'há '+h+'h';
+  const d=Math.floor(h/24);
+  if(d===1)return 'ontem';
+  if(d<30)return 'há '+d+' dias';
+  return fmtDataHora(ts);
+}
+
+let projEditando=null;    // id da tarefa com a etapa em texto aberta para edição
+let projFocoEtapa=null;   // id da tarefa cujo campo "nova etapa" deve receber o foco
+const PROJ_BLOCOS=10;     // blocos da barra de carregamento
+
+// barra estilo "loading": blocos acesos conforme o percentual real
+function barraCarregamento(pct){
+  const acesos=Math.round((pct||0)/100*PROJ_BLOCOS);
+  let segs='';
+  for(let i=0;i<PROJ_BLOCOS;i++){
+    const on=i<acesos;
+    const frente=on&&i===acesos-1&&pct<100;   // último bloco pulsa: trabalho em curso
+    segs+=`<span class="proj-load-seg${on?' on':''}${frente?' frente':''}"></span>`;
+  }
+  return `<div class="proj-load"><div class="proj-load-track">${segs}</div><span class="proj-pct">${pct||0}%</span></div>`;
+}
+function projCard(t){
+  const av=corResp(t.resp),cli=nomeCliente(t.cid),pi=prazoInfo(t);
+  const atrasado=!!(t.prazo&&t.prazo<hojeISO());
+  const editando=projEditando===t.id;
+  const status=(t.statusExec||'').trim();
+  const quando=t.statusExecEm?tempoRelativo(t.statusExecEm):'';
+  const porQuem=t.statusExecPor?' · por '+esc(t.statusExecPor):'';
+  const stCls=t.status==='andamento'?'st-andamento':'st-pendente';
+  const etapas=etapasDe(t);
+  const pct=pctProjeto(t);
+  const feitas=etapas.filter(e=>e.feita).length;
+  const subBarra=etapas.length
+    ? (pct===100
+        ? `<div class="proj-load-sub pronto">Todas as ${etapas.length} etapas concluídas — pronto para encerrar.</div>`
+        : `<div class="proj-load-sub">${feitas} de ${etapas.length} etapa${etapas.length!==1?'s':''} concluída${feitas!==1?'s':''}</div>`)
+    : '<div class="proj-load-sub">Sem etapas cadastradas — o andamento começa em 0%.</div>';
+  const blocoStatus=editando
+    ? `<div class="proj-status">
+         <div class="proj-status-lbl"><i class="ti ti-activity"></i>Etapa atual</div>
+         <input type="text" class="proj-input" id="proj-input-${t.id}" value="${esc(status)}"
+           placeholder="Ex.: COM THALLYS — elaboração dos tópicos de direito"
+           onkeydown="if(event.key==='Enter'){event.preventDefault();projSalvarStatus('${t.id}')}else if(event.key==='Escape')projCancelarStatus()">
+         <div class="proj-sug">${STATUS_EXEC_SUGESTOES.map((x,i)=>`<button type="button" onclick="projSugestao('${t.id}',${i})">${esc(x)}</button>`).join('')}</div>
+         <div class="proj-edit-btns">
+           <button class="proj-btn" onclick="projSalvarStatus('${t.id}')">Salvar etapa</button>
+           <button class="proj-btn sec" onclick="projCancelarStatus()">Cancelar</button>
+         </div>
+       </div>`
+    : `<div class="proj-status clicavel" onclick="projEditarStatus('${t.id}')" title="Clique para atualizar a etapa atual">
+         <div class="proj-status-lbl"><i class="ti ti-activity"></i>Etapa atual<i class="ti ti-pencil" style="margin-left:auto"></i></div>
+         <div class="proj-status-txt ${status?'':'vazio'}">${status?esc(status):'Sem etapa informada — clique para escrever em que ponto está.'}</div>
+       </div>`;
+  const listaEtapas=etapas.length
+    ? etapas.map(e=>`<div class="proj-etapa ${e.feita?'feita':''}">
+         <span class="proj-etapa-check" onclick="projToggleEtapa('${t.id}','${e.id}')" title="${e.feita?'Desmarcar':'Marcar como concluída'}"><i class="ti ti-check"></i></span>
+         <span class="proj-etapa-nome" onclick="projToggleEtapa('${t.id}','${e.id}')"${e.feitaEm?` title="Concluída em ${esc(fmtDataHora(e.feitaEm))}"`:''}>${esc(e.nome)}</span>
+         <button class="proj-etapa-del" onclick="projExcluirEtapa('${t.id}','${e.id}')" title="Excluir etapa"><i class="ti ti-x"></i></button>
+       </div>`).join('')
+    : `<div class="proj-etapas-vazio">Cadastre as etapas deste projeto para acompanhar o andamento.</div>
+       <button class="proj-modelo" onclick="projEtapasModelo('${t.id}')">usar etapas padrão de uma peça</button>`;
+  return `<div class="proj-card" id="proj-card-${t.id}" data-atraso="${atrasado?1:0}" data-pct="${pct===null?0:pct}">
+    <div class="proj-body">
+      <div class="proj-titulo">${esc(t.titulo)}</div>
+      <div class="proj-meta">
+        ${cli?`<span class="task-cli" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:''}
+        <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
+      </div>
+      <div class="proj-resp" title="Responsável">
+        <div class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(t.resp)}</div>
+        <span class="nm">${esc(t.resp||'—')}</span>
+      </div>
+      ${barraCarregamento(pct)}
+      ${subBarra}
+      ${blocoStatus}
+      <div class="proj-etapas">
+        <div class="proj-etapas-lbl"><i class="ti ti-list-check"></i>Etapas do projeto</div>
+        ${listaEtapas}
+        <div class="proj-etapa-nova">
+          <input type="text" class="proj-input" id="proj-etapa-${t.id}" placeholder="Nova etapa…"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();projAdicionarEtapa('${t.id}')}">
+          <button class="proj-etapa-add" onclick="projAdicionarEtapa('${t.id}')">Incluir</button>
+        </div>
+      </div>
+      <div class="proj-foot">
+        <span class="proj-atualizado"><i class="ti ti-clock"></i>${quando?'Atualizado '+esc(quando)+porQuem:'Ainda sem atualização'}</span>
+        <span class="proj-acoes">
+          <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status (ao concluir, sai do painel)">${ST_LBL[t.status]}</span>
+          <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar rotina"><i class="ti ti-pencil"></i></button>
+        </span>
+      </div>
+    </div>
+  </div>`;
+}
+// ─── SELO NAS ROTINAS ────────────────────────────────────
+// Nas colunas da Rotina, a tarefa que é projeto ganha um selo com o andamento.
+// Em âmbar quando falta alimentar (sem etapas cadastradas ou parada há mais de
+// uma semana), para o acompanhamento não passar em branco.
+const PROJ_DIAS_PARADO=7;
+function projetoParado(t){
+  return !t.statusExecEm||(Date.now()-t.statusExecEm)>PROJ_DIAS_PARADO*86400000;
+}
+function seloProjeto(t){
+  if(!ehProjeto(t))return '';
+  const pct=pctProjeto(t);
+  const parado=projetoParado(t);
+  const alerta=(pct===null||parado)?1:0;
+  const pronto=pct===100?1:0;
+  const txt=pct===null?'Projeto · sem etapas':'Projeto '+pct+'%';
+  const dica=[
+    pct===null?'Este projeto ainda não tem etapas cadastradas.':'Andamento: '+pct+'% das etapas concluídas.',
+    (t.statusExec||'').trim()?'Etapa atual: '+t.statusExec:'Sem etapa atual informada.',
+    t.statusExecEm?'Última atualização '+tempoRelativo(t.statusExecEm)+(t.statusExecPor?' por '+t.statusExecPor:''):'Ainda sem atualização.',
+    'Clique para abrir em Projetos em andamento.'
+  ].join('\n');
+  return `<span class="task-proj" data-alerta="${alerta}" data-pronto="${pronto}" onclick="event.stopPropagation();irParaProjeto('${t.id}')" title="${esc(dica)}"><i class="ti ti-${alerta?'alert-circle':'rocket'}"></i>${esc(txt)}</span>`;
+}
+// abre o painel no grupo certo e rola até o card do projeto
+function irParaProjeto(id){
+  const t=DB.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  navegarPara('rotina');
+  blocosRecolhidos['projetos:painel']=false;
+  blocosRecolhidos['projetos:tipo:'+(t.tipo||'outro')]=false;
+  try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
+  renderProjetos();
+  setTimeout(()=>{
+    const card=document.getElementById('proj-card-'+id);
+    if(!card)return;
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    card.classList.add('destaque');
+    setTimeout(()=>card.classList.remove('destaque'),1800);
+  },80);
+}
+function renderProjetos(){
+  const el=document.getElementById('proj-panel');
+  if(!el)return;
+  const lista=projetosEmAndamento();
+  if(projEditando&&!lista.some(t=>t.id===projEditando))projEditando=null;
+  const fechado=blocoRecolhido('projetos:painel',true);
+  // agrupa por tipo de tarefa: Iniciais, Petições, Prazos…
+  const grupos={};
+  lista.forEach(t=>{const k=t.tipo||'outro';(grupos[k]=grupos[k]||[]).push(t)});
+  const chaves=Object.keys(grupos).sort((a,b)=>tipoInfo(a).lbl.localeCompare(tipoInfo(b).lbl,'pt-BR'));
+  const pctsGeral=lista.map(pctProjeto).filter(p=>p!==null);
+  const mediaGeral=pctsGeral.length?Math.round(pctsGeral.reduce((a,b)=>a+b,0)/pctsGeral.length):null;
+  const corpo=lista.length?chaves.map(k=>{
+    const ts=grupos[k],info=tipoInfo(k);
+    const chave='projetos:tipo:'+k;
+    const gf=blocoRecolhido(chave,true);
+    const pcts=ts.map(pctProjeto).filter(p=>p!==null);
+    const media=pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):null;
+    return `<div class="proj-grupo ${gf?'recolhida':''}">
+      <div class="proj-grupo-head" onclick="alternarBloco('${chave}',true)" title="${gf?'Clique para ver os projetos':'Clique para recolher'}">
+        ${chevron()}
+        <span class="proj-grupo-nome" style="border-left-color:${info.cor}">${esc(info.lbl)}</span>
+        <span class="ct">${ts.length} projeto${ts.length!==1?'s':''}</span>
+        ${media!==null?`<span class="proj-grupo-media"><span class="proj-grupo-mini"><i style="width:${media}%"></i></span>${media}% em média</span>`:''}
+      </div>
+      <div class="proj-grupo-corpo"><div class="proj-grid">${ts.map(projCard).join('')}</div></div>
+    </div>`;
+  }).join('')
+  :`<div class="proj-vazio">Nenhum projeto em execução no momento.<br>
+     As rotinas de elaboração em aberto (peças, iniciais, regulamentos, pareceres…) aparecem aqui automaticamente.</div>`;
+  el.className='proj-panel'+(fechado?' recolhida':'');
+  el.innerHTML=`
+    <div class="proj-panel-head" onclick="alternarBloco('projetos:painel',true)" title="${fechado?'Clique para abrir':'Clique para recolher'}">
+      ${chevron()}
+      <h3>Projetos em andamento</h3>
+      <span class="ct">${lista.length} projeto${lista.length!==1?'s':''}</span>
+      <span class="sub">${lista.length?(mediaGeral!==null?'andamento médio '+mediaGeral+'% · agrupados por tipo':'agrupados por tipo · cadastre as etapas para medir o andamento'):'nada em execução'}</span>
+    </div>
+    <div class="proj-panel-corpo">${corpo}</div>`;
+  // devolve o foco para onde o usuário estava digitando
+  const foco=projEditando?document.getElementById('proj-input-'+projEditando)
+            :projFocoEtapa?document.getElementById('proj-etapa-'+projFocoEtapa):null;
+  if(foco){foco.focus();foco.setSelectionRange(foco.value.length,foco.value.length);}
+  projFocoEtapa=null;
+}
+function projEditarStatus(id){projEditando=id;renderProjetos();}
+function projCancelarStatus(){projEditando=null;renderProjetos();}
+function projSugestao(id,i){
+  const inp=document.getElementById('proj-input-'+id);
+  if(!inp)return;
+  inp.value=STATUS_EXEC_SUGESTOES[i];
+  inp.focus();
+}
+function projSalvarStatus(id){
+  const t=DB.tarefas.find(x=>x.id===id);
+  const inp=document.getElementById('proj-input-'+id);
+  if(!t||!inp)return;
+  const mudou=definirStatusExec(t,inp.value);
+  projEditando=null;
+  if(mudou){salvarDB();refreshUI();}
+  else renderProjetos();
+}
+// ─── etapas do projeto ───
+function projAdicionarEtapa(id){
+  const t=DB.tarefas.find(x=>x.id===id);
+  const inp=document.getElementById('proj-etapa-'+id);
+  if(!t||!inp)return;
+  const nome=inp.value.trim();
+  if(!nome)return;
+  if(!Array.isArray(t.etapas))t.etapas=[];
+  t.etapas.push({id:uid(),nome,feita:false,feitaEm:''});
+  carimbarProjeto(t);
+  inp.value='';
+  projFocoEtapa=id;   // segue no campo, para cadastrar as etapas em sequência
+  salvarDB();refreshUI();
+}
+function projEtapasModelo(id){
+  const t=DB.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  if(!Array.isArray(t.etapas))t.etapas=[];
+  ETAPAS_MODELO.forEach(nome=>{
+    if(!t.etapas.some(e=>e.nome===nome))t.etapas.push({id:uid(),nome,feita:false,feitaEm:''});
+  });
+  carimbarProjeto(t);
+  salvarDB();refreshUI();
+}
+function projToggleEtapa(id,eid){
+  const t=DB.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  const e=etapasDe(t).find(x=>x.id===eid);
+  if(!e)return;
+  e.feita=!e.feita;
+  e.feitaEm=e.feita?Date.now():'';
+  carimbarProjeto(t);
+  salvarDB();refreshUI();
+}
+function projExcluirEtapa(id,eid){
+  const t=DB.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  const e=etapasDe(t).find(x=>x.id===eid);
+  if(!e)return;
+  if(!confirm('Excluir a etapa "'+e.nome+'"?'))return;
+  t.etapas=etapasDe(t).filter(x=>x.id!==eid);
+  carimbarProjeto(t);
+  salvarDB();refreshUI();
+}
+
 // ─── PAINEL: CUMPRIMENTO DE PRAZOS ───────────────────────
 // Responde, olhando as tarefas concluídas: quantas saíram em atraso,
 // quantos dias de atraso, quantas ficaram no prazo e quantas antes.
@@ -4953,7 +5421,7 @@ function cicloTarefa(id){
 }
 
 // ─── MODAL: TAREFA ────────────────────────────────────────
-let mtCtx={id:null,status:'pendente'};
+let mtCtx={id:null,status:'pendente',projTocado:false};
 // naoPreencher: ao abrir uma tarefa já concluída não inventamos data —
 // se ela veio sem registro, o campo fica vazio para o usuário informar
 function mtStatus(s,naoPreencher){
@@ -4983,8 +5451,38 @@ function mtAtualizarHintConclusao(){
   else if(dias===0){el.classList.add('antes');el.textContent='Concluída no próprio dia do prazo.';}
   else{el.classList.add('antes');el.textContent='Concluída '+plural(-dias,' antes do prazo')+' (prazo em '+fmtData(prazo)+').';}
 }
+// ── acompanhamento em "Projetos em andamento" (dentro do modal de tarefa) ──
+// A marcação é automática pelo tipo/título; enquanto o usuário não mexer na
+// caixinha, ela acompanha essa decisão. Se ele mexer, a escolha dele manda.
+function mtAlternarProjeto(){
+  mtCtx.projTocado=true;
+  mtAplicarProjetoUI();
+}
+function mtAplicarProjetoUI(){
+  const cb=document.getElementById('mt-proj');
+  if(!cb)return;
+  document.getElementById('mt-status-wrap').style.display=cb.checked?'block':'none';
+  const hint=document.getElementById('mt-proj-hint');
+  if(hint)hint.textContent=cb.checked
+    ?'Aparece no painel “Projetos em andamento” enquanto não estiver concluída.'
+    :'Fica fora do painel de projetos.';
+}
+function mtRecalcProjetoAuto(){
+  if(mtCtx.projTocado)return;
+  const cb=document.getElementById('mt-proj');
+  if(!cb)return;
+  cb.checked=ehProjetoAuto({titulo:document.getElementById('mt-titulo-in').value,tipo:document.getElementById('mt-tipo').value});
+  mtAplicarProjetoUI();
+}
+// guarda a marcação só quando ela diverge da automática — assim o campo
+// continua se ajustando sozinho nos casos comuns
+function aplicarProjetoTarefa(t,marcado,tocado){
+  if(!tocado)return;
+  if(marcado===ehProjetoAuto(t))delete t.projeto;
+  else t.projeto=marcado;
+}
 function abrirModalTarefa(id,respOuCid){
-  mtCtx={id,status:'pendente'};
+  mtCtx={id,status:'pendente',projTocado:false};
   const selCli=document.getElementById('mt-cli');
   selCli.innerHTML='<option value="">— sem cliente —</option>'+ordenarPorNome(DB.clientes).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
   const selTipo=document.getElementById('mt-tipo');
@@ -5002,6 +5500,12 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-del').style.display='inline-flex';
     document.getElementById('mt-desc-wrap').style.display=t.descricao?'block':'none';
     document.getElementById('mt-desc').value=t.descricao||'';
+    document.getElementById('mt-proj').checked=projetoMarcado(t);
+    document.getElementById('mt-status').value=t.statusExec||'';
+    document.getElementById('mt-status-hint').textContent=t.statusExecEm
+      ?'Última atualização '+tempoRelativo(t.statusExecEm)+(t.statusExecPor?' · por '+t.statusExecPor:'')
+      :'A data/hora é registrada automaticamente a cada mudança de etapa.';
+    mtAplicarProjetoUI();
   }else{
     document.getElementById('mt-titulo').textContent='Nova tarefa';
     document.getElementById('mt-titulo-in').value='';
@@ -5016,6 +5520,10 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-del').style.display='none';
     document.getElementById('mt-desc-wrap').style.display='none';
     document.getElementById('mt-desc').value='';
+    document.getElementById('mt-proj').checked=false;
+    document.getElementById('mt-status').value='';
+    document.getElementById('mt-status-hint').textContent='A data/hora é registrada automaticamente a cada mudança de etapa.';
+    mtRecalcProjetoAuto();
   }
   abrirOverlay('overlay-tarefa');
   setTimeout(()=>document.getElementById('mt-titulo-in').focus(),100);
@@ -5032,12 +5540,17 @@ function salvarTarefa(){
   };
   // concluída: vale a data informada no modal; em qualquer outro status a data sai
   const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
+  let t;
   if(mtCtx.id){
-    const t=DB.tarefas.find(x=>x.id===mtCtx.id);
+    t=DB.tarefas.find(x=>x.id===mtCtx.id);
     Object.assign(t,dados);
     aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
   }
-  else{DB.tarefas.push({id:uid(),...dados,status:mtCtx.status,concluidoEm});}
+  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};DB.tarefas.push(t);}
+  // acompanhamento de projeto + etapa atual (o carimbo de data/hora é automático)
+  const marcado=document.getElementById('mt-proj').checked;
+  aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);
+  if(marcado)definirStatusExec(t,document.getElementById('mt-status').value);
   salvarDB();fecharOverlay('overlay-tarefa');refreshUI();
 }
 function excluirTarefa(){
@@ -5187,8 +5700,8 @@ function renderComercialRotina(){
   const pend=(DB.conteudos||[]).filter(c=>c.status!=='publicado');
   const ordem={ideia:0,roteiro:1,producao:2};
   const hoje=hojeISO();   // fora do comparador: era recalculado a cada comparação
-  board.innerHTML=RESP.map(r=>{
-    const av=r==='Escritório'?['#e6eaf2','#16243d']:corDe(r);
+  board.innerHTML=RESP_CONTEUDO.map(r=>{
+    const av=corResp(r);
     const itens=pend.filter(c=>(c.resp||'Escritório')===r).sort((a,b)=>{
       const aAtr=a.dataPrevista&&a.dataPrevista<hoje, bAtr=b.dataPrevista&&b.dataPrevista<hoje;
       if(aAtr!==bAtr)return aAtr?-1:1; // atrasadas primeiro
@@ -5200,7 +5713,7 @@ function renderComercialRotina(){
     return `<div class="rot-col ${fechada?'recolhida':''}">
       <div class="rot-col-head clicavel" onclick="alternarBloco('${chave}',false)" title="${fechada?'Clique para abrir':'Clique para recolher'}">
         ${chevron()}
-        <div class="av" style="background:${av[0]};color:${av[1]}">${r==='Escritório'?'<i class="ti ti-building"></i>':iniciais(r)}</div>
+        <div class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</div>
         <span class="nm">${r}</span>
         <span class="ct">${itens.length} pauta${itens.length!==1?'s':''}</span>
       </div>
@@ -5428,6 +5941,7 @@ function detalheClienteHTML(c){
     return `<div class="pend-row ${t.status==='concluido'?'done':''}">
       <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status">${ST_LBL[t.status]}</span>
       <span class="pend-titulo">${esc(t.titulo)}</span>
+      ${seloProjeto(t)}
       <span class="resp-chip">${esc(t.resp)}</span>
       <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
       <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>
@@ -5752,7 +6266,8 @@ function sincronizarTarefaConferencia(c,f){
     existente.titulo=titulo;
     existente.prazo=f.dataPrevistaRecebimento;
   }else{
-    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:'Escritório',status:'pendente',prazo:f.dataPrevistaRecebimento};
+    // conferência de recebimento é controle administrativo: não é projeto
+    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:'Escritório',status:'pendente',prazo:f.dataPrevistaRecebimento,projeto:false};
     DB.tarefas.push(nova);
     f.tarefaConferenciaId=nova.id;
   }
@@ -7714,10 +8229,11 @@ function gerarRelatorioHTML(){
 
   // ── rotina ──
   S.push('<h2>Rotina — tarefas</h2>');
-  S.push(relTabela(['Tarefa','Cliente','Tipo','Responsável','Prazo','Status','Concluída em','Cumprimento do prazo'],
+  S.push(relTabela(['Tarefa','Cliente','Tipo','Responsável','Etapa atual','Prazo','Status','Concluída em','Cumprimento do prazo'],
     DB.tarefas.map(x=>{
       const ci=conclusaoInfo(x);
       return [esc(x.titulo||''),esc(nomeCliente(x.cid)||''),esc(tipoInfo(x.tipo).lbl),esc(x.resp||''),
+        esc(x.statusExec||''),
         esc(x.prazo?fmtData(x.prazo):''),esc(ST_LBL[x.status]||x.status||''),
         esc(ci&&ci.data?fmtData(ci.data):''),esc(ci?CONC_CAT_LBL[ci.cat]+(ci.cat==='atrasada'?' ('+plural(ci.dias,'')+')':ci.cat==='antecipada'?' ('+plural(-ci.dias,'')+')':''):'')];
     })));
@@ -7820,10 +8336,11 @@ function planilhasBackup(){
        f.dependeTerceiro?'sim':'',f.aceiteVerbal?'sim':'',f.dataPrevistaRecebimento||'']))},
     {nome:'processos',cols:['numero','cliente','polo','ativo','passivo','distribuicao','status','exito','resultado','tese'],
      linhas:(DB.processos||[]).map(p=>[p.num,nomeCliente(p.cid),p.polo==='a'?'autor':'reu',p.ativo,p.passivo,p.dist,p.status,p.exito,p.resultado,p.teseTitulo])},
-    {nome:'tarefas',cols:['titulo','cliente','tipo','responsavel','prazo','status','concluida_em','cumprimento_prazo','dias_de_atraso'],
+    {nome:'tarefas',cols:['titulo','cliente','tipo','responsavel','prazo','status','etapa_atual','etapa_atualizada_em','concluida_em','cumprimento_prazo','dias_de_atraso'],
      linhas:(DB.tarefas||[]).map(t=>{
        const ci=conclusaoInfo(t);
        return [t.titulo,nomeCliente(t.cid),tipoInfo(t.tipo).lbl,t.resp,t.prazo,ST_LBL[t.status]||t.status,
+         t.statusExec||'',t.statusExecEm?new Date(t.statusExecEm).toLocaleString('pt-BR'):'',
          ci?ci.data:'',ci?CONC_CAT_LBL[ci.cat]:'',ci&&ci.dias!==null?ci.dias:''];
      })},
     {nome:'leads',cols:['area_do_funil','nome','telefone','etapa','responsavel','origem','valor_estimado','probabilidade','proposta_enviada','motivo_perda','criado_em','convertido'],
