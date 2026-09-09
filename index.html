@@ -980,6 +980,106 @@ button:active{transform:scale(.985)}
   .fin-totais{grid-template-columns:1fr}
   .caixa-trend-item{flex:1 1 100%}
 }
+/* ─── AGENDA DE AUDIÊNCIAS (visão geral) ───
+   Calendário do mês com as audiências marcadas na Rotina (tarefas do tipo
+   "audiência"). Substituiu o antigo resumo "Rotina de hoje", que misturava
+   audiência com qualquer outra pendência e não mostrava horário. */
+.agenda-wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(240px,1fr);gap:22px;padding:18px 22px 20px}
+.agenda-nav{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.agenda-mes{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--navy);flex:1;min-width:0}
+.agenda-mes::first-letter{text-transform:uppercase}
+.agenda-btn{width:30px;height:30px;flex-shrink:0;border-radius:50%;border:1px solid var(--border-med);background:var(--surface);color:var(--navy);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.14s;font-size:15px}
+.agenda-btn:hover{background:var(--cream);border-color:var(--navy-soft)}
+.agenda-hoje{font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);color:var(--navy);cursor:pointer;transition:.14s;flex-shrink:0}
+.agenda-hoje:hover{background:var(--cream);border-color:var(--navy-soft)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);text-align:center;padding-bottom:3px}
+.cal-day{position:relative;min-height:76px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);padding:5px 6px;cursor:pointer;transition:.14s;display:flex;flex-direction:column;gap:3px;overflow:hidden;text-align:left;font-family:var(--font-sans)}
+.cal-day:hover{border-color:var(--navy-soft);background:var(--cream)}
+.cal-day.vazio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.cal-day.fds{background:rgba(22,36,61,.04)}
+.cal-num{font-size:12px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums;line-height:1}
+.cal-day.temev{background:var(--green-bg);border-color:rgba(47,125,63,.32)}
+.cal-day.atras{background:var(--red-bg);border-color:rgba(178,59,59,.32)}
+.cal-day.hoje{box-shadow:inset 0 0 0 2px var(--navy)}
+.cal-day.hoje .cal-num{color:var(--navy)}
+.cal-day.sel{background:var(--navy);border-color:var(--navy)}
+.cal-day.sel .cal-num{color:var(--cream)}
+.cal-day.sel .cal-ev{background:rgba(244,239,230,.15);color:var(--cream);border-color:rgba(244,239,230,.32)}
+.cal-day.sel .cal-mais{color:var(--silver-light)}
+.cal-ev{font-size:10.5px;font-weight:600;line-height:1.25;padding:2px 5px;border-radius:4px;background:var(--surface);border:1px solid var(--border-med);color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev.ok{opacity:.55;text-decoration:line-through}
+.cal-ev b{font-weight:700}
+.cal-mais{font-size:10px;color:var(--t3);font-weight:700}
+.cal-count{display:none;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:20px;font-size:11px;font-weight:700;background:var(--green);color:var(--cream);align-self:flex-start}
+.cal-day.atras .cal-count{background:var(--red)}
+.cal-day.sel .cal-count{background:var(--cream);color:var(--navy)}
+.agenda-side{border-left:1px solid var(--border);padding-left:20px;min-width:0}
+.agenda-side h4{font-family:var(--font-serif);font-size:16.5px;font-weight:600;color:var(--navy)}
+.agenda-side .sh{font-size:11.5px;color:var(--t3);margin:3px 0 12px}
+.agenda-side-lista{max-height:340px;overflow-y:auto}
+.aud-item{border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--rs);padding:10px 12px;margin-bottom:9px;background:var(--surface2);cursor:pointer;transition:.14s}
+.aud-item:hover{background:var(--cream);border-color:var(--border-med);border-left-color:var(--navy)}
+.aud-item.atras{border-left-color:var(--red)}
+.aud-item.ok{opacity:.62;border-left-color:var(--silver-dark)}
+.aud-top{display:flex;align-items:center;gap:9px}
+.aud-hora{font-size:13.5px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
+.aud-hora.sem{color:var(--t3);font-weight:600;font-size:12px}
+.aud-tit{font-size:13.5px;font-weight:600;color:var(--t);line-height:1.35;margin-top:4px}
+.aud-meta{font-size:11.5px;color:var(--t3);margin-top:5px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.agenda-legenda{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--t3);padding:12px 22px 16px;border-top:1px dashed var(--border)}
+.agenda-legenda span{display:inline-flex;align-items:center;gap:5px}
+.leg-dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid}
+
+/* ─── DETALHE DA META DE CONTRATOS ─── */
+.meta-explica{font-size:12.5px;color:var(--t2);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--navy-soft);border-radius:var(--rs);padding:11px 13px;margin-bottom:16px}
+.meta-explica b{color:var(--navy)}
+.meta-contrato{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;transition:.12s}
+.meta-contrato:last-child{border-bottom:none}
+.meta-contrato:hover{background:var(--surface2)}
+.meta-contrato-info{flex:1;min-width:0}
+.meta-contrato-nome{font-size:14px;font-weight:600;color:var(--navy)}
+.meta-contrato-meta{font-size:11.5px;color:var(--t3);margin-top:3px;line-height:1.4}
+.meta-origem{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:var(--surface3);color:var(--t2);border:1px solid var(--border-med);white-space:nowrap}
+.meta-origem.est{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.28)}
+.meta-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.meta-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.24)}
+.meta-chip.vazio{background:var(--surface3);color:var(--t3);border-color:var(--border);font-weight:500}
+
+
+@media (max-width:1000px){
+  .agenda-wrap{grid-template-columns:1fr}
+  .agenda-side{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:16px}
+  .agenda-side-lista{max-height:none}
+}
+@media (max-width:640px){
+  .cal-day{min-height:52px;padding:4px;gap:4px}
+  .cal-ev,.cal-mais{display:none}
+  .cal-count{display:inline-flex}
+  .cal-dow{font-size:9px;letter-spacing:.04em}
+  .agenda-legenda{gap:10px}
+}
+/* ─── PAINÉIS RECOLHÍVEIS DO FINANCEIRO ───
+   Lançamentos do caixa e Honorários por cliente abrem sob demanda e, quando
+   abrem, mostram só o mês corrente. Antes as duas tabelas vinham inteiras já
+   na abertura da tela e a página ficava quilométrica. */
+.fin-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);overflow:hidden}
+.fin-panel-head{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;flex-wrap:wrap}
+.fin-panel-head:hover{background:var(--surface2)}
+.fin-panel-head h3{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin:0}
+.fin-panel-head .chev{font-size:16px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.fin-panel-head .ct{font-size:12px;color:var(--t3);background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.fin-panel-head .sub{font-size:12px;color:var(--t3);margin-left:auto;text-align:right}
+.fin-panel.recolhida .fin-panel-head{border-bottom:none}
+.fin-panel.recolhida .fin-panel-head .chev{transform:rotate(-90deg)}
+.fin-panel.recolhida .fin-panel-corpo{display:none}
+.fin-panel-corpo{padding:16px 20px 20px}
+.fin-panel-corpo .fin-table{box-shadow:none}
+@media (max-width:760px){
+  .fin-panel-head{padding:13px 14px}
+  .fin-panel-head .sub{margin-left:0;width:100%;text-align:left}
+  .fin-panel-corpo{padding:14px}
+}
 </style>
 </head>
 <body>
@@ -1054,7 +1154,7 @@ button:active{transform:scale(.985)}
       <div class="stats-row" id="dash-stats"></div>
       <div class="alerts-row" id="alerts-row"></div>
 
-      <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="navegarPara('trab');abrirModalMetaCRM()" title="Clique para editar a meta do mês">
+      <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="abrirDetalheMetaContratos()" title="Clique para ver quais contratos foram contados e editar a meta">
         <div class="card-head">
           <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Meta de contratos do mês</h3>
           <span class="sub" id="dash-meta-sub"></span>
@@ -1114,21 +1214,43 @@ button:active{transform:scale(.985)}
         </div>
       </div>
 
-      <div class="dash-grid g11">
-        <div class="modulo-card">
-          <div class="modulo-head">
-            <span class="modulo-titulo">Clientes ativos</span>
-            <button class="modulo-link" onclick="navegarPara('crm')">Ver todos →</button>
-          </div>
-          <div id="dash-cli-list"></div>
+      <div class="modulo-card" style="margin-bottom:20px">
+        <div class="card-head">
+          <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências</h3>
+          <span class="sub" id="agenda-sub"></span>
         </div>
-        <div class="modulo-card">
-          <div class="modulo-head">
-            <span class="modulo-titulo">Rotina de hoje</span>
-            <button class="modulo-link" onclick="navegarPara('rotina')">Abrir rotina →</button>
+        <div class="agenda-wrap">
+          <div>
+            <div class="agenda-nav">
+              <button class="agenda-btn" onclick="agendaMudarMes(-1)" title="Mês anterior"><i class="ti ti-chevron-left"></i></button>
+              <span class="agenda-mes" id="agenda-mes"></span>
+              <button class="agenda-hoje" onclick="agendaIrParaHoje()">Hoje</button>
+              <button class="agenda-btn" onclick="agendaMudarMes(1)" title="Próximo mês"><i class="ti ti-chevron-right"></i></button>
+            </div>
+            <div class="cal-grid" id="agenda-cal"></div>
           </div>
-          <div id="dash-rotina"></div>
+          <div class="agenda-side">
+            <h4 id="agenda-side-tit">Próximas audiências</h4>
+            <p class="sh" id="agenda-side-sub"></p>
+            <div class="agenda-side-lista" id="agenda-side-lista"></div>
+            <button class="det-add" style="width:100%;justify-content:center;margin-top:6px" onclick="abrirNovaAudiencia()"><i class="ti ti-plus"></i> Marcar audiência</button>
+          </div>
         </div>
+        <div class="agenda-legenda">
+          <span><i class="leg-dot" style="background:var(--green-bg);border-color:rgba(47,125,63,.4)"></i> dia com audiência</span>
+          <span><i class="leg-dot" style="background:var(--red-bg);border-color:rgba(178,59,59,.4)"></i> audiência vencida sem baixa</span>
+          <span><i class="leg-dot" style="background:transparent;border-color:var(--navy);border-width:2px"></i> hoje</span>
+          <span><i class="leg-dot" style="background:var(--navy);border-color:var(--navy)"></i> dia selecionado</span>
+          <span style="margin-left:auto"><i class="ti ti-info-circle"></i> vem das tarefas do tipo “Audiências” da Rotina</span>
+        </div>
+      </div>
+
+      <div class="modulo-card">
+        <div class="modulo-head">
+          <span class="modulo-titulo">Clientes ativos</span>
+          <button class="modulo-link" onclick="navegarPara('crm')">Ver todos →</button>
+        </div>
+        <div id="dash-cli-list"></div>
       </div>
     </div>
 
@@ -1628,12 +1750,15 @@ button:active{transform:scale(.985)}
         <div class="modulo-card">
           <div class="card-head">
             <h3>Fundo do Escritório</h3>
-            <button class="det-add" onclick="abrirModalAporte(null)"><i class="ti ti-plus"></i> Registrar guarda</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="det-add" onclick="abrirModalRetiradaFundo(null)"><i class="ti ti-cash-banknote"></i> Retirar do fundo</button>
+              <button class="det-add" onclick="abrirModalAporte(null)"><i class="ti ti-plus"></i> Registrar guarda</button>
+            </div>
           </div>
           <div class="card-body" id="fundo-resumo"></div>
         </div>
         <div class="modulo-card">
-          <div class="card-head"><h3>Guardado no fundo</h3><span class="sub">histórico</span></div>
+          <div class="card-head"><h3>Movimentações do fundo</h3><span class="sub">guardas e retiradas</span></div>
           <div class="card-body" id="fundo-lista"></div>
         </div>
       </div>
@@ -1653,55 +1778,79 @@ button:active{transform:scale(.985)}
         </div>
       </div>
 
-      <div class="fin-chips" style="flex-wrap:wrap;gap:8px">
-        <span style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin-right:auto">Lançamentos do caixa</span>
-        <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px">Do dia <input type="date" id="lanc-de" onchange="renderLancamentos()" style="width:auto"></label>
-        <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px">até <input type="date" id="lanc-ate" onchange="renderLancamentos()" style="width:auto"></label>
-        <button class="chip" onclick="document.getElementById('lanc-de').value='';document.getElementById('lanc-ate').value='';renderLancamentos()">Limpar</button>
-        <button class="btn-fin-novo" onclick="abrirModalLancamento(null)"><i class="ti ti-plus"></i>Novo lançamento</button>
-      </div>
-      <p style="font-size:12px;color:var(--t3);margin-bottom:14px"><i class="ti ti-info-circle"></i> Entradas e saídas gerais do escritório — não ligadas a um cliente específico. Pagamentos de clientes ficam na tabela de honorários, mais abaixo. <span id="lanc-resumo" style="color:var(--navy)"></span></p>
-      <div class="fin-table" style="margin-bottom:28px">
-        <div class="fin-thead">
-          <div class="fin-c-desc">Descrição</div>
-          <div class="fin-c-data">Data</div>
-          <div class="fin-c-tipo">Categoria</div>
-          <div class="fin-c-tipo">Tipo</div>
-          <div class="fin-c-val">Valor</div>
-          <div class="fin-c-act"></div>
+      <!-- painel recolhível: fechado, a página do Financeiro não estica.
+           Aberto, mostra por padrão só o mês corrente. -->
+      <div class="fin-panel" id="lanc-panel" style="margin-bottom:24px">
+        <div class="fin-panel-head" onclick="alternarBloco('fin:lancamentos',true)" title="Abrir ou fechar os lançamentos do caixa">
+          <i class="ti ti-chevron-down chev"></i>
+          <h3>Lançamentos do caixa</h3>
+          <span class="ct" id="lanc-badge">—</span>
+          <span class="sub" id="lanc-resumo"></span>
         </div>
-        <div id="lancamentos-rows"></div>
+        <div class="fin-panel-corpo">
+          <div class="fin-chips" id="lanc-chips" style="flex-wrap:wrap;gap:8px">
+            <button class="chip active" data-p="mes" onclick="setLancPeriodo('mes')">Mês atual</button>
+            <button class="chip" data-p="tudo" onclick="setLancPeriodo('tudo')">Todo o período</button>
+            <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px;margin-left:6px">Do dia <input type="date" id="lanc-de" onchange="renderLancamentos()" style="width:auto"></label>
+            <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px">até <input type="date" id="lanc-ate" onchange="renderLancamentos()" style="width:auto"></label>
+            <button class="chip" onclick="limparPeriodoLanc()">Limpar datas</button>
+            <button class="btn-fin-novo" style="margin-left:auto" onclick="abrirModalLancamento(null)"><i class="ti ti-plus"></i>Novo lançamento</button>
+          </div>
+          <p style="font-size:12px;color:var(--t3);margin-bottom:14px"><i class="ti ti-info-circle"></i> Entradas e saídas gerais do escritório — não ligadas a um cliente específico. Pagamentos de clientes ficam na tabela de honorários, mais abaixo. <span id="lanc-periodo-txt" style="color:var(--navy);font-weight:600"></span></p>
+          <div class="fin-table">
+            <div class="fin-thead">
+              <div class="fin-c-desc">Descrição</div>
+              <div class="fin-c-data">Data</div>
+              <div class="fin-c-tipo">Categoria</div>
+              <div class="fin-c-tipo">Tipo</div>
+              <div class="fin-c-val">Valor</div>
+              <div class="fin-c-act"></div>
+            </div>
+            <div id="lancamentos-rows"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="fin-chips">
-        <span style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin-right:8px">Honorários por cliente</span>
-        <button class="chip active" data-f="todos" onclick="filtroFin('todos',this)">Todos</button>
-        <button class="chip" data-f="alc" onclick="filtroFin('alc',this)">Recebidos</button>
-        <button class="chip" data-f="prev" onclick="filtroFin('prev',this)">Previstos</button>
-        <button class="chip" data-f="saida" onclick="filtroFin('saida',this)">Saídas</button>
-        <select class="search-inp" id="fin-periodo" style="width:auto;margin-left:6px" onchange="setFinPeriodo(this.value)">
-          <option value="tudo">Todo o período</option>
-          <option value="mes">Último mês</option>
-          <option value="3m">Últimos 3 meses</option>
-          <option value="6m">Últimos 6 meses</option>
-          <option value="12m">Últimos 12 meses</option>
-          <option value="ano">Ano atual</option>
-        </select>
-        <button class="btn-fin-novo" onclick="abrirModalFin(null,null)" style="margin-left:6px"><i class="ti ti-plus"></i>Novo lançamento</button>
-        <input class="search-inp fin-search" id="fin-search" placeholder="Buscar cliente…" oninput="buscaFin(this.value)">
-      </div>
-      <p id="fin-periodo-hint" style="font-size:12px;color:var(--t3);margin-bottom:14px;display:none"><i class="ti ti-info-circle"></i> Filtros de período usam a data de recebimento — lançamentos sem data ficam de fora.</p>
-
-      <div class="fin-table">
-        <div class="fin-thead">
-          <div class="fin-c-cli">Cliente</div>
-          <div class="fin-c-desc">Descrição</div>
-          <div class="fin-c-data">Data</div>
-          <div class="fin-c-tipo">Tipo</div>
-          <div class="fin-c-val">Valor</div>
-          <div class="fin-c-act"></div>
+      <div class="fin-panel" id="hon-panel">
+        <div class="fin-panel-head" onclick="alternarBloco('fin:honorarios',true)" title="Abrir ou fechar os honorários por cliente">
+          <i class="ti ti-chevron-down chev"></i>
+          <h3>Honorários por cliente</h3>
+          <span class="ct" id="hon-badge">—</span>
+          <span class="sub" id="hon-resumo"></span>
         </div>
-        <div id="fin-rows"></div>
+        <div class="fin-panel-corpo">
+          <div class="fin-chips" id="fin-chips">
+            <button class="chip" data-f="todos" onclick="filtroFin('todos',this)">Todos</button>
+            <button class="chip active" data-f="alc" onclick="filtroFin('alc',this)">Recebidos</button>
+            <button class="chip" data-f="prev" onclick="filtroFin('prev',this)">Previstos</button>
+            <button class="chip" data-f="saida" onclick="filtroFin('saida',this)">Saídas</button>
+            <select class="search-inp" id="fin-periodo" style="width:auto;margin-left:6px" onchange="setFinPeriodo(this.value)">
+              <option value="mesAtual">Mês atual</option>
+              <option value="tudo">Todo o período</option>
+              <option value="mes">Últimos 30 dias</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m">Últimos 12 meses</option>
+              <option value="ano">Ano atual</option>
+            </select>
+            <button class="chip" onclick="verTodosRecebidos()" title="Mostra todos os recebimentos já registrados, de todos os meses">Ver todos os recebidos</button>
+            <button class="btn-fin-novo" onclick="abrirModalFin(null,null)"><i class="ti ti-plus"></i>Novo lançamento</button>
+            <input class="search-inp fin-search" id="fin-search" placeholder="Buscar cliente…" oninput="buscaFin(this.value)">
+          </div>
+          <p id="fin-periodo-hint" style="font-size:12px;color:var(--t3);margin-bottom:14px;display:none"><i class="ti ti-info-circle"></i> Filtros de período usam a data de recebimento — lançamentos sem data ficam de fora.</p>
+
+          <div class="fin-table">
+            <div class="fin-thead">
+              <div class="fin-c-cli">Cliente</div>
+              <div class="fin-c-desc">Descrição</div>
+              <div class="fin-c-data">Data</div>
+              <div class="fin-c-tipo">Tipo</div>
+              <div class="fin-c-val">Valor</div>
+              <div class="fin-c-act"></div>
+            </div>
+            <div id="fin-rows"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1973,12 +2122,14 @@ button:active{transform:scale(.985)}
         <select id="mt-tipo" onchange="mtRecalcProjetoAuto()"></select>
       </div>
     </div>
-    <div class="fg-row">
-      <div class="fg"><label>Cliente (opcional)</label>
-        <select id="mt-cli"></select>
-      </div>
-      <div class="fg"><label>Prazo</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao()"></div>
+    <div class="fg"><label>Cliente (opcional)</label>
+      <select id="mt-cli"></select>
     </div>
+    <div class="fg-row">
+      <div class="fg"><label>Prazo</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao()"></div>
+      <div class="fg"><label>Hora</label><input type="time" id="mt-hora"></div>
+    </div>
+    <div class="mt-conc-hint" id="mt-hora-hint" style="margin:-10px 0 16px">Preencha a hora nas audiências e reuniões — é ela que aparece no calendário da visão geral.</div>
     <div class="fg"><label>Status</label>
       <div class="seg">
         <button type="button" id="mt-st-p" onclick="mtStatus('pendente')">Pendente</button>
@@ -2328,6 +2479,47 @@ button:active{transform:scale(.985)}
       <button class="btn-del" id="mfe-del" onclick="excluirAporte()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn-cancel" onclick="fecharOverlay('overlay-fundo')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarAporte()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: RETIRADA DO FUNDO DO ESCRITÓRIO ═══════════════ -->
+<div class="overlay" id="overlay-fundoret">
+  <div class="modal">
+    <h3 id="mfr-titulo">Retirar do fundo</h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5"><i class="ti ti-info-circle"></i> Retire qualquer quantia do fundo, sem precisar desfazer uma guarda inteira. Saldo disponível no fundo: <b id="mfr-saldo" style="color:var(--navy)">R$ 0</b>.</p>
+    <div class="fg"><label>Valor a retirar (R$)</label><input type="text" id="mfr-valor" placeholder="500,00" inputmode="decimal"></div>
+    <div class="fg"><label>Destino do dinheiro</label>
+      <div class="seg">
+        <button type="button" id="mfr-dest-caixa" onclick="mfrDestino('caixa')">Volta para o caixa</button>
+        <button type="button" id="mfr-dest-saque" onclick="mfrDestino('saque')">Saque (sai do escritório)</button>
+      </div>
+      <div class="mt-conc-hint" id="mfr-dest-hint"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Data</label><input type="date" id="mfr-data"></div>
+      <div class="fg"><label>Motivo / observação</label><input type="text" id="mfr-obs" placeholder="Ex.: pagamento de custas"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mfr-del" onclick="excluirRetiradaFundo()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-fundoret')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarRetiradaFundo()">Confirmar retirada</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: DETALHE DA META DE CONTRATOS DO MÊS ═══════════════ -->
+<div class="overlay" id="overlay-metadetalhe">
+  <div class="modal" style="width:620px">
+    <h3>Meta de contratos — <span id="mmd-mes"></span></h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5" id="mmd-sub"></p>
+    <div id="mmd-resumo"></div>
+    <div class="meta-explica" id="mmd-explica"></div>
+    <div style="font-family:var(--font-serif);font-size:16px;font-weight:600;color:var(--navy);margin-bottom:6px">Contratos contados neste mês</div>
+    <div id="mmd-lista"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-metadetalhe')">Fechar</button>
+      <button class="btn-confirm" onclick="fecharOverlay('overlay-metadetalhe');navegarPara('trab');abrirModalMetaCRM()">Editar meta do mês</button>
     </div>
   </div>
 </div>
@@ -2856,6 +3048,7 @@ async function seedDB(){
     statusCrmMigradoV1:true,
     metasCRM:{},
     fundoAportes:[],
+    fundoRetiradas:[],
     mesesExcluidosProLabore:[],
     chatGeral:[],
     custosFixos:[],
@@ -2890,6 +3083,7 @@ async function carregarDBRemoto(){
   if(!Array.isArray(DB.leads))DB.leads=[];
   if(!Array.isArray(DB.leadsCivel)){DB.leadsCivel=[];precisaSalvar=true;}
   if(!Array.isArray(DB.fundoAportes)){DB.fundoAportes=[];precisaSalvar=true;}
+  if(!Array.isArray(DB.fundoRetiradas)){DB.fundoRetiradas=[];precisaSalvar=true;}
   if(!Array.isArray(DB.mesesExcluidosProLabore)){DB.mesesExcluidosProLabore=[];precisaSalvar=true;}
   if(!Array.isArray(DB.chatGeral)){DB.chatGeral=[];precisaSalvar=true;}
   if(!Array.isArray(DB.custosFixos)){DB.custosFixos=[];precisaSalvar=true;}
@@ -3291,7 +3485,9 @@ function blocoRecolhido(chave,padraoFechado){
 function alternarBloco(chave,padraoFechado){
   blocosRecolhidos[chave]=!blocoRecolhido(chave,padraoFechado);
   try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
-  if(chave.indexOf('comercial:')===0)renderComercial();else renderRotina();
+  if(chave.indexOf('comercial:')===0)renderComercial();
+  else if(chave.indexOf('fin:')===0)renderFin();
+  else renderRotina();
 }
 function chevron(){return '<i class="ti ti-chevron-down chev"></i>'}
 function fecharOverlay(id){document.getElementById(id).classList.remove('open')}
@@ -3911,7 +4107,7 @@ function renderDashboard(){
     </div>`;
   }).join('');
 
-  renderDashRotina();
+  renderAgendaAudiencias();
 
   const maiores=DB.clientes.map(c=>({c,v:clienteAlc(c)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,3);
   document.getElementById('dash-fin').innerHTML=`
@@ -4268,6 +4464,14 @@ function caixaPorMes(){
     const alvo=meses.find(x=>x.y===ay&&x.m===(am-1));
     if(alvo)alvo.v-=f.valor;
   });
+  // retirada do fundo com destino "caixa" volta a entrar no resultado do mês da retirada;
+  // a retirada em saque não entra (o dinheiro já tinha saído do caixa quando foi guardado)
+  (DB.fundoRetiradas||[]).forEach(r=>{
+    if(!r.data||r.destino==='saque')return;
+    const[ay,am]=r.data.split('-').map(Number);
+    const alvo=meses.find(x=>x.y===ay&&x.m===(am-1));
+    if(alvo)alvo.v+=r.valor;
+  });
   return meses;
 }
 // soma bruta do caixa sem o ajuste de saldo inicial (usada também para calcular o ajuste)
@@ -4277,7 +4481,10 @@ function caixaSemAjuste(){
   const entradasGerais=(DB.lancamentos||[]).filter(l=>l.tipo==='entrada').reduce((a,l)=>a+l.valor,0);
   const saidasGerais=(DB.lancamentos||[]).filter(l=>l.tipo==='saida').reduce((a,l)=>a+l.valor,0);
   const guardadoFundo=guardadoFundoEscritorio();
-  return recebidoClientes-saidaClientes+entradasGerais-saidasGerais-guardadoFundo;
+  // o saque é descontado de novo porque a queda do saldo do fundo, sozinha, devolveria
+  // o valor ao caixa — e no saque o dinheiro sai do escritório, não volta para o caixa
+  const saques=saquesFundoEscritorio();
+  return recebidoClientes-saidaClientes+entradasGerais-saidasGerais-guardadoFundo-saques;
 }
 // caixa atual = recebido de clientes − saídas de clientes + entradas gerais − saídas gerais + ajuste de saldo inicial
 function caixaAtualValor(){
@@ -4371,6 +4578,10 @@ function extratoCaixaMovimentos(){
   (DB.fundoAportes||[]).forEach(f=>{
     const desc=f.origem?'Guardado no Fundo do Escritório — '+f.origem.cnome+' ('+f.origem.finDesc+')':'Guardado no Fundo do Escritório'+(f.obs?' — '+f.obs:'');
     mov.push({data:f.data||'',desc,valor:-f.valor,cid:f.origem?f.origem.cid:null});
+  });
+  // só a retirada que volta para o caixa aparece aqui; o saque não passa pelo caixa
+  (DB.fundoRetiradas||[]).filter(r=>r.destino!=='saque').forEach(r=>{
+    mov.push({data:r.data||'',desc:'Retirado do Fundo do Escritório para o caixa'+(r.obs?' — '+r.obs:''),valor:r.valor,cid:null});
   });
   // ordena por data (mais antiga primeiro) pra calcular o saldo acumulado corretamente;
   // sem data fica no fim, tratado como "aconteceu, mas sem data registrada"
@@ -4557,8 +4768,21 @@ function metaFundoEscritorio(){
   const entradasGerais=(DB.lancamentos||[]).filter(l=>l.tipo==='entrada').reduce((a,l)=>a+l.valor,0);
   return (recebidoClientes+entradasGerais)*0.10;
 }
-function guardadoFundoEscritorio(){
+// tudo que já foi guardado no fundo, sem descontar retiradas
+function totalGuardadoFundo(){
   return (DB.fundoAportes||[]).reduce((a,f)=>a+f.valor,0);
+}
+// tudo que já saiu do fundo (voltando para o caixa ou sacado)
+function totalRetiradoFundo(){
+  return (DB.fundoRetiradas||[]).reduce((a,r)=>a+r.valor,0);
+}
+// só o que saiu em saque — dinheiro que deixou o escritório e não voltou ao caixa
+function saquesFundoEscritorio(){
+  return (DB.fundoRetiradas||[]).filter(r=>r.destino==='saque').reduce((a,r)=>a+r.valor,0);
+}
+// saldo atual do fundo = guardado − retirado
+function guardadoFundoEscritorio(){
+  return totalGuardadoFundo()-totalRetiradoFundo();
 }
 function renderFundoEscritorio(){
   const el=document.getElementById('fundo-resumo');
@@ -4567,31 +4791,124 @@ function renderFundoEscritorio(){
   const guardado=guardadoFundoEscritorio();
   const falta=Math.max(0,meta-guardado);
   const pct=meta>0?Math.min(100,Math.round(guardado/meta*100)):0;
+  const totalGuardado=totalGuardadoFundo();
+  const retirado=totalRetiradoFundo();
+  const sacado=saquesFundoEscritorio();
   el.innerHTML=`
     <div class="fin-totais">
       <div class="fin-bloco"><div class="fin-label">Meta acumulada (10%)</div><div class="fin-val">${money(meta)}</div></div>
-      <div class="fin-bloco"><div class="fin-label">Guardado no fundo</div><div class="fin-val g">${money(guardado)}</div></div>
+      <div class="fin-bloco"><div class="fin-label">Saldo no fundo</div><div class="fin-val g">${money(guardado)}</div></div>
       <div class="fin-bloco"><div class="fin-label">Falta guardar</div><div class="fin-val" style="color:${falta>0?'var(--red-hi)':'var(--green-hi)'}">${money(falta)}</div></div>
     </div>
     <div class="hbar-row" style="cursor:default">
       <div class="hbar-label" style="width:auto;margin-right:10px">${pct}%</div>
       <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}"></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--t3);margin-top:12px;line-height:1.6">
+      ${money(totalGuardado)} já guardados${retirado>0?' · '+money(retirado)+' retirados':''}${sacado>0?' (sendo '+money(sacado)+' em saque)':''}
     </div>`;
   const lista=document.getElementById('fundo-lista');
   if(!lista)return;
-  const aportes=[...(DB.fundoAportes||[])].sort((a,b)=>(b.data||'')<(a.data||'')?-1:1);
-  lista.innerHTML=aportes.length?aportes.map(f=>{
+  // guardas e retiradas no mesmo histórico, da mais recente para a mais antiga
+  const mov=[
+    ...(DB.fundoAportes||[]).map(f=>({...f,_mov:'guarda'})),
+    ...(DB.fundoRetiradas||[]).map(r=>({...r,_mov:'retirada'})),
+  ].sort((a,b)=>(b.data||'')<(a.data||'')?-1:1);
+  lista.innerHTML=mov.length?mov.map(f=>{
+    if(f._mov==='retirada'){
+      const saque=f.destino==='saque';
+      const rotulo=saque?'Saque do fundo':'Retirado para o caixa';
+      return `<div class="fin-item hoverable">
+        <span class="fin-item-nome" style="cursor:pointer" onclick="abrirModalRetiradaFundo('${f.id}')">
+          <i class="ti ${saque?'ti-cash-banknote':'ti-corner-down-left'}" style="color:var(--red-hi)"></i>
+          ${esc(rotulo)}${f.obs?' <span style="color:var(--t3)">— '+esc(f.obs)+'</span>':''}
+        </span>
+        <div class="fin-item-r">
+          <span class="fin-item-val" style="color:var(--red-hi)">− ${money(f.valor)}</span>
+          <span style="font-size:11px;color:var(--t3)">${f.data?fmtData(f.data):'—'}</span>
+          <button class="btn-ico" onclick="abrirModalRetiradaFundo('${f.id}')" title="Editar retirada"><i class="ti ti-pencil"></i></button>
+        </div>
+      </div>`;
+    }
     const origemTxt=f.origem?esc(f.origem.cnome)+' <span style="color:var(--t3)">— '+esc(f.origem.finDesc||'')+'</span>':esc(f.obs||'Guarda manual');
     const editOnclick=f.origem?`irParaCliente('${f.origem.cid}')`:`abrirModalAporte('${f.id}')`;
     return `<div class="fin-item hoverable">
-      <span class="fin-item-nome" style="cursor:pointer" onclick="${editOnclick}">${origemTxt}</span>
+      <span class="fin-item-nome" style="cursor:pointer" onclick="${editOnclick}"><i class="ti ti-pig-money" style="color:var(--green-hi)"></i> ${origemTxt}</span>
       <div class="fin-item-r">
         <span class="fin-item-val">${money(f.valor)}</span>
         <span style="font-size:11px;color:var(--t3)">${f.data?fmtData(f.data):'—'}</span>
-        <button class="btn-ico" onclick="transferirFundoParaCaixa('${f.id}')" title="Transferir de volta para o caixa"><i class="ti ti-corner-down-left"></i></button>
+        <button class="btn-ico" onclick="transferirFundoParaCaixa('${f.id}')" title="Desfazer esta guarda — o valor inteiro volta para o caixa"><i class="ti ti-arrow-back-up"></i></button>
       </div>
     </div>`;
-  }).join(''):'<p style="font-size:12.5px;color:var(--t3)">Nenhum valor guardado no fundo ainda.</p>';
+  }).join(''):'<p style="font-size:12.5px;color:var(--t3)">Nenhuma movimentação no fundo ainda.</p>';
+}
+// ─── RETIRADA DE VALOR PERSONALIZADO DO FUNDO ───
+// O botão de cada guarda só desfaz o depósito inteiro. Aqui o sócio tira a quantia
+// que quiser, escolhendo se o dinheiro volta para o caixa ou sai de vez (saque).
+let mfrCtx={id:null,destino:'caixa'};
+function mfrDestino(d){
+  mfrCtx.destino=d;
+  document.getElementById('mfr-dest-caixa').classList.toggle('on',d==='caixa');
+  document.getElementById('mfr-dest-saque').classList.toggle('on',d==='saque');
+  document.getElementById('mfr-dest-hint').textContent=d==='caixa'
+    ? 'O valor deixa a reserva e volta a contar no caixa disponível.'
+    : 'O dinheiro sai do escritório: baixa no fundo e o caixa não aumenta.';
+}
+function abrirModalRetiradaFundo(id){
+  mfrCtx={id,destino:'caixa'};
+  const saldo=guardadoFundoEscritorio();
+  document.getElementById('mfr-saldo').textContent=money(saldo);
+  if(id){
+    const r=(DB.fundoRetiradas||[]).find(x=>x.id===id);
+    if(!r)return;
+    document.getElementById('mfr-titulo').textContent='Editar retirada do fundo';
+    document.getElementById('mfr-valor').value=r.valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    document.getElementById('mfr-data').value=r.data||hojeISO();
+    document.getElementById('mfr-obs').value=r.obs||'';
+    document.getElementById('mfr-del').style.display='inline-flex';
+    mfrDestino(r.destino==='saque'?'saque':'caixa');
+  }else{
+    if(!(saldo>0)){alert('Não há saldo no Fundo do Escritório para retirar.');return;}
+    document.getElementById('mfr-titulo').textContent='Retirar do fundo';
+    document.getElementById('mfr-valor').value='';
+    document.getElementById('mfr-data').value=hojeISO();
+    document.getElementById('mfr-obs').value='';
+    document.getElementById('mfr-del').style.display='none';
+    mfrDestino('caixa');
+  }
+  abrirOverlay('overlay-fundoret');
+  setTimeout(()=>document.getElementById('mfr-valor').focus(),100);
+}
+function salvarRetiradaFundo(){
+  const valor=parseValor(document.getElementById('mfr-valor').value);
+  const data=document.getElementById('mfr-data').value;
+  const obs=document.getElementById('mfr-obs').value.trim();
+  if(!(valor>0)){alert('Informe um valor válido (ex.: 500,00).');return;}
+  // o saldo disponível desconsidera a própria retirada quando ela está sendo editada
+  const atual=mfrCtx.id?(DB.fundoRetiradas||[]).find(x=>x.id===mfrCtx.id):null;
+  const disponivel=guardadoFundoEscritorio()+(atual?atual.valor:0);
+  if(valor>disponivel+0.005){
+    alert('O fundo tem apenas '+money(disponivel)+' disponíveis. Reduza o valor da retirada.');
+    return;
+  }
+  if(!DB.fundoRetiradas)DB.fundoRetiradas=[];
+  if(atual){
+    atual.valor=valor;atual.data=data;atual.obs=obs;atual.destino=mfrCtx.destino;
+  }else{
+    DB.fundoRetiradas.push({id:uid(),valor,data,obs,destino:mfrCtx.destino,criadoEm:Date.now()});
+  }
+  salvarDB();
+  fecharOverlay('overlay-fundoret');
+  refreshUI();
+}
+function excluirRetiradaFundo(){
+  const r=(DB.fundoRetiradas||[]).find(x=>x.id===mfrCtx.id);
+  if(!r)return;
+  if(!confirm('Excluir esta retirada de '+money(r.valor)+'?\n\nO valor volta a contar como saldo do Fundo do Escritório.'))return;
+  DB.fundoRetiradas=DB.fundoRetiradas.filter(x=>x.id!==mfrCtx.id);
+  salvarDB();
+  fecharOverlay('overlay-fundoret');
+  refreshUI();
 }
 // remove um aporte do fundo e devolve o valor ao caixa disponível — usado
 // tanto pelo botão de cada linha no Fundo quanto pelo "desfazer" no lançamento
@@ -4814,6 +5131,13 @@ function salvarLancamento(){
   }
   salvarDB();
   fecharOverlay('overlay-lanc');
+  // o recorte padrão é o mês corrente: se o lançamento é de outro mês, amplia
+  // o período para ele não sumir da tela logo depois de salvo
+  if(lancPeriodo==='mes'&&(!data||data.slice(0,7)!==hojeISO().slice(0,7))){
+    lancPeriodo='tudo';
+    const dEl=document.getElementById('lanc-de'), aEl=document.getElementById('lanc-ate');
+    if(dEl)dEl.value=''; if(aEl)aEl.value='';
+  }
   refreshUI();
   if(isNovaEntrada)avisarFundoEscritorio(valor);
 }
@@ -4826,23 +5150,54 @@ function excluirLancamento(){
   fecharOverlay('overlay-lanc');
   refreshUI();
 }
+// período dos lançamentos do caixa: por padrão só o mês corrente, para a tabela
+// não abrir com a base inteira. As datas do filtro, quando preenchidas, mandam.
+let lancPeriodo='mes';
+function setLancPeriodo(p){
+  lancPeriodo=p;
+  document.getElementById('lanc-de').value='';
+  document.getElementById('lanc-ate').value='';
+  renderLancamentos();
+}
+function limparPeriodoLanc(){
+  document.getElementById('lanc-de').value='';
+  document.getElementById('lanc-ate').value='';
+  renderLancamentos();
+}
 function renderLancamentos(){
   const el=document.getElementById('lancamentos-rows');
   if(!el)return;
+  const painel=document.getElementById('lanc-panel');
+  if(painel)painel.classList.toggle('recolhida',blocoRecolhido('fin:lancamentos',true));
   const de=(document.getElementById('lanc-de')||{}).value||'';
   const ate=(document.getElementById('lanc-ate')||{}).value||'';
+  const usandoDatas=!!(de||ate);
+  const mesAtual=hojeISO().slice(0,7);
+  document.querySelectorAll('#lanc-chips .chip[data-p]').forEach(b=>
+    b.classList.toggle('active',!usandoDatas&&b.dataset.p===lancPeriodo));
   let rows=[...DB.lancamentos].sort((a,b)=>(b.data||'')<(a.data||'')?-1:((b.data||'')>(a.data||'')?1:0));
-  if(de||ate)rows=rows.filter(l=>{if(!l.data)return false;if(de&&l.data<de)return false;if(ate&&l.data>ate)return false;return true;});
-  // resumo do que está sendo exibido (conta e saldo do período), pra não precisar rolar tudo
+  if(usandoDatas)rows=rows.filter(l=>{if(!l.data)return false;if(de&&l.data<de)return false;if(ate&&l.data>ate)return false;return true;});
+  else if(lancPeriodo==='mes')rows=rows.filter(l=>l.data&&l.data.slice(0,7)===mesAtual);
+  const ent=rows.filter(l=>l.tipo==='entrada').reduce((a,l)=>a+l.valor,0);
+  const sai=rows.filter(l=>l.tipo==='saida').reduce((a,l)=>a+l.valor,0);
+  const periodoTxt=usandoDatas
+    ? 'período de '+(de?fmtData(de):'início')+' a '+(ate?fmtData(ate):'hoje')
+    : (lancPeriodo==='mes'?nomeMesChave(mesAtual):'todo o período');
+  // cabeçalho do painel: dá o essencial mesmo com o card fechado
+  const badge=document.getElementById('lanc-badge');
+  if(badge)badge.textContent=rows.length+' lançamento'+(rows.length!==1?'s':'');
   const resumo=document.getElementById('lanc-resumo');
-  if(resumo){
-    if(de||ate){
-      const ent=rows.filter(l=>l.tipo==='entrada').reduce((a,l)=>a+l.valor,0);
-      const sai=rows.filter(l=>l.tipo==='saida').reduce((a,l)=>a+l.valor,0);
-      resumo.textContent=rows.length+' no período · + '+money(ent)+' · − '+money(sai);
-    }else resumo.textContent=DB.lancamentos.length+' lançamentos no total';
+  if(resumo)resumo.textContent=periodoTxt+' · + '+money(ent)+' · − '+money(sai)
+    +(rows.length!==DB.lancamentos.length?' · '+DB.lancamentos.length+' no total':'');
+  const ptxt=document.getElementById('lanc-periodo-txt');
+  if(ptxt)ptxt.textContent='Exibindo '+periodoTxt+'.';
+  if(!rows.length){
+    const vazio=usandoDatas?'Nenhum lançamento no período selecionado.'
+      :(lancPeriodo==='mes'
+        ?'Nenhum lançamento em '+nomeMesChave(mesAtual)+'. Use “Todo o período” ou o filtro de datas para ver os meses anteriores.'
+        :'Nenhum lançamento registrado ainda. Use "Novo lançamento" para entradas e saídas gerais, ou o catálogo de custos fixos acima.');
+    el.innerHTML='<div class="fin-empty">'+vazio+'</div>';return;
   }
-  if(!rows.length){el.innerHTML='<div class="fin-empty">'+((de||ate)?'Nenhum lançamento no período selecionado.':'Nenhum lançamento registrado ainda. Use "Novo lançamento" para entradas e saídas gerais, ou o catálogo de custos fixos acima.')+'</div>';return;}
   el.innerHTML=rows.map(l=>`
     <div class="fin-row hoverable" onclick="abrirModalLancamento('${l.id}')">
       <div class="fin-c-desc">${esc(l.descricao)}</div>
@@ -4857,20 +5212,152 @@ function renderLancamentos(){
     </div>`).join('');
 }
 
-// resumo "rotina de hoje" no dashboard (tarefas em aberto por prazo)
-function renderDashRotina(){
-  const abertas=DB.tarefas.filter(t=>t.status!=='concluido')
-    .sort((a,b)=>(a.prazo||'9999')<(b.prazo||'9999')?-1:1).slice(0,6);
-  const el=document.getElementById('dash-rotina');
-  if(!abertas.length){el.innerHTML='<div style="padding:22px;text-align:center;font-size:13px;color:var(--t3)">Nenhuma tarefa em aberto</div>';return;}
-  el.innerHTML=abertas.map(t=>{
-    const pi=prazoInfo(t);const cli=nomeCliente(t.cid);
-    return `<div class="cli-row" onclick="navegarPara('rotina')">
-      <div class="cli-av" style="border-color:transparent;background:var(--surface3)"><i class="ti ti-checkbox" style="font-size:15px;color:var(--navy)"></i></div>
-      <div class="cli-info"><div class="cli-nome">${esc(t.titulo)}</div><div class="cli-area">${esc(t.resp)}${cli?' · '+esc(cli):''}</div></div>
-      <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
-    </div>`;
-  }).join('');
+// ═══════════════════════════════════════════════════════════
+//  AGENDA DE AUDIÊNCIAS (calendário da visão geral)
+//  Antes existia aqui o resumo "Rotina de hoje", que jogava audiência,
+//  petição e prazo na mesma lista e não mostrava horário nenhum. Agora as
+//  audiências ganham um calendário próprio, alimentado pelas tarefas da
+//  Rotina do tipo "audiencia" (campo prazo = dia, campo hora = horário).
+// ═══════════════════════════════════════════════════════════
+const AGENDA_DOW=['dom','seg','ter','qua','qui','sex','sáb'];
+const AGENDA_MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+let agendaMesRef=null;   // {y, m} — m em base 0
+let agendaDiaSel=null;   // 'AAAA-MM-DD' do dia clicado (null = mostra as próximas)
+
+function audienciasTodas(){return (DB.tarefas||[]).filter(t=>t.tipo==='audiencia')}
+function audienciaHoraOrd(t){return t.hora||'99:99'}
+function audienciasNoDia(iso){
+  return audienciasTodas().filter(t=>t.prazo===iso)
+    .sort((a,b)=>audienciaHoraOrd(a)<audienciaHoraOrd(b)?-1:1);
+}
+function audienciaAtrasada(t){return t.status!=='concluido'&&t.prazo&&t.prazo<hojeISO()}
+function isoDe(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function agendaGarantirMes(){
+  if(agendaMesRef)return;
+  const h=new Date();
+  agendaMesRef={y:h.getFullYear(),m:h.getMonth()};
+}
+function agendaMudarMes(delta){
+  agendaGarantirMes();
+  const d=new Date(agendaMesRef.y,agendaMesRef.m+delta,1);
+  agendaMesRef={y:d.getFullYear(),m:d.getMonth()};
+  agendaDiaSel=null;
+  renderAgendaAudiencias();
+}
+function agendaIrParaHoje(){
+  const h=new Date();
+  agendaMesRef={y:h.getFullYear(),m:h.getMonth()};
+  agendaDiaSel=hojeISO();
+  renderAgendaAudiencias();
+}
+function agendaSelecionarDia(iso){
+  agendaDiaSel=(agendaDiaSel===iso)?null:iso;
+  renderAgendaAudiencias();
+}
+// abre o modal de tarefa já com o tipo "audiência" e, se veio de um dia do
+// calendário, com a data preenchida — para marcar audiência sem sair da tela
+function abrirNovaAudiencia(iso){
+  abrirModalTarefa(null,null);
+  const tp=document.getElementById('mt-tipo');
+  if(tp&&[...tp.options].some(o=>o.value==='audiencia'))tp.value='audiencia';
+  const dia=iso||agendaDiaSel||hojeISO();
+  document.getElementById('mt-prazo').value=dia;
+  document.getElementById('mt-titulo-in').value='Audiência — ';
+  if(typeof mtRecalcProjetoAuto==='function')mtRecalcProjetoAuto();
+  if(typeof mtAtualizarHintConclusao==='function')mtAtualizarHintConclusao();
+  setTimeout(()=>{
+    const c=document.getElementById('mt-titulo-in');
+    if(c){c.focus();c.setSelectionRange(c.value.length,c.value.length);}
+  },120);
+}
+// bloco de uma audiência no painel lateral
+function audienciaItemHTML(t){
+  const cli=nomeCliente(t.cid);
+  const concl=t.status==='concluido';
+  const atras=audienciaAtrasada(t);
+  const cls=concl?'ok':(atras?'atras':'');
+  const hora=t.hora?`<span class="aud-hora">${esc(t.hora)}</span>`:'<span class="aud-hora sem">sem horário</span>';
+  const dia=t.prazo?`<span class="prazo-badge ${atras?'prazo-late':'prazo-ok'}">${diaSemanaDe(t.prazo)} ${fmtData(t.prazo)}</span>`:'<span class="prazo-badge prazo-sem">sem data</span>';
+  return `<div class="aud-item ${cls}" onclick="abrirModalTarefa('${t.id}',null)" title="Clique para abrir a audiência na Rotina">
+    <div class="aud-top">${hora}${dia}</div>
+    <div class="aud-tit">${esc(t.titulo)}</div>
+    <div class="aud-meta">
+      <span><i class="ti ti-user" style="font-size:12px"></i> ${esc(t.resp||'—')}</span>
+      ${cli?`<span><i class="ti ti-briefcase" style="font-size:12px"></i> ${esc(cli)}</span>`:''}
+      <span class="st-pill ${concl?'st-concluido':t.status==='andamento'?'st-andamento':'st-pendente'}" style="cursor:default">${ST_LBL[t.status]}</span>
+    </div>
+  </div>`;
+}
+function renderAgendaAudiencias(){
+  const cal=document.getElementById('agenda-cal');
+  if(!cal)return;
+  agendaGarantirMes();
+  const {y,m}=agendaMesRef;
+  const hoje=hojeISO();
+  const todas=audienciasTodas();
+  const pendentes=todas.filter(t=>t.status!=='concluido');
+  const atrasadas=pendentes.filter(audienciaAtrasada);
+  const semData=pendentes.filter(t=>!t.prazo);
+
+  document.getElementById('agenda-mes').textContent=AGENDA_MESES[m]+' de '+y;
+  const sub=document.getElementById('agenda-sub');
+  if(sub)sub.textContent=pendentes.length
+    ? pendentes.length+' audiência'+(pendentes.length>1?'s':'')+' pendente'+(pendentes.length>1?'s':'')+(atrasadas.length?' · '+atrasadas.length+' vencida'+(atrasadas.length>1?'s':'')+' sem baixa':'')
+    : 'nenhuma audiência pendente';
+
+  // grade do mês, começando no domingo
+  const primeiro=new Date(y,m,1);
+  const diasNoMes=new Date(y,m+1,0).getDate();
+  const vazios=primeiro.getDay();
+  let html=AGENDA_DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<vazios;i++)html+='<div class="cal-day vazio"></div>';
+  for(let d=1;d<=diasNoMes;d++){
+    const iso=isoDe(y,m,d);
+    const evs=audienciasNoDia(iso);
+    const dow=new Date(y,m,d).getDay();
+    const temAtraso=evs.some(audienciaAtrasada);
+    const cls=['cal-day'];
+    if(dow===0||dow===6)cls.push('fds');
+    if(evs.length)cls.push(temAtraso?'atras':'temev');
+    if(iso===hoje)cls.push('hoje');
+    if(iso===agendaDiaSel)cls.push('sel');
+    const chips=evs.slice(0,2).map(t=>
+      `<span class="cal-ev ${t.status==='concluido'?'ok':''}">${t.hora?'<b>'+esc(t.hora)+'</b> ':''}${esc(t.titulo)}</span>`).join('');
+    const mais=evs.length>2?`<span class="cal-mais">+${evs.length-2}</span>`:'';
+    // em tela estreita os rótulos não cabem: fica só a bolinha com a quantidade
+    const contador=evs.length?`<span class="cal-count">${evs.length}</span>`:'';
+    const tt=evs.length
+      ? fmtData(iso)+' — '+evs.map(t=>(t.hora?t.hora+' ':'')+t.titulo).join(' · ')
+      : fmtData(iso)+' — sem audiência';
+    html+=`<button type="button" class="${cls.join(' ')}" onclick="agendaSelecionarDia('${iso}')" title="${esc(tt)}">
+      <span class="cal-num">${d}</span>${chips}${mais}${contador}</button>`;
+  }
+  cal.innerHTML=html;
+
+  // painel lateral: o dia clicado, ou as próximas audiências
+  const tit=document.getElementById('agenda-side-tit');
+  const shs=document.getElementById('agenda-side-sub');
+  const lista=document.getElementById('agenda-side-lista');
+  if(!lista)return;
+  if(agendaDiaSel){
+    const evs=audienciasNoDia(agendaDiaSel);
+    tit.textContent=diaSemanaDe(agendaDiaSel)+', '+fmtData(agendaDiaSel);
+    shs.innerHTML=(evs.length?evs.length+' audiência'+(evs.length>1?'s':''):'nenhuma audiência neste dia')+
+      ' · <a onclick="agendaSelecionarDia(\''+agendaDiaSel+'\')" style="color:var(--navy);text-decoration:underline;cursor:pointer">ver as próximas</a>';
+    lista.innerHTML=evs.length?evs.map(audienciaItemHTML).join('')
+      :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Dia livre de audiências.</div>';
+    return;
+  }
+  const proximas=pendentes.filter(t=>t.prazo&&t.prazo>=hoje)
+    .sort((a,b)=>(a.prazo+audienciaHoraOrd(a))<(b.prazo+audienciaHoraOrd(b))?-1:1).slice(0,6);
+  tit.textContent='Próximas audiências';
+  shs.textContent=proximas.length?'clique num dia do calendário para ver só ele':'nada marcado daqui pra frente';
+  let side='';
+  if(atrasadas.length)side+=`<div style="font-size:12px;font-weight:600;color:var(--red-hi);background:var(--red-bg);border:1px solid rgba(178,59,59,.24);border-radius:var(--rs);padding:9px 11px;margin-bottom:10px;line-height:1.45"><i class="ti ti-alert-triangle"></i> ${atrasadas.length} audiência${atrasadas.length>1?'s':''} já passou${atrasadas.length>1?'ram':''} e continua${atrasadas.length>1?'m':''} em aberto.</div>`;
+  side+=proximas.length?proximas.map(audienciaItemHTML).join('')
+    :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Nenhuma audiência marcada.</div>';
+  if(semData.length)side+=`<div style="font-size:11.5px;color:var(--amber-hi);margin-top:6px"><i class="ti ti-alert-circle"></i> ${semData.length} audiência${semData.length>1?'s':''} sem data marcada na Rotina.</div>`;
+  lista.innerHTML=side;
 }
 function irParaCliente(id){navegarPara('crm');abrirCliente(id);}
 
@@ -4906,6 +5393,7 @@ function taskCard(t){
       ${leadChip}
       ${seloProjeto(t)}
       <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
+      ${t.hora?`<span class="prazo-badge prazo-ok" title="Horário"><i class="ti ti-clock" style="font-size:11px"></i>${esc(t.hora)}</span>`:''}
     </div>
     <div class="task-foot">
       <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status">${ST_LBL[t.status]}</span>
@@ -5495,6 +5983,7 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-tipo').value=t.tipo;
     selCli.value=t.cid||'';
     document.getElementById('mt-prazo').value=t.prazo||'';
+    document.getElementById('mt-hora').value=t.hora||'';
     document.getElementById('mt-conc').value=t.concluidoEm||'';
     mtStatus(t.status,true);
     document.getElementById('mt-del').style.display='inline-flex';
@@ -5515,6 +6004,7 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-tipo').value='peticao';
     selCli.value=(respOuCid&&!RESP.includes(respOuCid))?respOuCid:'';
     document.getElementById('mt-prazo').value='';
+    document.getElementById('mt-hora').value='';
     document.getElementById('mt-conc').value='';
     mtStatus('pendente');
     document.getElementById('mt-del').style.display='none';
@@ -5537,6 +6027,7 @@ function salvarTarefa(){
     tipo:document.getElementById('mt-tipo').value,
     cid:document.getElementById('mt-cli').value||null,
     prazo:document.getElementById('mt-prazo').value,
+    hora:document.getElementById('mt-hora').value,
   };
   // concluída: vale a data informada no modal; em qualquer outro status a data sai
   const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
@@ -6250,6 +6741,10 @@ function salvarFin(){
   sincronizarTarefaConferencia(c,f);
   salvarDB();
   fecharOverlay('overlay-fin');
+  // mesma ideia da tabela de lançamentos: um honorário de outro mês (ou de um tipo
+  // que o filtro esconde) não pode desaparecer no instante em que foi salvo
+  if(finFiltro!=='todos'&&finFiltro!==f.t)finFiltro=f.t;
+  if(!periodoMatch(f.dt))finPeriodo='tudo';
   refreshUI();
   if(novoRecebido)avisarFundoEscritorio(v);
 }
@@ -6514,24 +7009,43 @@ function excluirCliente(){
 // ═══════════════════════════════════════════════════════════
 //  FINANCEIRO (VIEW)
 // ═══════════════════════════════════════════════════════════
-let finFiltro='todos', finBusca='', finPeriodo='tudo';
-const PERIODO_LBL={tudo:'todo o período',mes:'último mês','3m':'últimos 3 meses','6m':'últimos 6 meses','12m':'últimos 12 meses',ano:'ano atual'};
+// a tabela abre nos recebidos do mês corrente; "todo o período" é escolha explícita
+let finFiltro='alc', finBusca='', finPeriodo='mesAtual';
+const PERIODO_LBL={mesAtual:'mês atual',tudo:'todo o período',mes:'últimos 30 dias','3m':'últimos 3 meses','6m':'últimos 6 meses','12m':'últimos 12 meses',ano:'ano atual'};
 function filtroFin(f,btn){
   finFiltro=f;
-  document.querySelectorAll('.fin-chips .chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
   renderFin();
 }
 function buscaFin(v){finBusca=v;renderFin();}
 function setFinPeriodo(v){
   finPeriodo=v;
-  document.getElementById('fin-periodo-hint').style.display=(v==='tudo')?'none':'block';
   renderFin();
+}
+// atalho pedido no Financeiro: todos os recebimentos já registrados, sem recorte de mês
+function verTodosRecebidos(){
+  finFiltro='alc';
+  finPeriodo='tudo';
+  finBusca='';
+  const busca=document.getElementById('fin-search');
+  if(busca)busca.value='';
+  blocosRecolhidos['fin:honorarios']=false;
+  try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
+  renderFin();
+}
+// deixa os controles refletindo o estado atual (chips, select e aviso de período)
+function sincronizarControlesFin(){
+  document.querySelectorAll('#fin-chips .chip[data-f]').forEach(b=>
+    b.classList.toggle('active',b.dataset.f===finFiltro));
+  const sel=document.getElementById('fin-periodo');
+  if(sel)sel.value=finPeriodo;
+  const hint=document.getElementById('fin-periodo-hint');
+  if(hint)hint.style.display=(finPeriodo==='tudo')?'none':'block';
 }
 // data do lançamento dentro do período selecionado?
 function periodoMatch(dt){
   if(finPeriodo==='tudo')return true;
   if(!dt)return false;
+  if(finPeriodo==='mesAtual')return dt.slice(0,7)===hojeISO().slice(0,7);
   const d=new Date(dt), now=new Date();
   if(finPeriodo==='ano')return d.getFullYear()===now.getFullYear();
   const meses={mes:1,'3m':3,'6m':6,'12m':12}[finPeriodo];
@@ -6579,8 +7093,13 @@ function renderFin(){
       <div class="stat-sub">recebido · previsto ${money(prevPes)}</div>
     </div>`;
 
+  sincronizarControlesFin();
+  const painelHon=document.getElementById('hon-panel');
+  if(painelHon)painelHon.classList.toggle('recolhida',blocoRecolhido('fin:honorarios',true));
+
   let rows=[];
   DB.clientes.forEach(c=>c.fin.forEach(f=>rows.push({c,f})));
+  const total=rows.length;
   if(finFiltro!=='todos')rows=rows.filter(r=>r.f.t===finFiltro);
   if(finPeriodo!=='tudo')rows=rows.filter(r=>periodoMatch(r.f.dt));
   if(finBusca){
@@ -6589,8 +7108,21 @@ function renderFin(){
   }
   // ordem alfabética por cliente; dentro do mesmo cliente, maiores valores primeiro
   rows.sort((a,b)=>cmpNome(a.c.nome,b.c.nome)||(b.f.v-a.f.v));
+  // cabeçalho do painel: o essencial mesmo com o card fechado
+  const FILTRO_LBL={todos:'lançamentos',alc:'recebimentos',prev:'previstos',saida:'saídas'};
+  const somaRows=rows.reduce((a,r)=>a+r.f.v,0);
+  const badgeH=document.getElementById('hon-badge');
+  if(badgeH)badgeH.textContent=rows.length+' '+(rows.length===1?FILTRO_LBL[finFiltro].replace(/s$/,''):FILTRO_LBL[finFiltro]);
+  const resumoH=document.getElementById('hon-resumo');
+  if(resumoH)resumoH.textContent=PERIODO_LBL[finPeriodo]+' · '+money(somaRows)
+    +(rows.length!==total?' · de '+total+' lançamentos registrados':'');
+
   const el=document.getElementById('fin-rows');
-  if(!rows.length){el.innerHTML='<div class="fin-empty">Nenhum lançamento encontrado neste filtro.</div>';return;}
+  if(!rows.length){
+    el.innerHTML='<div class="fin-empty">Nenhum lançamento em '+PERIODO_LBL[finPeriodo]+' neste filtro.'
+      +(finPeriodo!=='tudo'?' Use “Ver todos os recebidos” ou troque o período.':'')+'</div>';
+    return;
+  }
   el.innerHTML=rows.map(({c,f})=>{
     const cr=corDe(c.id);
     return `<div class="fin-row hoverable" onclick="irParaCliente('${c.id}')" title="Abrir ficha de ${esc(c.curto)}">
@@ -7031,19 +7563,99 @@ function renderFunilCRM(elId,itens){
     </div>`;
   }).join('')}</div>`;
 }
+// ─── META DE CONTRATOS DO MÊS: de onde sai a contagem ───
+// Um lead entra na conta quando está marcado como fechado (leadFechado: etapa
+// "Ganho" no funil, conversão em cliente ou o campo "fechou"). O mês é o do
+// fechamento (ganhoEm); quando esse carimbo não existe — leads fechados antes
+// dessa regra —, cai na data de entrada do lead, e isso fica sinalizado.
+function nomeMesChave(chave){
+  const nomes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const[ano,mes]=chave.split('-');
+  return nomes[Number(mes)-1]+' de '+ano;
+}
+function contratosFechadosDoMes(chave){
+  const mes=chave||mesChaveDe(Date.now());
+  return leadsCRMFunil()
+    .filter(leadFechado)
+    .filter(l=>mesChaveDe(l.ganhoEm||l.criadoEm)===mes)
+    .map(l=>{
+      const motivos=[];
+      if(l.statusCRM==='Ganho')motivos.push('etapa “Ganho” no funil');
+      if(l.convertido===true)motivos.push('convertido em cliente');
+      if(l.fechouCRM==='Sim'&&l.statusCRM!=='Ganho')motivos.push('campo “fechou o contrato” = Sim');
+      return {l,quando:l.ganhoEm||l.criadoEm,temDataFechamento:!!l.ganhoEm,motivos};
+    })
+    .sort((a,b)=>b.quando-a.quando);
+}
 // card de meta de contratos na página inicial (visão geral)
 function renderDashMetaContratos(){
   const body=document.getElementById('dash-meta-body');
   if(!body)return;
   const k=calcularKPIsCRM();
+  const itens=contratosFechadosDoMes(k.mesAtual);
   const pct=k.metaContratos>0?Math.min(100,Math.round(k.contratosFechadosMes/k.metaContratos*100)):0;
   const cor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--navy)';
   const sub=document.getElementById('dash-meta-sub');
-  if(sub)sub.textContent=k.contratosFechadosMes+' de '+k.metaContratos+' contratos fechados';
+  if(sub)sub.textContent=k.contratosFechadosMes+' de '+k.metaContratos+' em '+nomeMesChave(k.mesAtual);
+  const chips=itens.length
+    ? itens.map(x=>`<span class="meta-chip">${esc(x.l.nome)}</span>`).join('')
+    : '<span class="meta-chip vazio">nenhum contrato fechado ainda neste mês</span>';
   body.innerHTML=`<div class="hbar-row" style="cursor:default">
     <div class="hbar-label" style="width:auto;margin-right:10px;font-weight:700;color:var(--navy)">${pct}%</div>
     <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
+  </div>
+  <div class="meta-chips">${chips}</div>
+  <div style="font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5">
+    Conta os leads do funil marcados como fechados (etapa “Ganho”, conversão em cliente ou campo “fechou”), pela data de fechamento.
+    <b style="color:var(--navy)">Clique no card para ver contrato por contrato.</b>
   </div>`;
+}
+// detalhe do card: mostra exatamente quais leads foram contados e por quê
+function abrirDetalheMetaContratos(){
+  const k=calcularKPIsCRM();
+  const itens=contratosFechadosDoMes(k.mesAtual);
+  const pct=k.metaContratos>0?Math.min(100,Math.round(k.contratosFechadosMes/k.metaContratos*100)):0;
+  const cor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--navy)';
+  const semData=itens.filter(x=>!x.temDataFechamento).length;
+
+  document.getElementById('mmd-mes').textContent=nomeMesChave(k.mesAtual);
+  document.getElementById('mmd-sub').textContent='Meta de '+k.metaContratos+' contrato'+(k.metaContratos!==1?'s':'')+' e de '+money(k.metaFaturamento)+' de honorários no mês.';
+  document.getElementById('mmd-resumo').innerHTML=`
+    <div class="fin-totais">
+      <div class="fin-bloco"><div class="fin-label">Contratos fechados</div><div class="fin-val">${k.contratosFechadosMes} / ${k.metaContratos}</div></div>
+      <div class="fin-bloco"><div class="fin-label">Honorários fechados</div><div class="fin-val g">${money(k.faturamentoFechadoMes)}</div></div>
+      <div class="fin-bloco"><div class="fin-label">Meta de honorários</div><div class="fin-val">${money(k.metaFaturamento)}</div></div>
+    </div>
+    <div class="hbar-row" style="cursor:default;margin-bottom:14px">
+      <div class="hbar-label" style="width:auto;margin-right:10px;font-weight:700;color:var(--navy)">${pct}%</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
+    </div>`;
+  document.getElementById('mmd-explica').innerHTML=
+    'Como a contagem é feita: entra no mês todo lead do funil comercial (trabalhista ou cível) que esteja marcado como fechado — '+
+    '<b>etapa “Ganho”</b>, <b>convertido em cliente</b> pelo botão “fechar contrato”, ou com o <b>campo “fechou o contrato” em Sim</b>. '+
+    'O mês considerado é o do <b>fechamento</b>; quando o lead foi fechado antes de o sistema passar a carimbar essa data, vale a data de entrada do lead. '+
+    'Leads retroativos — criados só para ligar clientes antigos ao CRM — ficam de fora.'+
+    (semData?'<br><span style="color:var(--amber-hi)"><i class="ti ti-alert-circle"></i> '+semData+' contrato'+(semData>1?'s':'')+' sem data de fechamento registrada: contado'+(semData>1?'s':'')+' pela data de entrada do lead.</span>':'');
+
+  document.getElementById('mmd-lista').innerHTML=itens.length?itens.map(x=>{
+    const l=x.l;
+    const mod=l._mod==='civel'?'Cível':'Trabalhista';
+    const area=(l.area||'').trim();
+    const areaTxt=(area&&area.toLowerCase()!==mod.toLowerCase())?' · '+esc(area):'';
+    const dataTxt=x.temDataFechamento
+      ? 'fechado em '+fmtDataHora(x.quando)
+      : 'sem data de fechamento · lead entrou em '+fmtDataHora(x.quando);
+    return `<div class="meta-contrato" onclick="fecharOverlay('overlay-metadetalhe');abrirLeadDeTarefa('${l.id}','${l._mod}')" title="Abrir a jornada deste lead">
+      <div class="meta-contrato-info">
+        <div class="meta-contrato-nome">${esc(l.nome)}</div>
+        <div class="meta-contrato-meta">${mod}${areaTxt}${l.responsavel?' · '+esc(l.responsavel):''}<br>${dataTxt} · contado por ${esc(x.motivos.join(' + ')||'marcação de fechamento')}</div>
+      </div>
+      <span class="meta-origem ${x.temDataFechamento?'':'est'}">${x.temDataFechamento?'data confirmada':'data estimada'}</span>
+      <span class="fin-item-val">${money(l.valorHonorarioEstimado||0)}</span>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--t3);padding:12px 0;line-height:1.55">Nenhum contrato contado neste mês. Um lead só entra aqui quando é movido para a etapa “Ganho” no funil ou convertido em cliente pelo botão “fechar contrato”, na Jornada Comercial.</p>';
+
+  abrirOverlay('overlay-metadetalhe');
 }
 function renderDashboardCRM(){
   const kEl=document.getElementById('crm-kpis');
