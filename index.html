@@ -9,14 +9,17 @@
 <!-- Content-Security-Policy: restringe de onde a página pode carregar código e,
      principalmente, PARA ONDE ela pode enviar dados (connect-src). Mesmo que
      algum script malicioso entrasse na página, ele não conseguiria mandar os
-     dados dos clientes para um servidor de fora — só a API do GitHub é aceita. -->
+     dados dos clientes para um servidor de fora — só a API do GitHub é aceita.
+     A API pública do DJEN (comunicaapi.pje.jus.br) também é liberada, mas só
+     para LEITURA: o sistema faz apenas consultas GET de publicações por OAB e
+     nunca envia dados do escritório para lá. -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self' blob:;
   script-src 'self' 'unsafe-inline';
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
   font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
   img-src 'self' data: blob:;
-  connect-src 'self' https://api.github.com;
+  connect-src 'self' https://api.github.com https://gist.githubusercontent.com https://comunicaapi.pje.jus.br;
   frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';
 ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -429,14 +432,6 @@ button:active{transform:scale(.985)}
 .exito-baixa{background:var(--red-bg);color:var(--red-hi);border-color:rgba(178,59,59,.24)}
 .exito-na{background:rgba(22,36,61,.05);color:var(--t3);border-color:var(--border)}
 
-/* ─── TESES ─── */
-.tese-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);margin-bottom:12px;overflow:hidden;transition:.14s}
-.tese-card:hover{border-color:var(--border-med)}
-.tese-card-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.tese-card-body{padding:14px 16px}
-.tese-titulo{font-family:var(--font-serif);font-size:16px;font-weight:600;color:var(--navy);margin-bottom:6px}
-.tese-texto{font-size:13.5px;color:var(--t2);line-height:1.6;white-space:pre-wrap}
-.tese-vazia{font-size:13px;color:var(--t3);font-style:italic}
 .resultado-pill{font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:20px;white-space:nowrap;cursor:pointer;transition:.15s;border:1px solid}
 .resultado-ganho{background:var(--green-bg);color:var(--green-hi);border-color:rgba(47,125,63,.24)}
 .resultado-perdido{background:var(--red-bg);color:var(--red-hi);border-color:rgba(178,59,59,.24)}
@@ -761,6 +756,291 @@ button:active{transform:scale(.985)}
 .mt-conc-hint{font-size:12px;color:var(--t3);margin-top:7px;min-height:16px}
 .mt-conc-hint.atraso{color:var(--red-hi);font-weight:600}
 .mt-conc-hint.antes{color:var(--green-hi);font-weight:600}
+
+/* ─── ROTINA: PLACAR, CRIAÇÃO RÁPIDA E AGENDA ───
+   A lista principal é organizada pelo que vence primeiro (atrasadas, hoje,
+   amanhã, semana…), e não por pessoa. O quadro por responsável continua
+   disponível no botão "Por responsável". */
+.btn-sec{font-size:13px;font-weight:600;padding:9px 16px;border-radius:20px;cursor:pointer;transition:.15s;
+  background:var(--surface);border:1px solid var(--border-med);color:var(--navy);display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn-sec:hover{border-color:var(--navy-soft);background:var(--surface2)}
+.btn-sec:disabled{opacity:.55;cursor:wait}
+.nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;
+  border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;vertical-align:1px}
+.tb-nav-btn.active .nav-badge{background:var(--red)}
+.tb-nav-btn{white-space:nowrap;flex-shrink:0}
+.seg button{white-space:nowrap}
+/* o menu superior não cabia abaixo de ~1500px (a barra estourava a largura da
+   página): compacta os botões e, no limite, rola na horizontal */
+@media (max-width:1500px) and (min-width:861px){
+  .topbar{gap:8px;padding:0 18px;overflow-x:auto;scrollbar-width:none}
+  .topbar::-webkit-scrollbar{display:none}
+  .tb-sub,.tb-div{display:none}
+  .tb-nav-btn{padding:7px 11px;font-size:13px}
+  .tb-user{display:none}
+}
+
+.rot-placar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.rp-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px 13px;box-shadow:var(--shadow-card);
+  cursor:pointer;transition:.15s;position:relative;overflow:hidden;text-align:left;font-family:var(--font-sans)}
+.rp-box:hover{border-color:var(--border-hi);transform:translateY(-1px)}
+.rp-box.sel{border-color:var(--navy);box-shadow:0 0 0 2px var(--navy) inset,var(--shadow-card)}
+.rp-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--border-hi))}
+.rp-box[data-c="red"]{--c:var(--red)}
+.rp-box[data-c="amber"]{--c:var(--amber)}
+.rp-box[data-c="blue"]{--c:var(--blue)}
+.rp-box[data-c="green"]{--c:var(--green)}
+.rp-box[data-c="red"][data-alerta="1"]{background:linear-gradient(0deg,var(--red-bg),var(--red-bg)),var(--surface);border-color:rgba(178,59,59,.35)}
+.rp-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
+.rp-val{font-family:var(--font-serif);font-size:30px;font-weight:600;color:var(--navy);line-height:1.15;margin-top:4px}
+.rp-box[data-c="red"][data-alerta="1"] .rp-val{color:var(--red-hi)}
+.rp-sub{font-size:11.5px;color:var(--t3);margin-top:2px;line-height:1.35}
+.rp-meter{height:5px;border-radius:3px;background:var(--surface3);margin-top:8px;overflow:hidden}
+.rp-meter span{display:block;height:100%;border-radius:3px}
+
+.rot-aviso{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--r);margin-bottom:12px;font-size:13.5px;line-height:1.45;border:1px solid}
+.rot-aviso i.ti{font-size:19px;flex-shrink:0}
+.rot-aviso .btn-sec{margin-left:auto;padding:7px 14px;font-size:12.5px}
+.rot-aviso.vermelho{background:var(--red-bg);border-color:rgba(178,59,59,.3);color:var(--red-hi)}
+.rot-aviso.ambar{background:var(--amber-bg);border-color:rgba(169,116,27,.3);color:var(--amber-hi)}
+.rot-aviso.azul{background:var(--blue-bg);border-color:rgba(47,93,148,.3);color:var(--blue-hi)}
+
+.rot-rapida{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r);
+  padding:8px 8px 8px 14px;margin-bottom:16px;box-shadow:var(--shadow-card)}
+.rot-rapida>i.ti{font-size:18px;color:var(--t3)}
+.rot-rapida input[type=text]{flex:1 1 240px;min-width:0;border:none;outline:none;font-family:var(--font-sans);font-size:14.5px;color:var(--t);background:transparent;padding:8px 2px}
+.rot-rapida select,.rot-rapida input[type=date]{font-family:var(--font-sans);font-size:12.5px;padding:7px 8px;border-radius:8px;border:1px solid var(--border-med);background:var(--surface2);color:var(--t2)}
+.rr-datas{display:flex;gap:4px}
+.rr-datas button{font-size:12px;font-weight:600;padding:6px 10px;border-radius:14px;border:1px solid var(--border-med);background:var(--surface);color:var(--t2);cursor:pointer}
+.rr-datas button.on{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.rot-rapida .btn-nova-tarefa{padding:8px 16px}
+.rot-rapida .btn-sec{padding:8px 11px}
+
+.rot-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.rot-modo button{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.rot-pessoas{display:flex;gap:6px;flex-wrap:wrap}
+.rot-pessoa{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:4px 12px 4px 4px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--border-med);background:var(--surface);color:var(--t2);transition:.15s}
+.rot-pessoa .av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.rot-pessoa.todos{padding:6px 13px}
+.rot-pessoa.on{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.rot-pessoa .n{font-size:11px;font-weight:600;opacity:.75}
+
+.ag-grupo{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden}
+.ag-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;border-left:4px solid var(--c,var(--border-hi))}
+.ag-head .chev{font-size:16px;color:var(--t3);transition:transform .16s}
+.ag-grupo.recolhida .ag-head{border-bottom:none}
+.ag-grupo.recolhida .ag-head .chev{transform:rotate(-90deg)}
+.ag-grupo.recolhida .ag-corpo{display:none}
+.ag-tit{font-family:var(--font-serif);font-size:16.5px;font-weight:600;color:var(--navy)}
+.ag-ct{font-size:12px;font-weight:600;color:var(--t3);background:var(--surface2);padding:2px 10px;border-radius:20px}
+.ag-dica{margin-left:auto;font-size:12px;color:var(--t3)}
+.ag-grupo[data-g="atrasadas"]{border-color:rgba(178,59,59,.35)}
+.ag-grupo[data-g="atrasadas"] .ag-head{background:var(--red-bg)}
+.ag-grupo[data-g="atrasadas"] .ag-tit{color:var(--red-hi)}
+.ag-row{display:grid;grid-template-columns:30px 1fr auto auto;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background .12s}
+.ag-row:last-child{border-bottom:none}
+.ag-row:hover{background:var(--surface2)}
+.ag-row.done .ag-tt{text-decoration:line-through;color:var(--t3);font-weight:500}
+.ag-row.saindo{opacity:.35;transition:opacity .25s}
+.ag-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-hi);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:transparent;font-size:14px;transition:.15s;padding:0}
+.ag-check:hover{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.ag-row.done .ag-check{background:var(--green);border-color:var(--green);color:#fff}
+.ag-row.andamento .ag-check{border-color:var(--blue);border-style:dashed}
+.ag-main{min-width:0}
+.ag-tt{font-size:14px;font-weight:600;color:var(--t);line-height:1.35;cursor:pointer}
+.ag-tt:hover{color:var(--navy-soft);text-decoration:underline}
+.ag-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ag-tipo{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t3)}
+.ag-tipo i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.ag-av{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0}
+.ag-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--surface3);color:var(--navy);cursor:pointer;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.ag-chip.proc{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10.5px}
+.ag-chip.conferir{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.3);cursor:pointer}
+.ag-chip.adiada{background:transparent;border:1px dashed var(--border-hi);color:var(--t3);cursor:default}
+.ag-chip.andamento{background:var(--blue-bg);color:var(--blue-hi);cursor:default}
+.ag-prazo{text-align:right;white-space:nowrap}
+.ag-prazo .d{font-size:12.5px;font-weight:600;color:var(--t2)}
+.ag-prazo .f{font-size:11px;font-weight:600;color:var(--red-hi);margin-top:2px}
+.ag-prazo .s{font-size:11px;color:var(--t3);margin-top:2px}
+.ag-prazo .d.late{color:var(--red-hi)}
+.ag-prazo .d.soon{color:var(--amber-hi)}
+.ag-prazo input[type=date]{font-size:12px;padding:5px 6px;border-radius:7px;border:1px dashed var(--amber);background:var(--amber-bg);color:var(--amber-hi);font-family:var(--font-sans)}
+.ag-acoes{display:flex;gap:4px;opacity:.55;transition:opacity .15s}
+.ag-row:hover .ag-acoes{opacity:1}
+.ag-acoes .btn-ico{width:30px;height:30px}
+.ag-menu{position:relative}
+.ag-menu-pop{position:absolute;right:0;top:34px;z-index:50;background:var(--surface);border:1px solid var(--border-med);border-radius:10px;box-shadow:var(--shadow-hover);
+  padding:6px;display:none;min-width:190px}
+.ag-menu.open .ag-menu-pop{display:block}
+.ag-menu-pop button{display:block;width:100%;text-align:left;font-size:13px;padding:8px 10px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:var(--t2)}
+.ag-menu-pop button:hover{background:var(--surface2);color:var(--navy)}
+.ag-menu-pop .sep{height:1px;background:var(--border);margin:4px 2px}
+.ag-menu-pop .nota{font-size:11px;color:var(--t3);padding:4px 10px 6px;line-height:1.4}
+.ag-vazio{padding:34px 20px;text-align:center;color:var(--t3);font-size:14px;background:var(--surface);border:1px dashed var(--border-med);border-radius:var(--r)}
+.ag-vazio i{font-size:28px;display:block;margin-bottom:6px;color:var(--green)}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);opacity:0;pointer-events:none;z-index:600;transition:.22s;
+  display:flex;align-items:center;gap:16px;background:var(--navy);color:var(--cream);padding:11px 12px 11px 18px;border-radius:24px;font-size:13.5px;box-shadow:var(--shadow-hover)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:16px;border:1px solid rgba(244,239,230,.35);background:transparent;color:var(--cream);cursor:pointer}
+.toast button:hover{background:rgba(244,239,230,.12)}
+
+/* ─── PROCESSOS ─── */
+.proc-page-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.proc-page-head>div:first-child{flex:1;min-width:240px}
+.proc-head-acoes{display:flex;gap:8px;flex-wrap:wrap}
+.area-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border-med);margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.area-tab{font-size:14px;font-weight:600;padding:10px 16px 11px;border:none;background:transparent;color:var(--t3);cursor:pointer;border-bottom:3px solid transparent;
+  margin-bottom:-1px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-family:var(--font-sans)}
+.area-tab:hover{color:var(--navy)}
+.area-tab.on{color:var(--navy);border-bottom-color:var(--c,var(--navy))}
+.area-tab .n{font-size:11px;font-weight:600;background:var(--surface3);color:var(--t2);padding:1px 8px;border-radius:10px}
+.area-tab i.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.area-tab.cfg{margin-left:auto;font-size:13px;font-weight:500}
+.proc-resumo{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;color:var(--t3);margin-top:6px}
+.proc-resumo b{color:var(--navy);font-weight:700}
+.proc-resumo .alerta,.proc-resumo .alerta b{color:var(--red-hi)}
+.proc-vazio{font-size:13.5px;color:var(--t3);padding:30px 0;text-align:center}
+
+/* chip de vencimento: data + quanto falta, na cor da urgência */
+.vc{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:62px;padding:5px 8px;border-radius:8px;
+  font-size:10.5px;font-weight:600;line-height:1.2;white-space:nowrap;position:relative;flex-shrink:0}
+.vc b{font-size:14px;font-weight:700}
+.vc-alta{background:var(--red);color:#fff}
+.vc-media{background:var(--amber-bg);color:var(--amber-hi);box-shadow:inset 0 0 0 1px rgba(169,116,27,.35)}
+.vc-baixa{background:var(--surface3);color:var(--t2)}
+.vc-baixa b{color:var(--navy)}
+.vc-sem{background:transparent;color:var(--t3);box-shadow:inset 0 0 0 1px var(--border-med)}
+.vc .conf{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--amber);border:2px solid var(--surface)}
+
+/* lista de processos: uma linha por processo */
+.pl-lista{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden}
+.pl-cab,.pl-row{display:grid;grid-template-columns:minmax(0,1fr) 210px 240px 76px;gap:14px;align-items:center;padding:0 16px}
+.pl-cab{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding-top:10px;padding-bottom:9px;
+  background:var(--surface2);border-bottom:1px solid var(--border)}
+.pl-row{border-bottom:1px solid var(--border);min-height:62px;position:relative;transition:background .12s}
+.pl-row:last-child{border-bottom:none}
+.pl-row:hover{background:var(--surface2)}
+.pl-row::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--c)}
+.pl-row.arq{opacity:.6}
+.pl-row.destaque{background:var(--amber-bg)}
+.pl-main{min-width:0;cursor:pointer;padding:10px 0}
+.pl-partes{font-size:14.5px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-partes span{color:var(--t3);font-weight:400}
+.pl-main:hover .pl-partes{color:var(--navy-soft)}
+.pl-sub{font-size:12px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pl-novo{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--amber-hi);background:var(--amber-bg);
+  padding:1px 6px;border-radius:4px;vertical-align:2px;margin-left:4px}
+.pl-fase{width:100%;font-family:var(--font-sans);font-size:12.5px;color:var(--t2);text-overflow:ellipsis;padding:6px 8px;border-radius:7px;border:1px solid transparent;background:transparent;cursor:pointer}
+.pl-fase:hover,.pl-fase:focus{border-color:var(--border-med);background:var(--surface)}
+.pl-prazo{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer}
+.pl-prazo.vazio{color:var(--t3);cursor:default;padding-left:26px}
+.pl-prazo-tt{font-size:12.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-prazo-tt em{font-style:normal;color:var(--t3);font-weight:600}
+.pl-acoes{display:flex;gap:4px;justify-content:flex-end;opacity:.35;transition:opacity .12s}
+.pl-row:hover .pl-acoes{opacity:1}
+.pl-acoes .btn-ico{width:30px;height:30px}
+
+/* caixa de publicações */
+.pr-painel{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-card);margin-bottom:22px;overflow:hidden}
+.pr-painel.vazio{background:var(--surface2);border-style:dashed;box-shadow:none}
+.pr-convite{display:flex;align-items:center;gap:14px;padding:14px 18px;font-size:13.5px;color:var(--t2);flex-wrap:wrap}
+.pr-convite i{font-size:22px;color:var(--navy-soft)}
+.pr-convite span{flex:1;min-width:200px}
+.pr-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.pr-head h3{font-family:var(--font-serif);font-size:18px;font-weight:600;color:var(--navy)}
+.pr-abas{display:flex;gap:2px;background:var(--surface3);padding:3px;border-radius:9px}
+.pr-abas button{font-family:var(--font-sans);font-size:12.5px;font-weight:600;color:var(--t2);background:transparent;border:none;padding:5px 11px;border-radius:7px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.pr-abas button.on{background:var(--surface);color:var(--navy);box-shadow:0 1px 2px rgba(8,16,30,.12)}
+.pr-abas .n{font-size:10.5px;font-weight:700;background:var(--red);color:#fff;padding:0 6px;border-radius:8px;line-height:16px}
+.pr-ult{margin-left:auto;font-size:12px;color:var(--t3)}
+.pr-ult.erro{color:var(--red-hi);font-weight:600}
+.pr-oabsel{max-width:190px;font-family:var(--font-sans);font-size:12px;padding:5px 8px;border-radius:7px;border:1px solid var(--border-med);background:var(--surface);color:var(--t2)}
+.pr-head .btn-ico{width:32px;height:32px}
+.pr-lista{max-height:560px;overflow-y:auto}
+.pr-vazio{padding:22px 16px;font-size:13.5px;color:var(--t3);text-align:center}
+.pr-vazio i{color:var(--green);font-size:16px;vertical-align:-2px}
+.pr-item{border-bottom:1px solid var(--border);cursor:pointer}
+.pr-item:last-child{border-bottom:none}
+.pr-item:hover{background:var(--surface2)}
+.pr-item.aberto{background:var(--surface2)}
+.pr-item.feita .pr-tt{color:var(--t2);font-weight:500}
+.pr-linha{display:flex;align-items:center;gap:14px;padding:10px 16px}
+.pr-info{flex:1;min-width:0}
+.pr-tt{font-size:14px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-dias{font-size:11.5px;font-weight:600;color:var(--t3);margin-left:4px}
+.pr-lock{font-size:13px;color:var(--t3)}
+.pr-sub{font-size:12.5px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-oab{font-size:11px;font-weight:600;color:var(--blue-hi);background:var(--blue-bg);padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.pr-ok{font-family:var(--font-sans);font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:8px;border:none;background:var(--navy);color:var(--cream);
+  cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.pr-ok:hover{background:var(--navy-soft)}
+.pr-ok.sec{background:var(--surface);color:var(--navy);box-shadow:inset 0 0 0 1px var(--border-hi)}
+.pr-feito{color:var(--green);font-size:18px;width:34px;text-align:center;flex-shrink:0}
+.pr-chev{font-size:15px;color:var(--t3);transition:transform .15s;flex-shrink:0}
+.pr-item.aberto .pr-chev{transform:rotate(180deg)}
+.pr-det{padding:2px 16px 14px 92px;cursor:default}
+.pr-trilha{font-size:12.5px;color:var(--t2);line-height:1.6}
+.pr-trilha b{color:var(--navy)}
+.pr-base{font-size:12px;color:var(--t3);margin-top:3px}
+.pr-meta{font-size:12px;color:var(--t3);margin-top:6px}
+.pr-pje{font-size:12.5px;color:var(--amber-hi);background:var(--amber-bg);border-radius:7px;padding:7px 10px;margin-top:8px;display:flex;gap:7px;align-items:center}
+.pr-txt{font-size:13px;color:var(--t2);line-height:1.6;margin-top:8px;white-space:pre-wrap;max-height:260px;overflow-y:auto;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.pr-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12.5px}
+.pr-links a{color:var(--navy);font-weight:600;cursor:pointer}
+.pr-links a:hover{text-decoration:underline}
+.pr-links a.sutil{color:var(--t3);font-weight:500;margin-left:auto}
+@media (max-width:860px){
+  .pl-cab{display:none}
+  .pl-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main prazo" "fase acoes";gap:4px 10px;padding:8px 12px 8px 14px}
+  .pl-main{grid-area:main;padding:2px 0}
+  .pl-prazo{grid-area:prazo}
+  .pl-prazo-tt{display:none}
+  .pl-prazo.vazio{padding-left:0}
+  .pl-fase{grid-area:fase;padding-left:0}
+  .pl-acoes{grid-area:acoes;opacity:1}
+  .pr-linha{gap:10px;padding:10px 12px;flex-wrap:wrap}
+  .pr-info{flex-basis:calc(100% - 140px)}
+  .pr-oab{order:5}
+  .pr-ok{order:6;margin-left:auto}
+  .pr-chev{display:none}
+  .pr-tt .pl-novo{display:none}
+  .pr-det{padding:2px 12px 14px}
+  .pr-ult{width:100%;margin-left:0;order:9}
+  .pr-lista{max-height:none}
+}
+
+.mp-tese{border:1px solid var(--border-med);border-radius:var(--rs);padding:10px 14px;margin-bottom:16px}
+.mp-tese summary{font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
+.mpz-calc{font-size:12.5px;color:var(--t2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin:-4px 0 16px;line-height:1.55}
+.mpz-calc b{color:var(--navy)}
+.mt-conferir{background:var(--amber-bg);border:1px solid rgba(169,116,27,.3);color:var(--amber-hi);border-radius:var(--rs);padding:10px 12px;font-size:12.5px;line-height:1.5;margin:-4px 0 16px}
+
+.cal-ev.prazo{background:var(--amber-bg);border-color:rgba(169,116,27,.32);color:var(--amber-hi)}
+.cal-day.temprazo{background:var(--amber-bg);border-color:rgba(169,116,27,.32)}
+.cal-ev.aud{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.aud-item .aud-kind{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:10px}
+.aud-kind.prazo{background:var(--amber-bg);color:var(--amber-hi)}
+.aud-kind.aud{background:var(--green-bg);color:var(--green-hi)}
+
+@media (max-width:1000px){
+  .rot-placar{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:1000px){.rp-box:last-child{grid-column:span 2}}
+@media (max-width:640px){
+  .rot-placar{grid-template-columns:repeat(2,1fr);gap:8px}
+  .rp-val{font-size:24px}
+  .ag-row{grid-template-columns:28px 1fr;gap:8px 10px;padding:10px 12px}
+  .ag-prazo{grid-column:2;text-align:left;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .ag-acoes{grid-column:2;opacity:1}
+  .ag-dica{display:none}
+  .rot-rapida input[type=text]{flex-basis:100%}
+  .rot-toolbar .search-inp{max-width:none!important;margin-left:0!important}
+}
 
 /* ─── PAINEL: PROJETOS EM ANDAMENTO (ROTINA) ───
    Painel fechado por padrão. Abre em grupos por tipo de tarefa (Iniciais,
@@ -1120,9 +1400,9 @@ button:active{transform:scale(.985)}
     <button class="tb-nav-btn active" id="nav-dash" onclick="navegarPara('dash')">Visão geral</button>
     <button class="tb-nav-btn" id="nav-trab" onclick="navegarPara('trab')">Atendimento</button>
     <button class="tb-nav-btn" id="nav-crm" onclick="navegarPara('crm')">Clientes</button>
-    <button class="tb-nav-btn" id="nav-teses" onclick="navegarPara('teses')">Teses</button>
+    <button class="tb-nav-btn" id="nav-processos" onclick="navegarPara('processos')">Processos<span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
     <button class="tb-nav-btn" id="nav-arquivados" onclick="navegarPara('arquivados')">Arquivados</button>
-    <button class="tb-nav-btn" id="nav-rotina" onclick="navegarPara('rotina')">Rotina</button>
+    <button class="tb-nav-btn" id="nav-rotina" onclick="navegarPara('rotina')">Rotina<span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
     <button class="tb-nav-btn" id="nav-comercial" onclick="navegarPara('comercial')">Comercial</button>
     <button class="tb-nav-btn" id="nav-fin" onclick="navegarPara('fin')">Financeiro</button>
     <div class="tb-space"></div>
@@ -1216,7 +1496,7 @@ button:active{transform:scale(.985)}
 
       <div class="modulo-card" style="margin-bottom:20px">
         <div class="card-head">
-          <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências</h3>
+          <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências e prazos</h3>
           <span class="sub" id="agenda-sub"></span>
         </div>
         <div class="agenda-wrap">
@@ -1230,18 +1510,19 @@ button:active{transform:scale(.985)}
             <div class="cal-grid" id="agenda-cal"></div>
           </div>
           <div class="agenda-side">
-            <h4 id="agenda-side-tit">Próximas audiências</h4>
+            <h4 id="agenda-side-tit">Próximas audiências e prazos</h4>
             <p class="sh" id="agenda-side-sub"></p>
             <div class="agenda-side-lista" id="agenda-side-lista"></div>
             <button class="det-add" style="width:100%;justify-content:center;margin-top:6px" onclick="abrirNovaAudiencia()"><i class="ti ti-plus"></i> Marcar audiência</button>
           </div>
         </div>
         <div class="agenda-legenda">
-          <span><i class="leg-dot" style="background:var(--green-bg);border-color:rgba(47,125,63,.4)"></i> dia com audiência</span>
-          <span><i class="leg-dot" style="background:var(--red-bg);border-color:rgba(178,59,59,.4)"></i> audiência vencida sem baixa</span>
+          <span><i class="leg-dot" style="background:var(--green-bg);border-color:rgba(47,125,63,.4)"></i> audiência</span>
+          <span><i class="leg-dot" style="background:var(--amber-bg);border-color:rgba(169,116,27,.4)"></i> vencimento de prazo</span>
+          <span><i class="leg-dot" style="background:var(--red-bg);border-color:rgba(178,59,59,.4)"></i> vencido sem baixa</span>
           <span><i class="leg-dot" style="background:transparent;border-color:var(--navy);border-width:2px"></i> hoje</span>
           <span><i class="leg-dot" style="background:var(--navy);border-color:var(--navy)"></i> dia selecionado</span>
-          <span style="margin-left:auto"><i class="ti ti-info-circle"></i> vem das tarefas do tipo “Audiências” da Rotina</span>
+          <span style="margin-left:auto"><i class="ti ti-info-circle"></i> vem das audiências e prazos da Rotina e da aba Processos</span>
         </div>
       </div>
 
@@ -1677,22 +1958,35 @@ button:active{transform:scale(.985)}
       </div>
     </div>
 
-    <!-- ─── VIEW: TESES ─── -->
-    <div class="view" id="view-teses">
-      <div class="page-head">
-        <h1>Teses</h1>
-        <p>Argumentos jurídicos utilizados em cada processo — ativo ou arquivado</p>
+    <!-- ─── VIEW: PROCESSOS ───
+         Substituiu a antiga aba "Teses". Cada processo tem área, fase e os
+         prazos que correm nele — e esses prazos são tarefas da Rotina (tipo
+         "prazo", com t.pid apontando para o processo), por isso aparecem
+         também na Rotina e no calendário da visão geral. As publicações do
+         DJEN entram pela caixa "Publicações" e são ligadas ao processo pelo
+         número CNJ. O conteúdo é montado em renderProcessos(). -->
+    <div class="view" id="view-processos">
+      <div class="page-head proc-page-head">
+        <div>
+          <h1>Processos</h1>
+          <div class="proc-resumo" id="proc-stats"></div>
+        </div>
+        <div class="proc-head-acoes">
+          <button class="btn-nova-tarefa" onclick="abrirModalProc(null,null)"><i class="ti ti-plus"></i>Novo processo</button>
+        </div>
       </div>
-      <div class="stats-row" id="teses-stats"></div>
+      <!-- caixa de entrada das publicações do DJEN -->
+      <div class="pr-painel" id="pub-panel"></div>
+
+      <div class="area-tabs" id="proc-areas"></div>
       <div class="rotina-chips">
-        <button class="chip active" data-f="todos" onclick="filtroTeses('todos',this)">Todos</button>
-        <button class="chip" data-f="com" onclick="filtroTeses('com',this)">Com tese</button>
-        <button class="chip" data-f="sem" onclick="filtroTeses('sem',this)">Sem tese</button>
-        <button class="chip" data-f="ativos" onclick="filtroTeses('ativos',this)">Ativos</button>
-        <button class="chip" data-f="arquivados" onclick="filtroTeses('arquivados',this)">Arquivados</button>
-        <input class="search-inp" id="teses-search" style="margin-left:auto;max-width:280px" placeholder="Buscar por tese, processo ou cliente…" oninput="buscaTeses(this.value)">
+        <button class="chip active" data-f="ativos" onclick="filtroProcStatus('ativos',this)">Ativos</button>
+        <button class="chip" data-f="prazo" onclick="filtroProcStatus('prazo',this)">Com prazo correndo</button>
+        <button class="chip" data-f="arquivados" onclick="filtroProcStatus('arquivados',this)">Arquivados</button>
+        <button class="chip" data-f="todos" onclick="filtroProcStatus('todos',this)">Todos</button>
+        <input class="search-inp" id="proc-search" style="margin-left:auto;max-width:300px" placeholder="Buscar por número, parte, cliente ou fase…" oninput="buscaProcessos(this.value)">
       </div>
-      <div id="teses-lista"></div>
+      <div class="pl-lista" id="proc-lista"></div>
     </div>
 
     <!-- ─── VIEW: PROCESSOS ARQUIVADOS (DESEMPENHO) ─── -->
@@ -1858,17 +2152,42 @@ button:active{transform:scale(.985)}
     <div class="view" id="view-rotina">
       <div class="page-head">
         <h1>Rotina do Escritório</h1>
-        <p>Tarefas por sócio · status e prazos</p>
+        <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
       </div>
 
-      <div class="stats-row" id="rotina-stats"></div>
-      <div class="rotina-chips">
+      <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
+      <div class="rot-placar" id="rotina-stats"></div>
+
+      <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
+      <div id="rotina-avisos"></div>
+
+      <!-- criação rápida: título + responsável + prazo, Enter grava -->
+      <div class="rot-rapida">
+        <i class="ti ti-plus"></i>
+        <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
+        <select id="rr-resp" title="Responsável"></select>
+        <div class="rr-datas" id="rr-datas"></div>
+        <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
+        <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
+        <button class="btn-sec" onclick="abrirModalTarefa(null,null)" title="Abrir o formulário completo"><i class="ti ti-adjustments-horizontal"></i></button>
+      </div>
+
+      <div class="rot-toolbar">
+        <div class="seg rot-modo">
+          <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
+          <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
+        </div>
+        <div class="rot-pessoas" id="rot-pessoas"></div>
+        <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
+      </div>
+
+      <div class="rotina-chips rot-status-chips" id="rot-status-chips" style="display:none">
         <button class="chip active" data-f="todos" onclick="filtroRotina('todos',this)">Todas</button>
         <button class="chip" data-f="pendente" onclick="filtroRotina('pendente',this)">Pendentes</button>
         <button class="chip" data-f="andamento" onclick="filtroRotina('andamento',this)">Em andamento</button>
         <button class="chip" data-f="concluido" onclick="filtroRotina('concluido',this)">Concluídas</button>
-        <button class="btn-nova-tarefa" style="margin-left:auto" onclick="abrirModalTarefa(null,null)"><i class="ti ti-plus"></i>Nova tarefa</button>
       </div>
+      <div id="rotina-agenda"></div>
       <div class="rotina-board" id="rotina-board"></div>
 
       <!-- cumprimento de prazos: o que foi concluído, quando, e com quantos dias de atraso -->
@@ -2014,6 +2333,16 @@ button:active{transform:scale(.985)}
     <div class="fg"><label>Parte no polo ativo</label><input type="text" id="mp-ativo" placeholder="Nome da parte autora"></div>
     <div class="fg"><label>Parte no polo passivo</label><input type="text" id="mp-passivo" placeholder="Nome da parte ré"></div>
     <div class="fg-row">
+      <div class="fg"><label>Área</label><select id="mp-area"></select></div>
+      <div class="fg"><label>Responsável</label>
+        <select id="mp-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Fase atual</label><select id="mp-fase"></select></div>
+      <div class="fg"><label>Tribunal / órgão</label><input type="text" id="mp-orgao" placeholder="Ex.: TRT18 — 3ª Vara do Trabalho de Goiânia"></div>
+    </div>
+    <div class="fg-row">
       <div class="fg"><label>Cliente está no polo</label>
         <div class="seg">
           <button type="button" id="mp-polo-a" onclick="mpPolo('a')">Ativo</button>
@@ -2032,25 +2361,16 @@ button:active{transform:scale(.985)}
       <div class="fg"><label>Probabilidade de êxito (%)</label><input type="number" id="mp-exito" min="0" max="100" step="5" placeholder="Ex.: 70 — deixe em branco se não avaliado"></div>
     </div>
     <p id="mp-polo-hint" style="display:none;font-size:11.5px;color:var(--t3);margin:-8px 0 14px">Como polo passivo (defesa), normalmente não há valor de êxito a receber — pode deixar em branco.</p>
+    <div class="fg"><label>Observações</label><textarea id="mp-obs" rows="2" placeholder="Pontos de atenção do processo, estratégia, pendências do cliente…"></textarea></div>
+    <details class="mp-tese">
+      <summary>Tese utilizada (opcional)</summary>
+      <div class="fg" style="margin-top:12px"><label>Nome da tese</label><input type="text" id="mp-tese-titulo" placeholder="Ex.: Responsabilidade objetiva do transportador"></div>
+      <div class="fg"><label>Fundamentação</label><textarea id="mp-tese-texto" rows="4" placeholder="Fundamentos, jurisprudência, artigos de lei…"></textarea></div>
+    </details>
     <div class="modal-btns">
       <button class="btn-del" id="mp-del" onclick="excluirProc()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn-cancel" onclick="fecharOverlay('overlay-proc')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarProc()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ MODAL: TESE JURÍDICA DO PROCESSO ═══════════════ -->
-<div class="overlay" id="overlay-tese">
-  <div class="modal">
-    <h3>Tese utilizada</h3>
-    <p id="mte-contexto" style="font-size:12.5px;color:var(--t3);margin:-10px 0 18px;line-height:1.5"></p>
-    <div class="fg"><label>Nome da tese (opcional)</label><input type="text" id="mte-titulo" placeholder="Ex.: Responsabilidade objetiva do transportador"></div>
-    <div class="fg"><label>Fundamentação / argumento utilizado</label><textarea id="mte-texto" rows="6" placeholder="Descreva a tese jurídica aplicada neste caso — fundamentos, jurisprudência, artigos de lei…"></textarea></div>
-    <div class="modal-btns">
-      <button class="btn-del" id="mte-del" onclick="limparTese()" style="display:none"><i class="ti ti-trash"></i> Limpar tese</button>
-      <button class="btn-cancel" onclick="fecharOverlay('overlay-tese')">Cancelar</button>
-      <button class="btn-confirm" onclick="salvarTese()">Salvar</button>
     </div>
   </div>
 </div>
@@ -2112,22 +2432,38 @@ button:active{transform:scale(.985)}
     <div class="fg"><label>Descrição da tarefa</label><input type="text" id="mt-titulo-in" placeholder="Ex.: Elaborar petição inicial" oninput="mtRecalcProjetoAuto()"></div>
     <div class="fg" id="mt-desc-wrap" style="display:none">
       <label>Detalhes / roteiro sugerido</label>
-      <textarea id="mt-desc" readonly style="background:var(--surface2);color:var(--t2)"></textarea>
+      <textarea id="mt-desc" readonly style="background:var(--surface2);color:var(--t2);min-height:110px"></textarea>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Responsável</label>
         <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
       </div>
       <div class="fg"><label>Tipo</label>
-        <select id="mt-tipo" onchange="mtRecalcProjetoAuto()"></select>
+        <select id="mt-tipo" onchange="mtRecalcProjetoAuto();mtAtualizarHintFatal()"></select>
       </div>
     </div>
-    <div class="fg"><label>Cliente (opcional)</label>
-      <select id="mt-cli"></select>
+    <div class="fg-row">
+      <div class="fg"><label>Cliente (opcional)</label>
+        <select id="mt-cli"></select>
+      </div>
+      <div class="fg"><label>Processo (opcional)</label>
+        <select id="mt-proc" onchange="mtProcessoMudou()"></select>
+      </div>
     </div>
     <div class="fg-row">
-      <div class="fg"><label>Prazo</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao()"></div>
+      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()"></div>
       <div class="fg"><label>Hora</label><input type="time" id="mt-hora"></div>
+    </div>
+    <div class="fg" id="mt-fatal-wrap">
+      <label>Prazo fatal (processual)</label>
+      <input type="date" id="mt-fatal" onchange="mtAtualizarHintFatal()">
+      <div class="mt-conc-hint" id="mt-fatal-hint">Deixe em branco se não for prazo de processo. Quando preenchido, o prazo de entrega acima funciona como prazo interno, antes do fatal.</div>
+    </div>
+    <div class="mt-conferir" id="mt-conferir-wrap" style="display:none">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="checkbox" id="mt-conferido" style="width:auto;margin:3px 0 0">
+        <span><b>Conferi a contagem deste prazo.</b> <span id="mt-conferir-txt"></span></span>
+      </label>
     </div>
     <div class="mt-conc-hint" id="mt-hora-hint" style="margin:-10px 0 16px">Preencha a hora nas audiências e reuniões — é ela que aparece no calendário da visão geral.</div>
     <div class="fg"><label>Status</label>
@@ -2162,6 +2498,108 @@ button:active{transform:scale(.985)}
     </div>
   </div>
 </div>
+
+<!-- ═══════════════ MODAL: NOVO PRAZO PROCESSUAL ═══════════════
+     Calcula o prazo fatal em dias úteis a partir da disponibilização no DJEN
+     (Lei 11.419/2006, art. 4º, §§ 3º e 4º) e grava como tarefa da Rotina. -->
+<div class="overlay" id="overlay-prazo">
+  <div class="modal" style="width:520px">
+    <h3>Novo prazo</h3>
+    <p id="mpz-contexto" style="font-size:12.5px;color:var(--t3);margin:-10px 0 18px;line-height:1.5"></p>
+    <div class="fg"><label>Processo</label><select id="mpz-proc" onchange="mpzRecalcular()"></select></div>
+    <div class="fg"><label>Ato a praticar</label><input type="text" id="mpz-ato" placeholder="Ex.: Contestação, Recurso ordinário, Manifestação sobre laudo"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Disponibilizado no DJEN em</label><input type="date" id="mpz-disp" onchange="mpzRecalcular()"></div>
+      <div class="fg"><label>Prazo (dias)</label><input type="number" id="mpz-dias" min="1" max="365" onchange="mpzRecalcular()" oninput="mpzRecalcular()"></div>
+    </div>
+    <div class="fg"><label>Contagem</label>
+      <div class="seg">
+        <button type="button" id="mpz-uteis" onclick="mpzContagem('uteis')">Dias úteis</button>
+        <button type="button" id="mpz-corridos" onclick="mpzContagem('corridos')">Dias corridos</button>
+      </div>
+    </div>
+    <div class="mpz-calc" id="mpz-calc"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Prazo fatal</label><input type="date" id="mpz-fatal" onchange="mpzFatalManual()"></div>
+      <div class="fg"><label>Entregar até (interno)</label><input type="date" id="mpz-interno"></div>
+    </div>
+    <div class="fg"><label>Responsável</label>
+      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-prazo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarPrazo()">Criar prazo na Rotina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONFIGURAÇÃO DO DJEN ═══════════════ -->
+<div class="overlay" id="overlay-djen">
+  <div class="modal" style="width:600px">
+    <h3>Publicações do DJEN</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-10px 0 18px;line-height:1.55">O sistema consulta o Diário de Justiça Eletrônico Nacional pelas OABs abaixo, liga cada publicação ao processo pelo número CNJ (ou cadastra o processo) e calcula o prazo: pelo texto da publicação, pela lei do ato publicado ou, na falta de ambos, pelo prazo geral de 5 dias úteis. O prazo vai para a Rotina marcado <b>a conferir</b>. Informe em "Advogado(a)" o nome do sócio para que os prazos daquela OAB caiam com ele.</p>
+    <div class="det-sec-titulo"><span>OABs monitoradas</span></div>
+    <div id="djen-oabs"></div>
+    <div class="fg-row" style="grid-template-columns:1.2fr .6fr 1.6fr auto;align-items:end;margin-top:8px">
+      <div class="fg" style="margin-bottom:0"><label>Número OAB</label><input type="text" id="djen-oab-num" placeholder="12345"></div>
+      <div class="fg" style="margin-bottom:0"><label>UF</label><input type="text" id="djen-oab-uf" maxlength="2" placeholder="GO" style="text-transform:uppercase"></div>
+      <div class="fg" style="margin-bottom:0"><label>Advogado(a)</label><input type="text" id="djen-oab-nome" placeholder="Nome (opcional)"></div>
+      <button class="det-add" style="height:42px" onclick="adicionarOabDJEN()"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="fg-row" style="margin-top:18px">
+      <div class="fg"><label>Antecedência do prazo interno</label>
+        <input type="number" id="djen-antecedencia" min="0" max="10">
+        <div class="mt-conc-hint">dias úteis antes do prazo fatal para a entrega interna</div>
+      </div>
+      <div class="fg"><label>Busca automática</label>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--t2);font-weight:500;cursor:pointer">
+          <input type="checkbox" id="djen-auto" style="width:auto;margin:0"> Buscar ao entrar no sistema (no máximo a cada 4 horas)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--t2);font-weight:500;cursor:pointer;margin-top:8px">
+          <input type="checkbox" id="djen-autocad" style="width:auto;margin:0"> Cadastrar sozinho o processo que ainda não estiver no sistema
+        </label>
+      </div>
+    </div>
+    <div class="fg"><label>Feriados e suspensões locais</label>
+      <textarea id="djen-feriados" rows="3" placeholder="Um por linha, no formato dd/mm/aaaa. Ex.: 24/10/2026 (aniversário de Goiânia)"></textarea>
+      <div class="mt-conc-hint">Já são considerados: feriados nacionais, Carnaval, Sexta-feira Santa, Corpus Christi e o recesso de 20/12 a 20/01. Inclua aqui feriados municipais, estaduais e suspensões de expediente do tribunal.</div>
+    </div>
+    <details class="mp-tese" style="margin-bottom:16px">
+      <summary>Se a busca automática for bloqueada pelo navegador</summary>
+      <p style="font-size:12.5px;color:var(--t2);line-height:1.55;margin:10px 0">Abra o link abaixo em outra aba, selecione todo o conteúdo (Ctrl+A), copie (Ctrl+C) e cole no campo. O resultado é tratado exatamente como na busca automática.</p>
+      <div id="djen-links" style="font-size:12.5px;margin-bottom:10px;word-break:break-all"></div>
+      <textarea id="djen-colar" rows="4" placeholder='Cole aqui o conteúdo da página (começa com {"status":...)' style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px;border:1px solid var(--border-med);border-radius:var(--rs)"></textarea>
+      <button class="det-add" style="margin-top:8px" onclick="importarDJENColado()"><i class="ti ti-clipboard-check"></i> Importar conteúdo colado</button>
+    </details>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-djen')">Fechar</button>
+      <button class="btn-confirm" onclick="salvarConfigDJEN()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: ÁREAS E FASES DOS PROCESSOS ═══════════════ -->
+<div class="overlay" id="overlay-areas">
+  <div class="modal" style="width:520px">
+    <h3>Áreas e fases</h3>
+    <div class="det-sec-titulo"><span>Áreas</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">viram as abas da tela de Processos</span></div>
+    <div id="cfg-areas-list"></div>
+    <div class="cfgtipo-row" style="margin-top:8px">
+      <input type="color" class="cfgtipo-color" id="cfg-area-cor" value="#2f5d94">
+      <input type="text" class="cfgtipo-lbl" id="cfg-area-nome" placeholder="Nova área (ex.: Previdenciário)" onkeydown="if(event.key==='Enter')adicionarArea()">
+      <button class="btn-ico" onclick="adicionarArea()" title="Adicionar área"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="det-sec-titulo" style="margin-top:20px"><span>Fases</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">uma por linha, na ordem em que o processo anda</span></div>
+    <div class="fg"><textarea id="cfg-fases" rows="9"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-areas')">Fechar</button>
+      <button class="btn-confirm" onclick="salvarFases()">Salvar fases</button>
+    </div>
+  </div>
+</div>
+
+<!-- aviso rápido com "desfazer" (conclusão de tarefa em um clique) -->
+<div class="toast" id="toast"><span id="toast-txt"></span><button id="toast-btn" onclick="toastAcao()">Desfazer</button></div>
 
 <!-- ═══════════════ MODAL: PAUTA COMERCIAL (ARTIGO/VÍDEO) ═══════════════ -->
 <div class="overlay" id="overlay-conteudo">
@@ -2209,21 +2647,6 @@ button:active{transform:scale(.985)}
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-metas')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarMetas()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ MODAL: PROCESSOS (visão geral) ═══════════════ -->
-<div class="overlay" id="overlay-processos">
-  <div class="modal" style="width:660px">
-    <h3>Processos ativos</h3>
-    <div class="fg-row" style="align-items:center;margin:-6px 0 14px">
-      <span style="font-size:12px;color:var(--t3)">clique em um processo para abrir o cliente vinculado</span>
-      <button class="btn-nova-tarefa" style="margin-left:auto" onclick="fecharOverlay('overlay-processos');abrirModalProc(null,null)"><i class="ti ti-plus"></i>Adicionar processo</button>
-    </div>
-    <div id="processos-lista"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="fecharOverlay('overlay-processos')">Fechar</button>
     </div>
   </div>
 </div>
@@ -2879,7 +3302,14 @@ async function lerDB(){
   if(!r.ok)throw new Error('HTTP '+r.status+' — verifique o Gist ID e o Token');
   const j=await r.json();
   const arq=j.files&&(j.files[GIST_FILE]||Object.values(j.files)[0]);
-  const txt=(arq&&arq.content)?arq.content.trim():'';
+  let txt=(arq&&arq.content)?arq.content.trim():'';
+  // acima de ~1 MB a API do GitHub entrega o arquivo cortado (truncated) —
+  // o conteúdo inteiro tem de ser lido pelo raw_url do próprio Gist
+  if(arq&&arq.truncated&&arq.raw_url){
+    const raw=await fetch(arq.raw_url,{cache:'no-store'});
+    if(!raw.ok)throw new Error('HTTP '+raw.status+' ao ler o arquivo completo do Gist');
+    txt=(await raw.text()).trim();
+  }
   if(!txt)return null; // gist realmente vazio → primeira vez, será semeado
   try{
     return JSON.parse(txt);
@@ -3195,6 +3625,8 @@ async function carregarDBRemoto(){
       if(f.aceiteVerbal===undefined){f.aceiteVerbal=false;precisaSalvar=true;}
     });
   });
+  // processos: áreas, fases, publicações do DJEN e o tipo de tarefa "prazo"
+  if(garantirEstruturaProcessos())precisaSalvar=true;
   if(precisaSalvar)await gravarDB();
 }
 
@@ -3701,6 +4133,9 @@ function tarefasAtrasadas(){
 }
 function renderSino(){
   const n=tarefasAtrasadas().length;
+  const nb=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.textContent=v>99?'99+':v;el.style.display=v>0?'inline-flex':'none';};
+  nb('nav-rotina-badge',n);
+  nb('nav-processos-badge',typeof pubsAnalisar==='function'&&DB?pubsAnalisar().length:0);
   const b=document.getElementById('sino-badge');
   if(!b)return;
   if(n>0){b.textContent=n>99?'99+':n;b.style.display='flex';}
@@ -3761,7 +4196,7 @@ const RENDERIZADORES={
   dash:()=>renderDashboard(),
   trab:()=>{renderDashboardCRM();if(typeof renderFilaHoje==='function'&&atendAba==='fila')renderFilaHoje();},
   crm:()=>renderClientes(),
-  teses:()=>{if(typeof renderTeses==='function')renderTeses()},
+  processos:()=>{if(typeof renderProcessos==='function')renderProcessos()},
   arquivados:()=>{if(typeof renderArquivados==='function')renderArquivados()},
   fin:()=>renderFin(),
   rotina:()=>{if(typeof renderRotina==='function')renderRotina()},
@@ -3941,8 +4376,11 @@ function entrarApp(){
   document.getElementById('greeting-verse').innerHTML='"'+esc(v.texto)+'"<span class="ref">'+esc(v.ref)+'</span>';
   carregarLeads();
   carregarLeadsCivel();
+  garantirEstruturaProcessos();
+  if(reprocessarPublicacoesPendentes())salvarDB();
   aplicarIconeOlho();
   refreshUITudo();
+  buscaAutomaticaDJEN();
   verificarAvisoDiario();
   atualizarBadgeBackup();
   iniciarVigiaInatividade();
@@ -4066,7 +4504,7 @@ function renderDashboard(){
       <div class="stat-val">${ativosExt.length+socios.length}</div>
       <div class="stat-sub">${ativosExt.length} externos · ${socios.length} sócios · ${arq.length} arquivados</div>
     </div>
-    <div class="stat-card" data-c="blue" style="cursor:pointer" onclick="abrirProcessosOverview()" title="Ver processos ativos e adicionar novos">
+    <div class="stat-card" data-c="blue" style="cursor:pointer" onclick="navegarPara('processos')" title="Abrir a aba Processos">
       <div class="stat-label">Processos</div>
       <div class="stat-val">${DB.processos.length}</div>
       <div class="stat-sub">${procAtivos} ativos · ${procArq} arquivados</div>
@@ -4251,115 +4689,1239 @@ function abrirDetalheMes(y,m){
 
   abrirOverlay('overlay-mesdet');
 }
-// abre a visão geral de processos ativos, com opção de adicionar (clique no card do dashboard)
-function abrirProcessosOverview(){
-  const ativos=ordenarProcessosPorCliente(DB.processos.filter(p=>p.status!=='Arquivado'));
-  document.getElementById('processos-lista').innerHTML=ativos.length?ativos.map(p=>{
-    const c=clientePorId(p.cid);
-    const ei=exitoInfo(p);
-    const exitoHTML=ei?`<span class="exito-badge ${ei.cls}" title="Probabilidade de êxito (preenchido manualmente)">${ei.v}% êxito</span>`
-                       :`<span class="exito-badge exito-na" title="Ainda não avaliado">êxito não avaliado</span>`;
-    return `
-    <div class="proc-row hoverable" onclick="${c?`fecharOverlay('overlay-processos');irParaCliente('${c.id}')`:`abrirModalProc('${p.id}',null)`}">
-      <span class="proc-num">${esc(p.num)}</span>
-      <span class="proc-partes"><b>${esc(p.ativo)}</b> × ${esc(p.passivo)}${c?' · <span style="color:var(--t3)">'+esc(c.curto)+'</span>':' · <span style="color:var(--t3)">sem cliente vinculado</span>'}</span>
-      <span class="proc-polo ${p.polo==='a'?'polo-a':'polo-p'}">${p.polo==='a'?'Polo ativo':'Polo passivo'}</span>
-      ${exitoHTML}
-      <span class="proc-data">${fmtData(p.dist)}</span>
-      <span class="row-act"><button class="btn-ico" onclick="event.stopPropagation();fecharOverlay('overlay-processos');abrirModalProc('${p.id}','${c?c.id:''}')" title="Editar processo"><i class="ti ti-pencil"></i></button></span>
-    </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:10px 0">Nenhum processo ativo cadastrado.</p>';
-  abrirOverlay('overlay-processos');
-}
 
 // ═══════════════════════════════════════════════════════════
-//  TESES — argumentos jurídicos utilizados em cada processo
+//  PROCESSOS — área, fase, prazos correndo e publicações do DJEN
+//  Substituiu a antiga aba "Teses" (a tese continua guardada no
+//  processo e é editada no próprio modal do processo).
+//
+//  Não existe uma lista separada de prazos: o prazo de um processo é
+//  uma tarefa da Rotina do tipo "prazo" com t.pid = id do processo.
+//  Assim o mesmo registro aparece na Rotina (por data de entrega), no
+//  calendário da visão geral (pelo prazo fatal) e no card do processo.
+//  Campos novos no processo:
+//    area · fase · faseEm · fases[{fase,em,por}] · resp · orgao · obs · numCNJ · ultimaPub
+//  Campos novos na tarefa:
+//    pid · prazoFatal · origem('djen'|'manual') · pubId · conferir · adiamentos · prazoOriginal
 // ═══════════════════════════════════════════════════════════
-let tesesFiltro='todos', tesesBusca='';
-function filtroTeses(f,btn){
-  tesesFiltro=f;
-  document.querySelectorAll('#view-teses .chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTeses();
-}
-function buscaTeses(v){tesesBusca=v;renderTeses();}
-function renderTeses(){
-  const st=document.getElementById('teses-stats');
-  const lista=document.getElementById('teses-lista');
-  if(!st||!lista)return;
-  const comTese=DB.processos.filter(p=>(p.teseTitulo||p.teseTexto)).length;
-  const semTese=DB.processos.length-comTese;
-  st.innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total de processos</div><div class="stat-val">${DB.processos.length}</div></div>
-    <div class="stat-card" data-c="green"><div class="stat-label">Com tese registrada</div><div class="stat-val">${comTese}</div></div>
-    <div class="stat-card" data-c="amber"><div class="stat-label">Sem tese ainda</div><div class="stat-val">${semTese}</div></div>`;
+const SEED_AREAS_PROCESSO=[
+  {key:'trabalhista',lbl:'Trabalhista',cor:'#2f5d94'},
+  {key:'civel',      lbl:'Cível',      cor:'#2f7d3f'},
+  {key:'consumidor', lbl:'Consumidor', cor:'#a9741b'},
+];
+const SEED_FASES_PROCESSO=[
+  'Distribuído — aguardando citação',
+  'Defesa / contestação',
+  'Réplica',
+  'Audiência',
+  'Instrução / perícia',
+  'Razões finais',
+  'Aguardando sentença',
+  'Sentença',
+  'Recurso',
+  'Tribunal superior',
+  'Execução / cumprimento de sentença',
+  'Acordo em cumprimento',
+  'Suspenso',
+];
+const DJEN_API='https://comunicaapi.pje.jus.br/api/v1/comunicacao';
+const DJEN_MAX_PUBLICACOES=150;     // o Gist inteiro precisa ficar abaixo de ~1 MB
+const DJEN_TEXTO_MAX=1800;          // caracteres guardados de cada publicação em aberto
+const DJEN_TEXTO_TRATADA=300;       // depois de tratada, só um resumo
+const DJEN_INTERVALO_AUTO=4*3600000;
 
-  let ps=[...DB.processos];
-  if(tesesFiltro==='com')ps=ps.filter(p=>(p.teseTitulo||p.teseTexto));
-  else if(tesesFiltro==='sem')ps=ps.filter(p=>!(p.teseTitulo||p.teseTexto));
-  else if(tesesFiltro==='ativos')ps=ps.filter(p=>p.status!=='Arquivado');
-  else if(tesesFiltro==='arquivados')ps=ps.filter(p=>p.status==='Arquivado');
-  if(tesesBusca){
-    const q=tesesBusca.toLowerCase();
+function djenCfg(){
+  if(!DB.djen||typeof DB.djen!=='object')DB.djen={};
+  const c=DB.djen;
+  if(!Array.isArray(c.oabs))c.oabs=[];
+  if(!Array.isArray(c.feriados))c.feriados=[];
+  if(!Array.isArray(c.vistos))c.vistos=[];
+  if(typeof c.antecedencia!=='number')c.antecedencia=2;
+  if(typeof c.autoBuscar!=='boolean')c.autoBuscar=true;
+  if(typeof c.autoCadastrar!=='boolean')c.autoCadastrar=true;
+  return c;
+}
+function areasProcesso(){return Array.isArray(DB.areasProcesso)&&DB.areasProcesso.length?DB.areasProcesso:SEED_AREAS_PROCESSO}
+function areaInfo(key){return areasProcesso().find(a=>a.key===key)||null}
+function fasesProcesso(){return Array.isArray(DB.fasesProcesso)&&DB.fasesProcesso.length?DB.fasesProcesso:SEED_FASES_PROCESSO}
+
+// número CNJ: NNNNNNN-DD.AAAA.J.TR.OOOO (20 dígitos)
+function soDigitos(s){return String(s||'').replace(/\D/g,'')}
+function mascaraCNJ(d){
+  d=soDigitos(d);
+  if(d.length!==20)return d;
+  return d.slice(0,7)+'-'+d.slice(7,9)+'.'+d.slice(9,13)+'.'+d.slice(13,14)+'.'+d.slice(14,16)+'.'+d.slice(16);
+}
+// palpite de área pelo segmento da Justiça no número CNJ (5 = Trabalho)
+function areaPorNumero(num,tribunal){
+  const d=soDigitos(num);
+  if(/^(TRT|TST)/i.test(tribunal||''))return 'trabalhista';
+  if(d.length===20)return d[13]==='5'?'trabalhista':'civel';
+  return '';
+}
+
+// Estrutura mínima dos dados novos. Roda no carregamento do Gist e também
+// na cópia offline (que não passa pela migração). Devolve true se mudou algo.
+function garantirEstruturaProcessos(){
+  if(!DB)return false;
+  let mudou=false;
+  if(!Array.isArray(DB.areasProcesso)||!DB.areasProcesso.length){DB.areasProcesso=JSON.parse(JSON.stringify(SEED_AREAS_PROCESSO));mudou=true;}
+  if(!Array.isArray(DB.fasesProcesso)||!DB.fasesProcesso.length){DB.fasesProcesso=[...SEED_FASES_PROCESSO];mudou=true;}
+  if(!Array.isArray(DB.publicacoes)){DB.publicacoes=[];mudou=true;}
+  if(!DB.djen){djenCfg();mudou=true;}
+  if(Array.isArray(DB.tiposTarefa)&&!DB.tiposTarefa.some(t=>t.key==='prazo')){
+    DB.tiposTarefa.push({key:'prazo',lbl:'Prazos',cor:'#b23b3b'});mudou=true;
+  }
+  // palpite único de área para os processos que já existiam: segmento da
+  // Justiça no número CNJ ou, na falta dele, a modalidade do lead do cliente
+  if(!DB.processosAreaV1){
+    (DB.processos||[]).forEach(p=>{
+      if(p.area)return;
+      let a=areaPorNumero(p.num);
+      if(!a){
+        const c=(DB.clientes||[]).find(x=>x.id===p.cid);
+        if(c&&c.leadVinculadoMod)a=c.leadVinculadoMod==='trab'?'trabalhista':'civel';
+      }
+      p.area=a||'';
+    });
+    DB.processosAreaV1=true;mudou=true;
+  }
+  return mudou;
+}
+
+// ─── CALENDÁRIO FORENSE (dias úteis) ──────────────────────
+// Considerados não úteis: sábado, domingo, feriados nacionais (Lei 662/49,
+// Lei 6.802/80, Lei 14.759/23), Carnaval (seg e ter), Sexta-feira Santa,
+// Corpus Christi, o recesso de 20/12 a 20/01 (CPC art. 220; CLT art. 775-A)
+// e os feriados locais cadastrados em Configurar DJEN.
+// Contagem a partir do DJEN (Lei 11.419/06, art. 4º, §§ 3º e 4º): a
+// publicação é o 1º dia útil após a disponibilização; o prazo começa no
+// 1º dia útil após a publicação.
+function isoAdd(iso,k){
+  const[y,m,d]=iso.split('-').map(Number);
+  return new Date(Date.UTC(y,m-1,d+k)).toISOString().slice(0,10);
+}
+function isoDow(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).getUTCDay()}
+function pascoa(ano){
+  const a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+    h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+    mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
+  return ano+'-'+String(mes).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+}
+const __feriadosAno={};
+function feriadosDoAno(ano){
+  if(__feriadosAno[ano])return __feriadosAno[ano];
+  const fixos=['01-01','04-21','05-01','09-07','10-12','11-02','11-15','11-20','12-25'].map(md=>ano+'-'+md);
+  const p=pascoa(ano);
+  const moveis=[isoAdd(p,-48),isoAdd(p,-47),isoAdd(p,-2),isoAdd(p,60)]; // carnaval seg/ter, sexta santa, corpus christi
+  return (__feriadosAno[ano]=new Set([...fixos,...moveis]));
+}
+let __feriadosLocais=null,__feriadosLocaisChave='';
+function feriadosLocais(){
+  const lista=(DB&&DB.djen&&Array.isArray(DB.djen.feriados))?DB.djen.feriados:[];
+  const chave=lista.join(',');
+  if(!__feriadosLocais||chave!==__feriadosLocaisChave){__feriadosLocais=new Set(lista);__feriadosLocaisChave=chave;}
+  return __feriadosLocais;
+}
+function emRecesso(iso){const md=iso.slice(5);return md>='12-20'||md<='01-20'}
+function diaUtil(iso){
+  const dw=isoDow(iso);
+  if(dw===0||dw===6)return false;
+  if(emRecesso(iso))return false;
+  if(feriadosDoAno(+iso.slice(0,4)).has(iso))return false;
+  return !feriadosLocais().has(iso);
+}
+function proximoDiaUtil(iso){let d=isoAdd(iso,1);let g=0;while(!diaUtil(d)&&g++<60)d=isoAdd(d,1);return d}
+function somarDiasUteis(iso,n){let d=iso,c=0,g=0;while(c<n&&g++<800){d=isoAdd(d,1);if(diaUtil(d))c++;}return d}
+function subtrairDiasUteis(iso,n){let d=iso,c=0,g=0;while(c<n&&g++<800){d=isoAdd(d,-1);if(diaUtil(d))c++;}return d}
+function contarDiasUteis(de,ate){ // dias úteis em (de, ate]
+  if(!de||!ate||ate<=de)return 0;
+  let d=de,c=0,g=0;while(d<ate&&g++<800){d=isoAdd(d,1);if(diaUtil(d))c++;}return c;
+}
+// devolve {publicacao, inicio, fatal}
+function calcularPrazoFatal(disp,dias,contagem){
+  const pub=proximoDiaUtil(disp);
+  const inicio=proximoDiaUtil(pub);
+  let fatal;
+  if(contagem==='corridos'){
+    fatal=isoAdd(inicio,dias-1);
+    let g=0;while(!diaUtil(fatal)&&g++<60)fatal=isoAdd(fatal,1);   // vence em dia não útil: prorroga
+  }else{
+    fatal=somarDiasUteis(pub,dias);
+  }
+  return {publicacao:pub,inicio,fatal};
+}
+function diaSemanaCurto(iso){return ['dom','seg','ter','qua','qui','sex','sáb'][isoDow(iso)]}
+function fmtDataSem(iso){return iso?diaSemanaCurto(iso)+' '+fmtData(iso):''}
+
+// ─── PRAZOS DOS PROCESSOS (tarefas da Rotina) ─────────────
+function ehTarefaPrazo(t){return !!t&&(t.tipo==='prazo'||!!t.prazoFatal)}
+function dataEvento(t){return t.tipo==='audiencia'?t.prazo:(t.prazoFatal||t.prazo)}
+function tarefasDoProcesso(pid){return DB.tarefas.filter(t=>t.pid===pid)}
+function prazosCorrendo(pid){
+  return tarefasDoProcesso(pid).filter(t=>t.status!=='concluido'&&(ehTarefaPrazo(t)||t.tipo==='audiencia'))
+    .sort((a,b)=>(dataEvento(a)||'9999')<(dataEvento(b)||'9999')?-1:1);
+}
+function processoPorId(pid){return pid?DB.processos.find(p=>p.id===pid)||null:null}
+function rotuloProcesso(p){
+  if(!p)return '';
+  const num=p.numCNJ||p.num||'';
+  return num+(p.ativo||p.passivo?' — '+(p.ativo||'')+' × '+(p.passivo||''):'');
+}
+function diasAte(iso){return diasEntreISO(hojeISO(),iso)}
+function rotuloDias(iso){
+  const d=diasAte(iso);
+  if(d===null)return {txt:'sem data',cls:''};
+  if(d<0)return {txt:'venceu há '+(-d)+'d',cls:'late'};
+  if(d===0)return {txt:'vence hoje',cls:'late'};
+  if(d===1)return {txt:'amanhã',cls:'soon'};
+  return {txt:'em '+d+' dias',cls:d<=5?'soon':''};
+}
+// atualiza a fase registrando o histórico (quem mudou e quando)
+function mudarFaseProcesso(pid,fase){
+  const p=processoPorId(pid);if(!p)return;
+  if((p.fase||'')===fase)return;
+  p.fase=fase;p.faseEm=Date.now();
+  if(!Array.isArray(p.fases))p.fases=[];
+  p.fases.push({fase,em:p.faseEm,por:EU?EU.nome:''});
+  if(p.fases.length>30)p.fases=p.fases.slice(-30);
+  salvarDB();refreshUI();
+}
+
+// ─── TELA DE PROCESSOS ────────────────────────────────────
+let procArea='todos', procStatus='ativos', procBusca='';
+function filtroProcArea(a){procArea=a;renderProcessos();}
+function filtroProcStatus(f,btn){
+  procStatus=f;
+  document.querySelectorAll('#view-processos .rotina-chips .chip').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderProcessos();
+}
+function buscaProcessos(v){procBusca=v;renderProcessos();}
+function tarefasConferir(){return DB.tarefas.filter(t=>t.conferir&&t.status!=='concluido')}
+function renderProcessos(){
+  const lista=document.getElementById('proc-lista');
+  if(!lista)return;
+  garantirEstruturaProcessos();
+  const todos=DB.processos;
+  const ativos=todos.filter(p=>p.status!=='Arquivado');
+  const comPrazo=ativos.filter(p=>prazosCorrendo(p.id).some(ehTarefaPrazo)).length;
+  const em5=DB.tarefas.filter(t=>t.status!=='concluido'&&t.pid&&ehTarefaPrazo(t)&&dataEvento(t)&&diasAte(dataEvento(t))<=5).length;
+  document.getElementById('proc-stats').innerHTML=
+    `<span><b>${ativos.length}</b> ativos</span><span><b>${comPrazo}</b> com prazo correndo</span>`+
+    `<span class="${em5?'alerta':''}"><b>${em5}</b> vence${em5===1?'':'m'} em até 5 dias</span>`;
+  renderPainelPublicacoes();
+
+  const porStatus=todos.filter(p=>procStatus==='arquivados'?p.status==='Arquivado':procStatus==='todos'?true:p.status!=='Arquivado');
+  const areas=areasProcesso();
+  const semArea=porStatus.filter(p=>!p.area||!areaInfo(p.area)).length;
+  if(procArea!=='todos'&&procArea!=='_sem'&&!areaInfo(procArea))procArea='todos';
+  document.getElementById('proc-areas').innerHTML=
+    `<button class="area-tab ${procArea==='todos'?'on':''}" onclick="filtroProcArea('todos')">Todos <span class="n">${porStatus.length}</span></button>`+
+    areas.map(a=>`<button class="area-tab ${procArea===a.key?'on':''}" style="--c:${a.cor}" onclick="filtroProcArea('${a.key}')"><i class="dot" style="background:${a.cor}"></i>${esc(a.lbl)} <span class="n">${porStatus.filter(p=>p.area===a.key).length}</span></button>`).join('')+
+    (semArea?`<button class="area-tab ${procArea==='_sem'?'on':''}" onclick="filtroProcArea('_sem')">Sem área <span class="n">${semArea}</span></button>`:'')+
+    `<button class="area-tab cfg" onclick="abrirAreasFases()" title="Criar, renomear ou excluir áreas e fases"><i class="ti ti-settings"></i></button>`;
+
+  let ps=porStatus;
+  if(procStatus==='prazo')ps=ativos.filter(p=>prazosCorrendo(p.id).length);
+  if(procArea==='_sem')ps=ps.filter(p=>!p.area||!areaInfo(p.area));
+  else if(procArea!=='todos')ps=ps.filter(p=>p.area===procArea);
+  if(procBusca){
+    const q=semAcento(procBusca);
+    const qd=soDigitos(procBusca);
     ps=ps.filter(p=>{
       const c=clientePorId(p.cid);
-      return (p.num||'').toLowerCase().includes(q)||(p.ativo||'').toLowerCase().includes(q)||(p.passivo||'').toLowerCase().includes(q)||
-        (p.teseTitulo||'').toLowerCase().includes(q)||(p.teseTexto||'').toLowerCase().includes(q)||(c&&c.nome.toLowerCase().includes(q));
+      if(qd.length>=4&&(soDigitos(p.num).includes(qd)||soDigitos(p.numCNJ).includes(qd)))return true;
+      return [p.num,p.ativo,p.passivo,p.fase,p.orgao,p.obs,p.teseTitulo,c&&c.nome].some(x=>semAcento(x).includes(q));
     });
   }
-  ps=ordenarProcessosPorCliente(ps);   // ordem alfabética por cliente
+  // ordem: o prazo mais próximo primeiro; sem prazo, por cliente
+  const proxData=p=>{const pr=prazosCorrendo(p.id)[0];return pr?(dataEvento(pr)||'9999'):'9999';};
+  ps=ordenarProcessosPorCliente(ps).sort((a,b)=>{const da=proxData(a),db=proxData(b);return da===db?0:(da<db?-1:1);});
+  lista.innerHTML=ps.length
+    ?`<div class="pl-cab"><span>Processo</span><span>Fase</span><span>Próximo prazo</span><span></span></div>`+ps.map(procLinhaHTML).join('')
+    :`<p class="proc-vazio">${todos.length?'Nenhum processo neste filtro.':'Nenhum processo cadastrado ainda. Use “Novo processo” ou busque as publicações do DJEN.'}</p>`;
+}
+// chip de vencimento: data curta + dias, na cor da urgência
+function chipVencimento(iso,extra){
+  if(!iso)return '<span class="vc vc-sem">sem data</span>';
+  const d=diasAte(iso);
+  const cls=d<=2?'vc-alta':d<=5?'vc-media':'vc-baixa';
+  const quando=d<0?'vencido':d===0?'hoje':d===1?'amanhã':d+' dias';
+  return `<span class="vc ${cls}"><b>${fmtDataCurta(iso)}</b>${quando}${extra||''}</span>`;
+}
+function procLinhaHTML(p){
+  const c=clientePorId(p.cid);
+  const a=areaInfo(p.area);
+  const fases=fasesProcesso();
+  const opcoesFase=`<option value="" ${!p.fase?'selected':''}>definir fase</option>`+
+    fases.map(f=>`<option ${f===p.fase?'selected':''}>${esc(f)}</option>`).join('')+
+    (p.fase&&!fases.includes(p.fase)?`<option selected>${esc(p.fase)}</option>`:'');
+  const prazos=prazosCorrendo(p.id);
+  const t=prazos[0];
+  const prazo=t
+    ?`<div class="pl-prazo" onclick="abrirModalTarefa('${t.id}',null)" title="${esc(t.titulo)}${t.conferir?' — a conferir':''}">
+        ${chipVencimento(dataEvento(t),t.conferir?'<i class="conf" title="a conferir"></i>':'')}
+        <span class="pl-prazo-tt">${t.tipo==='audiencia'?'<i class="ti ti-gavel"></i> ':''}${esc(t.titulo.split(' — ')[0])}${prazos.length>1?` <em>+${prazos.length-1}</em>`:''}</span>
+      </div>`
+    :'<div class="pl-prazo vazio">—</div>';
+  return `<div class="pl-row ${p.status==='Arquivado'?'arq':''}" id="pcard-${p.id}" style="--c:${a?a.cor:'var(--silver)'}">
+    <div class="pl-main" onclick="abrirModalProc('${p.id}',null)" title="Abrir o cadastro do processo">
+      <div class="pl-partes">${esc(p.ativo)} <span>×</span> ${esc(p.passivo)}${p.revisar?' <i class="pl-novo" title="Cadastrado pelo DJEN — confira as partes e vincule o cliente">novo</i>':''}</div>
+      <div class="pl-sub">${esc(p.numCNJ||p.num)}${c?' · '+esc(c.curto||c.nome):''}${a?` · <span style="color:${a.cor}">${esc(a.lbl)}</span>`:''}</div>
+    </div>
+    <select class="pl-fase" onchange="mudarFaseProcesso('${p.id}',this.value)" title="Fase atual">${opcoesFase}</select>
+    ${prazo}
+    <div class="pl-acoes">${p.status!=='Arquivado'?`<button class="btn-ico" onclick="abrirModalPrazo({pid:'${p.id}'})" title="Novo prazo"><i class="ti ti-hourglass-high"></i></button>
+      <button class="btn-ico" onclick="novaAudienciaProcesso('${p.id}')" title="Nova audiência"><i class="ti ti-gavel"></i></button>`:''}</div>
+  </div>`;
+}
 
-  lista.innerHTML=ps.length?ps.map(p=>{
-    const c=clientePorId(p.cid);
-    const temTese=p.teseTitulo||p.teseTexto;
-    return `<div class="tese-card">
-      <div class="tese-card-head">
-        <span class="proc-num">${esc(p.num)}</span>
-        <span class="proc-partes"><b>${esc(p.ativo)}</b> × ${esc(p.passivo)}${c?' · <span style="color:var(--t3)">'+esc(c.curto)+'</span>':''}</span>
-        <span class="proc-st ${p.status==='Arquivado'?'s-arq':'s-ativo'}">${p.status||'Ativo'}</span>
-        <span class="proc-polo ${p.polo==='a'?'polo-a':'polo-p'}">${p.polo==='a'?'Polo ativo':'Polo passivo'}</span>
-        <span class="row-act" style="opacity:1;margin-left:auto">
-          ${c?`<button class="btn-ico" onclick="irParaCliente('${c.id}')" title="Abrir ficha do cliente"><i class="ti ti-user"></i></button>`:''}
-          <button class="btn-ico ${temTese?'ok':''}" onclick="abrirModalTese('${p.id}')" title="${temTese?'Editar tese':'Adicionar tese'}"><i class="ti ti-pencil"></i></button>
-        </span>
-      </div>
-      <div class="tese-card-body">
-        ${temTese?`${p.teseTitulo?`<div class="tese-titulo">${esc(p.teseTitulo)}</div>`:''}${p.teseTexto?`<p class="tese-texto">${esc(p.teseTexto)}</p>`:''}`
-          :'<p class="tese-vazia">Nenhuma tese registrada ainda — clique no lápis para adicionar.</p>'}
+function novaTarefaProcesso(pid){
+  const p=processoPorId(pid);if(!p)return;
+  abrirModalTarefa(null,p.cid||null);
+  document.getElementById('mt-proc').value=pid;
+  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  mtAtualizarHintFatal();
+}
+function novaAudienciaProcesso(pid){
+  const p=processoPorId(pid);if(!p)return;
+  abrirNovaAudiencia(hojeISO());
+  document.getElementById('mt-proc').value=pid;
+  if(p.cid)document.getElementById('mt-cli').value=p.cid;
+  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  document.getElementById('mt-prazo').value='';
+  document.getElementById('mt-titulo-in').value='Audiência — '+(p.ativo||'')+' × '+(p.passivo||'');
+  mtAtualizarHintFatal();
+}
+function irParaProcesso(pid){
+  const p=processoPorId(pid);if(!p)return;
+  procArea='todos';procBusca='';
+  const bs=document.getElementById('proc-search');if(bs)bs.value='';
+  procStatus=p.status==='Arquivado'?'arquivados':'ativos';
+  document.querySelectorAll('#view-processos .rotina-chips .chip').forEach(b=>b.classList.toggle('active',b.dataset.f===procStatus));
+  navegarPara('processos');
+  renderProcessos();
+  setTimeout(()=>{
+    const el=document.getElementById('pcard-'+pid);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('destaque');setTimeout(()=>el.classList.remove('destaque'),1800);
+  },80);
+}
+
+// ─── ÁREAS E FASES (editáveis) ────────────────────────────
+function abrirAreasFases(){
+  garantirEstruturaProcessos();
+  renderConfigAreas();
+  document.getElementById('cfg-fases').value=fasesProcesso().join('\n');
+  abrirOverlay('overlay-areas');
+}
+function renderConfigAreas(){
+  const el=document.getElementById('cfg-areas-list');
+  el.innerHTML=DB.areasProcesso.map(a=>`
+    <div class="cfgtipo-row">
+      <input type="color" class="cfgtipo-color" value="${a.cor}" onchange="editarArea('${a.key}','cor',this.value)" title="Cor">
+      <input type="text" class="cfgtipo-lbl" value="${esc(a.lbl)}" onchange="editarArea('${a.key}','lbl',this.value)">
+      <button class="btn-ico" onclick="excluirArea('${a.key}')" title="Excluir área"><i class="ti ti-trash"></i></button>
+    </div>`).join('')||'<p style="font-size:13px;color:var(--t3);padding:6px 0">Nenhuma área cadastrada.</p>';
+}
+function adicionarArea(){
+  const nome=document.getElementById('cfg-area-nome').value.trim();
+  if(!nome){alert('Dê um nome para a nova área.');return;}
+  let key=slugify(nome),i=2;
+  while(DB.areasProcesso.some(a=>a.key===key)){key=slugify(nome)+'-'+i;i++;}
+  DB.areasProcesso.push({key,lbl:nome,cor:document.getElementById('cfg-area-cor').value});
+  document.getElementById('cfg-area-nome').value='';
+  salvarDB();renderConfigAreas();refreshUI();
+}
+function editarArea(key,campo,valor){
+  const a=DB.areasProcesso.find(x=>x.key===key);if(!a)return;
+  valor=String(valor||'').trim();
+  if(!valor){renderConfigAreas();return;}
+  a[campo]=valor;salvarDB();refreshUI();
+}
+function excluirArea(key){
+  const n=DB.processos.filter(p=>p.area===key).length;
+  if(!confirm(n?`Excluir esta área? ${n} processo(s) estão nela e passam para "Sem área".`:'Excluir esta área?'))return;
+  DB.areasProcesso=DB.areasProcesso.filter(a=>a.key!==key);
+  DB.processos.forEach(p=>{if(p.area===key)p.area='';});
+  salvarDB();renderConfigAreas();refreshUI();
+}
+function salvarFases(){
+  const fases=document.getElementById('cfg-fases').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!fases.length){alert('Informe ao menos uma fase.');return;}
+  DB.fasesProcesso=[...new Set(fases)];
+  salvarDB();fecharOverlay('overlay-areas');refreshUI();
+}
+
+// ─── MODAL: NOVO PRAZO ────────────────────────────────────
+let mpzCtx={pid:null,pubId:null,contagem:'uteis',fatalManual:false};
+function abrirModalPrazo(o){
+  o=o||{};
+  const pub=o.pubId?(DB.publicacoes||[]).find(x=>x.id===o.pubId):null;
+  const pid=o.pid||(pub&&pub.pid)||'';
+  mpzCtx={pid,pubId:pub?pub.id:null,contagem:'uteis',fatalManual:false,ajustar:!!o.ajustar};
+  const rg=pub&&pub.regra&&pub.regra.dias?pub.regra:null;
+  const tAuto=pub?pubTarefas(pub).find(t=>t.tipo==='prazo'):null;
+  const sel=document.getElementById('mpz-proc');
+  const ativos=ordenarProcessosPorCliente(DB.processos.filter(p=>p.status!=='Arquivado'||p.id===pid));
+  sel.innerHTML='<option value="">— escolha o processo —</option>'+ativos.map(p=>`<option value="${p.id}">${esc(rotuloProcesso(p))}</option>`).join('');
+  sel.value=pid;
+  const p=processoPorId(pid);
+  document.getElementById('mpz-contexto').textContent=pub
+    ?'Publicação de '+fmtData(pub.data)+' · '+(pub.tribunal||'')+' · '+(pub.tipoDoc||pub.tipo||'')
+    :'O prazo vira uma tarefa da Rotina e aparece no calendário da visão geral.';
+  document.getElementById('mpz-ato').value=rg?rg.ato:(pub?'Manifestação':'');
+  document.getElementById('mpz-disp').value=pub?pub.data:hojeISO();
+  document.getElementById('mpz-dias').value=rg?rg.dias:(pub?5:'');
+  document.getElementById('mpz-resp').value=tAuto&&RESP.includes(tAuto.resp)?tAuto.resp:pub?respDaPublicacao(p,pub):(p&&p.resp&&RESP.includes(p.resp))?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.querySelector('#overlay-prazo h3').textContent=o.ajustar?'Ajustar prazo calculado':'Novo prazo';
+  document.querySelector('#overlay-prazo .btn-confirm').textContent=o.ajustar?'Salvar prazo corrigido':'Criar prazo na Rotina';
+  mpzContagem(rg&&rg.contagem==='corridos'?'corridos':'uteis');
+  abrirOverlay('overlay-prazo');
+  setTimeout(()=>document.getElementById(pub?'mpz-dias':'mpz-ato').focus(),100);
+}
+function mpzContagem(c){
+  mpzCtx.contagem=c;
+  document.getElementById('mpz-uteis').classList.toggle('on',c==='uteis');
+  document.getElementById('mpz-corridos').classList.toggle('on',c==='corridos');
+  mpzCtx.fatalManual=false;
+  mpzRecalcular();
+}
+function mpzFatalManual(){
+  mpzCtx.fatalManual=true;
+  const f=document.getElementById('mpz-fatal').value;
+  if(f)document.getElementById('mpz-interno').value=internoPara(f);
+  mpzRecalcular(true);
+}
+function internoPara(fatal){
+  const ant=djenCfg().antecedencia;
+  let i=ant>0?subtrairDiasUteis(fatal,ant):fatal;
+  const h=hojeISO();
+  if(i<h)i=fatal>=h?h:fatal;
+  return i;
+}
+function mpzRecalcular(soTexto){
+  const disp=document.getElementById('mpz-disp').value;
+  const dias=parseInt(document.getElementById('mpz-dias').value,10);
+  const el=document.getElementById('mpz-calc');
+  if(!disp||!dias||dias<1){el.innerHTML='Informe a data de disponibilização e a quantidade de dias para calcular o vencimento.';return;}
+  const r=calcularPrazoFatal(disp,dias,mpzCtx.contagem);
+  if(!soTexto&&!mpzCtx.fatalManual){
+    document.getElementById('mpz-fatal').value=r.fatal;
+    document.getElementById('mpz-interno').value=internoPara(r.fatal);
+  }
+  const fatal=document.getElementById('mpz-fatal').value||r.fatal;
+  el.innerHTML=`Disponibilizado ${fmtDataSem(disp)} → publicado <b>${fmtDataSem(r.publicacao)}</b> → contagem a partir de <b>${fmtDataSem(r.inicio)}</b> → `+
+    `${dias} dia${dias>1?'s':''} ${mpzCtx.contagem==='uteis'?'úteis':'corridos'} → vence <b>${fmtDataSem(r.fatal)}</b>.`+
+    (mpzCtx.fatalManual&&fatal!==r.fatal?`<br><span style="color:var(--amber-hi)">Prazo fatal ajustado à mão para ${fmtDataSem(fatal)}.</span>`:'')+
+    `<br><span style="color:var(--t3)">Confira feriados locais e suspensões do tribunal antes de confiar na data.</span>`;
+}
+function salvarPrazo(){
+  const pid=document.getElementById('mpz-proc').value;
+  const p=processoPorId(pid);
+  if(!p){alert('Escolha o processo.');return;}
+  const ato=document.getElementById('mpz-ato').value.trim()||'Prazo';
+  const fatal=document.getElementById('mpz-fatal').value;
+  let interno=document.getElementById('mpz-interno').value;
+  if(!fatal){alert('Informe ou calcule o prazo fatal.');return;}
+  if(!interno||interno>fatal)interno=fatal;
+  const pub=mpzCtx.pubId?(DB.publicacoes||[]).find(x=>x.id===mpzCtx.pubId):null;
+  const dias=parseInt(document.getElementById('mpz-dias').value,10);
+  const t={id:uid(),titulo:ato+' — '+(p.numCNJ||p.num),resp:document.getElementById('mpz-resp').value,tipo:'prazo',
+    cid:p.cid||null,pid:p.id,prazo:interno,prazoFatal:fatal,hora:'',status:'pendente',concluidoEm:'',
+    origem:pub?'djen':'manual',pubId:pub?pub.id:null,criadoEm:Date.now(),criadoPor:EU?EU.nome:'',
+    descricao:(dias?dias+' dias '+(mpzCtx.contagem==='uteis'?'úteis':'corridos')+' · disponibilizado em '+fmtData(document.getElementById('mpz-disp').value)+'\n':'')+
+      (pub?'Publicação DJEN ('+(pub.tribunal||'')+' · '+(pub.tipoDoc||pub.tipo||'')+'):\n'+pub.texto.slice(0,900):'')};
+  // ajuste de um prazo calculado: o cálculo automático sai e fica o corrigido
+  if(pub&&mpzCtx.ajustar)removerTarefasAuto(pub,true);
+  DB.tarefas.push(t);
+  if(pub){
+    (pub.tarefaIds=pub.tarefaIds||[]).push(t.id);
+    if(!pub.pid)pub.pid=p.id;
+    pub.regra={...(pub.regra||{}),dias:dias||0,contagem:mpzCtx.contagem,ato,fonte:'manual',base:'prazo informado por '+(EU?EU.nome:'usuário')};
+    pub.calc=dias?calcularPrazoFatal(document.getElementById('mpz-disp').value,dias,mpzCtx.contagem):pub.calc;
+    fecharPubSeConferida(pub);
+    if(pub.status==='nova'){pub.status='tratada';pub.tratadaEm=Date.now();pub.tratadaPor=EU?EU.nome:'';}
+  }
+  salvarDB();fecharOverlay('overlay-prazo');refreshUI();
+  mostrarToast('Prazo criado na Rotina — fatal '+fmtData(fatal)+', entrega '+fmtData(interno)+'.');
+}
+
+// ─── PUBLICAÇÕES DO DJEN: leitura do texto ────────────────
+const NUM_EXTENSO={um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,
+  quatorze:14,catorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19,vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,noventa:90};
+function numeroDeTexto(s){
+  s=String(s||'').trim();
+  if(/^\d+$/.test(s))return parseInt(s,10);
+  let total=0,achou=false;
+  s.split(/\s+e\s+/).forEach(w=>{const v=NUM_EXTENSO[w.trim()];if(v){total+=v;achou=true;}});
+  return achou?total:null;
+}
+// procura "prazo de 15 (quinze) dias", "prazo de quinze dias", "em 5 dias"…
+function detectarPrazoDias(texto){
+  const t=semAcento(texto).replace(/\s+/g,' ');
+  const N='(\\d{1,3}|[a-z]+(?: e [a-z]+)?)';
+  const res=[
+    new RegExp('prazos? (?:comum |sucessivo |legal |improrrogavel |igual |razoavel )*(?:de |em )?(?:ate )?'+N+' ?(?:\\([^)]{1,30}\\) ?)?dias( uteis| corridos)?','g'),
+    new RegExp('\\b(?:no|em|dentro de|dentro do) (?:prazo de )?(?:ate )?'+N+' ?(?:\\([^)]{1,30}\\) ?)?dias( uteis| corridos)?','g'),
+  ];
+  let melhor=null;
+  res.forEach(re=>{
+    let m;
+    while((m=re.exec(t))){
+      const n=numeroDeTexto(m[1]);
+      if(n&&n>0&&n<=120&&(!melhor||m.index<melhor.pos)){melhor={dias:n,corridos:/corridos/.test(m[2]||''),pos:m.index,trecho:m[0]};}
+    }
+  });
+  return melhor?{dias:melhor.dias,contagem:melhor.corridos?'corridos':'uteis',trecho:melhor.trecho}:null;
+}
+// ato a praticar, o mais próximo do trecho do prazo (antes ou depois dele)
+const ATOS_PROCESSUAIS=[['contrarrazoes','Contrarrazões'],['contestacao','Contestação'],['contestar','Contestação'],['replica','Réplica'],
+  ['impugnacao','Impugnação'],['impugnar','Impugnação'],['embargos','Embargos'],['recurso','Recurso'],['emenda','Emenda à inicial'],['emendar','Emenda à inicial'],
+  ['alegacoes finais','Alegações finais'],['razoes finais','Razões finais'],['especificar','Especificação de provas'],['rol de testemunhas','Rol de testemunhas'],
+  ['quesitos','Quesitos'],['laudo','Manifestação sobre laudo'],['calculos','Manifestação sobre cálculos'],['pagamento','Pagamento'],['pagar','Pagamento'],
+  ['comprovar','Comprovação nos autos'],['juntar','Juntada de documentos'],['manifest','Manifestação']];
+function detectarAto(texto,trecho){
+  const t=semAcento(texto).replace(/\s+/g,' ');
+  const i=trecho?t.indexOf(trecho):-1;
+  const ini=i>=0?Math.max(0,i-140):0;
+  const janela=i>=0?t.slice(ini,i+trecho.length+160):t.slice(0,400);
+  const ref=i>=0?i-ini:0, fimRef=i>=0?ref+trecho.length:0;
+  let melhor=null;
+  ATOS_PROCESSUAIS.forEach(([k,lbl])=>{
+    let pos=janela.indexOf(k);
+    while(pos>=0){
+      const dist=pos<ref?ref-pos:pos>fimRef?pos-fimRef:0;
+      if(!melhor||dist<melhor.dist)melhor={dist,lbl};
+      pos=janela.indexOf(k,pos+1);
+    }
+  });
+  return melhor?melhor.lbl:'';
+}
+// audiência designada no texto: data futura + horário, perto da palavra "audiência"
+function detectarAudiencia(texto){
+  const t=semAcento(texto).replace(/\s+/g,' ');
+  const re=/audiencia/g;let m;
+  const hoje=hojeISO();
+  while((m=re.exec(t))){
+    const jan=t.slice(m.index,m.index+320);
+    if(!/(design|redesign|marcad|pauta|realiz|agend|ocorrer|sera)/.test(jan))continue;
+    const d=jan.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);
+    if(!d)continue;
+    const iso=d[3]+'-'+d[2].padStart(2,'0')+'-'+d[1].padStart(2,'0');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)||iso<hoje)continue;
+    const resto=jan.slice(jan.indexOf(d[0])+d[0].length,jan.indexOf(d[0])+d[0].length+60);
+    const h=resto.match(/(\d{1,2}) ?(?:h|:|horas?) ?(\d{2})?/);
+    const hora=h&&+h[1]<24?String(h[1]).padStart(2,'0')+':'+(h[2]||'00'):'';
+    const modo=/telepresencial|videoconferencia|virtual/.test(jan)?'telepresencial':/presencial/.test(jan)?'presencial':'';
+    const ini=jan.slice(0,60);
+    const tipo=/instrucao e julgamento/.test(ini)?'de instrução e julgamento':/\buna\b/.test(ini)?'una':/inicial/.test(ini)?'inicial':
+      /conciliacao/.test(ini)?'de conciliação':/instrucao/.test(ini)?'de instrução':/encerramento/.test(ini)?'de encerramento':'';
+    return {data:iso,hora,modo,tipo};
+  }
+  return null;
+}
+// ─── REGRA DO PRAZO ───────────────────────────────────────
+// Toda publicação ligada a processo sai com prazo calculado, nesta ordem:
+//  1. prazo escrito no texto ("no prazo de 8 (oito) dias")
+//  2. prazo da lei para o ato publicado (sentença, acórdão, citação)
+//  3. prazo geral de 5 dias úteis (CPC, art. 218, § 3º)
+// Só fica sem prazo a publicação que designa audiência ou inclui o
+// processo em pauta de julgamento — nesses casos o compromisso vai
+// para a agenda. Tudo nasce marcado "conferir": é cálculo de máquina.
+function regraPrazo(pub,area){
+  const txt=pub.texto||'';
+  const t=semAcento(txt).replace(/\s+/g,' ');
+  const doc=semAcento((pub.tipoDoc||'')+' '+(pub.tipo||'')+' '+(pub.classe||''));
+  const trab=area==='trabalhista'||/^(TRT|TST)/i.test(pub.tribunal||'');
+  const jec=/juizado/.test(semAcento((pub.orgao||'')+' '+(pub.classe||'')));
+  const ex=detectarPrazoDias(txt);
+  if(ex)return {dias:ex.dias,contagem:ex.contagem,ato:detectarAto(txt,ex.trecho)||'Manifestação',fonte:'texto',
+    base:'prazo escrito na publicação (“'+ex.trecho+'”)'};
+  const h=t.match(/(?:prazo de |em |no prazo de )(\d{1,3}) ?(?:\([a-z ]+\) ?)?horas/);
+  if(h){const d=Math.max(1,Math.ceil(+h[1]/24));return {dias:d,contagem:'corridos',ato:detectarAto(txt,h[0])||'Manifestação',fonte:'texto',
+    base:'prazo em horas ('+h[1]+'h) — conta-se de hora a hora a partir da intimação; confira o horário'};}
+  if(pub.aud)return {dias:0,fonte:'nenhum',motivo:'audiência designada — o compromisso foi para a agenda'};
+  if(/pauta de julgamento|incluid[oa] em pauta|sessao (?:virtual|de julgamento|ordinaria)/.test(t))
+    return {dias:0,fonte:'nenhum',motivo:'inclusão em pauta de julgamento'};
+  if(/homologo (?:o |por sentenca o )?acordo/.test(t))
+    return {dias:0,fonte:'nenhum',motivo:'homologação de acordo — confira as datas de pagamento'};
+  const ehAcordao=/acordao/.test(doc)||/\bacordam\b/.test(t);
+  const ehSentenca=/sentenca/.test(doc)||/\b(?:ante o exposto|isto posto|pelo exposto)[, ]+julgo\b|\bjulgo (?:totalmente |parcialmente )?(?:procedente|improcedente)/.test(t);
+  const ehCitacao=/citacao/.test(doc)||/\bcite-se\b|\bfica(?:m)? (?:a parte .{0,30})?citad/.test(t);
+  if(ehAcordao)return trab
+    ?{dias:8,contagem:'uteis',ato:'Recurso de revista',fonte:'regra',ed:true,base:'acórdão trabalhista — recurso de revista em 8 dias úteis (CLT, art. 896)'}
+    :{dias:15,contagem:'uteis',ato:'Recurso especial / extraordinário',fonte:'regra',ed:true,base:'acórdão — recursos aos tribunais superiores em 15 dias úteis (CPC, art. 1.003, § 5º)'};
+  if(ehSentenca){
+    if(trab)return {dias:8,contagem:'uteis',ato:'Recurso ordinário',fonte:'regra',ed:true,base:'sentença trabalhista — recurso ordinário em 8 dias úteis (CLT, art. 895, I)'};
+    if(jec)return {dias:10,contagem:'uteis',ato:'Recurso inominado',fonte:'regra',ed:true,base:'sentença do juizado — recurso inominado em 10 dias úteis (Lei 9.099/95, art. 42)'};
+    return {dias:15,contagem:'uteis',ato:'Apelação',fonte:'regra',ed:true,base:'sentença — apelação em 15 dias úteis (CPC, art. 1.003, § 5º)'};
+  }
+  if(ehCitacao&&!trab&&!jec)return {dias:15,contagem:'uteis',ato:'Contestação',fonte:'regra',base:'citação — contestação em 15 dias úteis (CPC, art. 335)'};
+  return {dias:5,contagem:'uteis',ato:detectarAto(txt,'')||'Manifestação',fonte:'padrao',
+    base:(pub.semConteudo?'o tribunal não publicou o conteúdo do ato no DJEN':'a publicação não diz o prazo')+' — aplicado o prazo geral de 5 dias úteis (CPC, art. 218, § 3º); confira no PJe'};
+}
+function textoDeHTML(html){
+  try{return (new DOMParser().parseFromString(String(html||''),'text/html').body.textContent||'').replace(/\u00a0/g,' ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
+  catch(e){return String(html||'').replace(/<[^>]+>/g,' ');}
+}
+// número como foi digitado no cadastro → 20 dígitos (completa os zeros à
+// esquerda do número sequencial: "10123-45.2026.5.18.0003")
+function normalizarCNJ(s){
+  const partes=String(s||'').split(/\D+/).filter(Boolean);
+  if(partes.length>=3&&partes[1].length===2&&partes[2].length===4)return partes[0].padStart(7,'0')+partes.slice(1).join('');
+  return soDigitos(s);
+}
+// processo pelo número: igual nos 20 dígitos ou, se o cadastro guardou só
+// parte do número, um único processo cujo número seja início do da publicação
+function localizarProcesso(dig){
+  dig=soDigitos(dig);
+  if(dig.length<10)return {p:null,ambiguo:false};
+  const exato=DB.processos.find(p=>normalizarCNJ(p.num)===dig||normalizarCNJ(p.numCNJ)===dig);
+  if(exato)return {p:exato,ambiguo:false};
+  const parciais=DB.processos.filter(p=>{const d=normalizarCNJ(p.num);return d.length>=9&&d.length<20&&dig.startsWith(d);});
+  return parciais.length===1?{p:parciais[0],ambiguo:false}:{p:null,ambiguo:parciais.length>1};
+}
+
+// ─── OAB DE ORIGEM ────────────────────────────────────────
+function chaveOab(numero,uf){return soDigitos(numero)+'/'+String(uf||'').toUpperCase()}
+function oabCfg(k){return djenCfg().oabs.find(o=>chaveOab(o.numero,o.uf)===k)||null}
+function rotuloOab(k){const o=oabCfg(k);return 'OAB '+k+(o&&o.nome?' · '+o.nome:'')}
+// sócio dono da OAB (pelo nome cadastrado), para virar responsável do prazo
+function socioDaOab(k){
+  const o=oabCfg(k);if(!o||!o.nome)return '';
+  const n=semAcento(o.nome);
+  return RESP.find(r=>r!=='Escritório'&&r!==RESP_DUPLA&&n.includes(semAcento(r)))||'';
+}
+function oabsDoItem(it){
+  const ks=(Array.isArray(it.destinatarioadvogados)?it.destinatarioadvogados:[])
+    .map(a=>a&&a.advogado).filter(Boolean).map(a=>chaveOab(a.numero_oab,a.uf_oab)).filter(k=>oabCfg(k));
+  if(it.__oab)ks.unshift(it.__oab);
+  return [...new Set(ks)];
+}
+// publicações antigas (sem o campo oabs): deduz pelos advogados intimados
+function oabsDaPub(x){
+  if(Array.isArray(x.oabs)&&x.oabs.length)return x.oabs;
+  const ks=[];
+  (x.advs||[]).forEach(a=>{const m=String(a).match(/OAB (\d+)\/([A-Z]{2})/);if(m&&oabCfg(chaveOab(m[1],m[2])))ks.push(chaveOab(m[1],m[2]));});
+  return [...new Set(ks)];
+}
+function respDaPublicacao(p,pub){
+  if(p&&p.resp&&RESP.includes(p.resp))return p.resp;
+  for(const k of oabsDaPub(pub)){const s=socioDaOab(k);if(s)return s;}
+  return 'Escritório';
+}
+
+// ─── PARTES A PARTIR DO TEXTO ─────────────────────────────
+// O DJEN lista como "destinatário" todo mundo que foi intimado (peritos,
+// testemunhas, terceiros). As partes de verdade vêm do cabeçalho do texto
+// ("RECLAMANTE: … RECLAMADO: …"); a lista de destinatários é só o recurso.
+const ROTULOS_ATIVO=['reclamante','reclamantes','autor','autora','autores','requerente','requerentes','exequente','exequentes','impetrante',
+  'apelante','apelantes','agravante','agravantes','recorrente','recorrentes','embargante','embargantes','demandante','suscitante','reconvinte'];
+const ROTULOS_PASSIVO=['reclamado','reclamada','reclamados','reclamadas','reu','re','reus','requerido','requerida','requeridos','requeridas',
+  'executado','executada','executados','impetrado','apelado','apelada','apelados','agravado','agravada','agravados','recorrido','recorrida',
+  'recorridos','embargado','embargada','demandado','demandada','suscitado','reconvindo'];
+const ROTULOS_OUTROS=['advogado','advogada','advogados','perito','perita','peritos','peritas','assistente','terceiro interessado','terceiro',
+  'interessado','interessada','custos legis','testemunha','testemunhas','processo','orgao julgador','destinatario','destinatarios','intimado','intimados'];
+function partesDoTexto(texto){
+  const todos=[...ROTULOS_ATIVO,...ROTULOS_PASSIVO,...ROTULOS_OUTROS].sort((a,b)=>b.length-a.length);
+  // versão sem acento com o mesmo tamanho do original, para as posições baterem
+  let plano='';for(const ch of texto){const x=semAcento(ch);plano+=x.length===ch.length?x:ch;}
+  const re=new RegExp('(^|[\\s\\n(])('+todos.join('|')+')\\(?s?\\)?\\s*:\\s*','gi');
+  const marcas=[];let m;
+  while((m=re.exec(plano))){marcas.push({rot:m[2].toLowerCase(),ini:m.index+m[1].length,fim:re.lastIndex});}
+  const ativo=[],passivo=[];
+  marcas.forEach((mk,i)=>{
+    const ate=i+1<marcas.length?marcas[i+1].ini:Math.min(texto.length,mk.fim+160);
+    let nome=texto.slice(mk.fim,ate).split('\n')[0].replace(/\s+/g,' ').replace(/[,;.\-–\s]+$/,'').trim();
+    if(nome.length<3||nome.length>140)return;
+    if(ROTULOS_ATIVO.includes(mk.rot)&&!ativo.includes(nome))ativo.push(nome);
+    else if(ROTULOS_PASSIVO.includes(mk.rot)&&!passivo.includes(nome))passivo.push(nome);
+  });
+  return {ativo,passivo};
+}
+// nomes que o texto apresenta como perito, testemunha, terceiro…
+function naoPartesDoTexto(texto){
+  const plano=semAcento(texto).toLowerCase();
+  const fora=new Set();
+  const re=/(perit[oa]s?|testemunhas?|assistente tecnic[oa]|terceiro interessado|leiloeir[oa])\s*:?\s*([^\n:]{3,80})/g;let m;
+  while((m=re.exec(plano)))fora.add(m[2].trim().slice(0,40));
+  return fora;
+}
+function partesDaPublicacao(pub){
+  const t=partesDoTexto(pub.texto||'');
+  if(t.ativo.length||t.passivo.length)return {ativo:t.ativo.join(', '),passivo:t.passivo.join(', ')};
+  const fora=naoPartesDoTexto(pub.texto||'');
+  const parte=d=>{const n=semAcento(d.nome).toLowerCase();return ![...fora].some(f=>f.startsWith(n.slice(0,20))||n.startsWith(f.slice(0,20)));};
+  const nomes=pl=>pub.partes.filter(d=>new RegExp('^'+pl,'i').test(d.polo)&&parte(d)).map(d=>d.nome).join(', ');
+  return {ativo:nomes('a'),passivo:nomes('p')};
+}
+// mesma comunicação emitida para vários destinatários: mesmo processo, mesmo
+// dia e o mesmo texto (desconsiderando nomes) — vira uma publicação só
+function palavrasPub(x){
+  return new Set(semAcento(x.texto||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>3));
+}
+function mesmaPublicacao(a,b){
+  if(a.num!==b.num||a.data!==b.data)return false;
+  if((a.tipoDoc||'')!==(b.tipoDoc||''))return false;
+  const A=palavrasPub(a),B=palavrasPub(b);
+  if(!A.size&&!B.size)return true;
+  let comum=0;A.forEach(w=>{if(B.has(w))comum++;});
+  return comum/Math.max(1,Math.min(A.size,B.size))>=0.85;
+}
+function juntarPublicacoes(fica,sai){
+  fica.oabs=[...new Set([...oabsDaPub(fica),...oabsDaPub(sai)])];
+  const nomes=new Set(fica.partes.map(d=>d.nome));
+  sai.partes.forEach(d=>{if(!nomes.has(d.nome)&&fica.partes.length<12){fica.partes.push(d);nomes.add(d.nome);}});
+  if(!fica.link&&sai.link)fica.link=sai.link;
+  if((sai.texto||'').length>(fica.texto||'').length&&fica.status!=='tratada')fica.texto=sai.texto;
+}
+// limpeza das duplicatas já gravadas: fica a primeira; das outras saem as
+// tarefas automáticas ainda não conferidas (as conferidas/cumpridas ficam)
+function limparPublicacoesDuplicadas(){
+  const lista=DB.publicacoes||[];
+  const removidas=new Set();let mudou=false;
+  const peso=x=>x.status==='tratada'?0:x.status==='auto'?1:2;
+  const ordem=[...lista].sort((a,b)=>peso(a)-peso(b)||(a.criadoEm||0)-(b.criadoEm||0));
+  ordem.forEach((x,i)=>{
+    if(removidas.has(x.id))return;
+    for(let j=i+1;j<ordem.length;j++){
+      const y=ordem[j];
+      if(removidas.has(y.id)||!mesmaPublicacao(x,y))continue;
+      juntarPublicacoes(x,y);
+      const tirar=new Set(pubTarefas(y).filter(t=>t.conferir&&t.status!=='concluido').map(t=>t.id));
+      DB.tarefas=DB.tarefas.filter(t=>!tirar.has(t.id));
+      pubTarefas(y).forEach(t=>{if(!tirar.has(t.id)){t.pubId=x.id;x.tarefaIds.push(t.id);}});
+      removidas.add(y.id);mudou=true;
+    }
+  });
+  if(removidas.size)DB.publicacoes=lista.filter(x=>!removidas.has(x.id));
+  return mudou;
+}
+// processos cadastrados pelo DJEN antes desta correção: refaz as partes
+// pelo cabeçalho do texto (só enquanto ninguém editou o cadastro)
+function corrigirPartesProcessosDJEN(){
+  let mudou=false;
+  DB.processos.forEach(p=>{
+    if(p.origem!=='djen'||!p.revisar||p.partesConferidas)return;
+    const pub=(DB.publicacoes||[]).find(x=>x.pid===p.id&&partesDoTexto(x.texto||'').ativo.length);
+    const pt=pub?partesDaPublicacao(pub):null;
+    if(pt&&pt.ativo&&(pt.ativo!==p.ativo||(pt.passivo&&pt.passivo!==p.passivo))){
+      p.ativo=pt.ativo;if(pt.passivo)p.passivo=pt.passivo;mudou=true;
+    }
+    p.partesConferidas=true;
+  });
+  return mudou;
+}
+
+// ─── PUBLICAÇÕES DO DJEN: busca e vínculo automático ──────
+let __djenBuscando=false, __djenUltimoErro='';
+function urlDJEN(oab,inicio,fim,pagina){
+  const q=new URLSearchParams({numeroOab:soDigitos(oab.numero),ufOab:String(oab.uf||'').toUpperCase(),
+    dataDisponibilizacaoInicio:inicio,dataDisponibilizacaoFim:fim,pagina:String(pagina),itensPorPagina:'100'});
+  return DJEN_API+'?'+q.toString();
+}
+function janelaBuscaDJEN(){
+  const c=djenCfg(), fim=hojeISO();
+  let inicio=c.ultimaDataBuscada?isoAdd(c.ultimaDataBuscada,-3):isoAdd(fim,-15);
+  if(inicio<isoAdd(fim,-30))inicio=isoAdd(fim,-30);
+  return {inicio,fim};
+}
+// só GET, sem cabeçalhos além do Accept: não dispara pré-verificação de CORS.
+// Falha de rede/CORS vira um erro marcado, para não ser confundida com outro defeito.
+async function consultarDJEN(url){
+  try{return await fetch(url,{headers:{'Accept':'application/json'},referrerPolicy:'no-referrer',cache:'no-store'});}
+  catch(e){const err=new Error(e.message);err.semConexao=true;throw err;}
+}
+async function buscarDJEN(o){
+  o=o||{};
+  const c=djenCfg();
+  if(!c.oabs.length){if(!o.silencioso){alert('Cadastre primeiro a OAB que deve ser monitorada.');abrirConfigDJEN();}return;}
+  if(MODO_OFFLINE){if(!o.silencioso)alert('Esta é uma cópia de segurança offline: a busca no DJEN só funciona no sistema online.');return;}
+  if(__djenBuscando)return;
+  __djenBuscando=true;
+  document.querySelectorAll('.btn-buscar-djen').forEach(b=>{b.disabled=true;b.innerHTML='<i class="ti ti-loader"></i>Buscando…';});
+  const {inicio,fim}=janelaBuscaDJEN();
+  const itens=[];
+  try{
+    for(const oab of c.oabs){
+      for(let pagina=1;pagina<=20;pagina++){
+        let r=await consultarDJEN(urlDJEN(oab,inicio,fim,pagina));
+        if(r.status===429){await new Promise(ok=>setTimeout(ok,2500));r=await consultarDJEN(urlDJEN(oab,inicio,fim,pagina));}
+        if(!r.ok)throw new Error('o DJEN respondeu HTTP '+r.status+' para a OAB '+oab.numero+'/'+oab.uf);
+        const j=await r.json();
+        const lote=Array.isArray(j.items)?j.items:Array.isArray(j.data)?j.data:Array.isArray(j)?j:[];
+        lote.forEach(it=>{if(it&&typeof it==='object')it.__oab=chaveOab(oab.numero,oab.uf);});
+        itens.push(...lote);
+        if(lote.length<100)break;
+      }
+    }
+    const res=processarPublicacoesDJEN(itens);
+    c.ultimaBusca=Date.now();c.ultimaDataBuscada=fim;c.ultimoErro='';
+    c.ultimoResultado={...res,inicio,fim,lidas:itens.length};
+    __djenUltimoErro='';
+    salvarDB();refreshUI();
+    if(!o.silencioso||res.novas)mostrarToast(resumoBuscaDJEN(c.ultimoResultado));
+  }catch(e){
+    const bloqueio=!!e.semConexao;
+    __djenUltimoErro=bloqueio
+      ?'O navegador não conseguiu acessar o DJEN (conexão recusada ou bloqueio de CORS do servidor). Use “DJEN → Se a busca automática for bloqueada”.'
+      :'Falha na busca: '+e.message;
+    c.ultimoErro=__djenUltimoErro;c.ultimaBusca=Date.now();
+    console.warn('[djen]',e);
+    renderStatusDJEN();
+    if(!o.silencioso)alert(__djenUltimoErro);
+  }finally{
+    __djenBuscando=false;
+    document.querySelectorAll('.btn-buscar-djen').forEach(b=>{b.disabled=false;b.innerHTML='<i class="ti ti-refresh"></i>Buscar agora';});
+  }
+}
+function resumoBuscaDJEN(r){
+  if(!r)return '';
+  if(!r.novas)return 'DJEN consultado: nenhuma publicação nova'+(r.inicio?' ('+fmtData(r.inicio)+' a '+fmtData(r.fim)+')':'')+'.';
+  const p=[r.novas+' publicaç'+(r.novas>1?'ões novas':'ão nova')];
+  if(r.prazos)p.push(r.prazos+' prazo'+(r.prazos>1?'s calculados':' calculado'));
+  if(r.audiencias)p.push(r.audiencias+' audiência'+(r.audiencias>1?'s':''));
+  if(r.processosCriados)p.push(r.processosCriados+' processo'+(r.processosCriados>1?'s cadastrados':' cadastrado'));
+  if(r.semProcesso)p.push(r.semProcesso+' sem processo');
+  return 'DJEN: '+p.join(' · ')+'.';
+}
+// transforma os itens da API em publicações do sistema, liga (ou cadastra) o
+// processo e calcula o prazo — tudo marcado "conferir"
+function processarPublicacoesDJEN(itens){
+  garantirEstruturaProcessos();
+  const c=djenCfg();
+  const vistos=new Set(c.vistos);
+  (DB.publicacoes||[]).forEach(x=>{vistos.add(x.id);if(x.hash)vistos.add('h:'+x.hash);});
+  const res={novas:0,vinculadas:0,prazos:0,audiencias:0,semProcesso:0,processosCriados:0};
+  itens.forEach(it=>{
+    if(!it||typeof it!=='object')return;
+    const id=String(it.id??it.numeroComunicacao??'').replace(/[^\w-]/g,'').slice(0,40);
+    const hash=String(it.hash||'');
+    const oabs=oabsDoItem(it);
+    if((id&&vistos.has(id))||(hash&&vistos.has('h:'+hash))){
+      // mesma publicação vinda por outra OAB: só acrescenta a OAB
+      const ex=DB.publicacoes.find(x=>(id&&x.id===id)||(hash&&x.hash===hash));
+      if(ex)ex.oabs=[...new Set([...oabsDaPub(ex),...oabs])];
+      return;
+    }
+    const pub=normalizarPublicacao(it);
+    if(!pub)return;
+    pub.oabs=oabs;
+    // a mesma intimação emitida para outro destinatário: junta na que já existe
+    const igual=DB.publicacoes.find(y=>mesmaPublicacao(y,pub));
+    if(igual){juntarPublicacoes(igual,pub);vistos.add(pub.id);if(hash)vistos.add('h:'+hash);c.vistos.push(pub.id);return;}
+    vistos.add(pub.id);if(hash)vistos.add('h:'+hash);
+    c.vistos.push(pub.id);
+    DB.publicacoes.push(pub);
+    res.novas++;
+    const r=tratarPublicacao(pub);
+    if(pub.pid)res.vinculadas++;else res.semProcesso++;
+    res.prazos+=r.prazos;res.audiencias+=r.audiencias;res.processosCriados+=r.processoCriado?1:0;
+  });
+  podarPublicacoes();
+  return res;
+}
+// localiza ou cadastra o processo e cria prazo/audiência
+function tratarPublicacao(pub){
+  const loc=localizarProcesso(pub.num);
+  let p=loc.p, criado=false;
+  if(!p&&!loc.ambiguo&&djenCfg().autoCadastrar&&pub.num.length===20){p=processoDaPublicacao(pub);criado=true;}
+  const r=vincularPublicacao(pub,p);
+  r.processoCriado=criado;
+  return r;
+}
+function processoDaPublicacao(pub){
+  const pt=partesDaPublicacao(pub);
+  const area=areaPorNumero(pub.num,pub.tribunal);
+  const p={id:uid(),num:pub.numMask||mascaraCNJ(pub.num),ativo:pt.ativo||'(polo ativo não informado)',passivo:pt.passivo||'(polo passivo não informado)',partesConferidas:true,
+    dist:'',cid:null,polo:'a',status:'Ativo',exito:null,area:area&&areaInfo(area)?area:'',
+    resp:respDaPublicacao(null,pub),orgao:[pub.tribunal,pub.orgao].filter(Boolean).join(' — '),obs:'',
+    criadoEm:Date.now(),origem:'djen',revisar:true};
+  DB.processos.push(p);
+  return p;
+}
+function normalizarPublicacao(it){
+  const num=soDigitos(it.numero_processo||it.numeroProcesso||it.numeroprocessocommascara||'');
+  let data=it.data_disponibilizacao||it.dataDisponibilizacao||'';
+  if(!data&&it.datadisponibilizacao){const m=String(it.datadisponibilizacao).match(/(\d{2})\/(\d{2})\/(\d{4})/);if(m)data=m[3]+'-'+m[2]+'-'+m[1];}
+  data=String(data).slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(data))data=hojeISO();
+  const texto=textoDeHTML(it.texto||'');
+  const dest=Array.isArray(it.destinatarios)?it.destinatarios:[];
+  const advs=Array.isArray(it.destinatarioadvogados)?it.destinatarioadvogados:[];
+  const link=String(it.link||'');
+  return {
+    // o id vai parar em atributos onclick: só letras, números, _ e -
+    id:String(it.id??it.numeroComunicacao??it.hash??'').replace(/[^\w-]/g,'').slice(0,40)||uid(),
+    hash:String(it.hash||''),
+    data,dataPub:proximoDiaUtil(data),
+    tribunal:String(it.siglaTribunal||''),
+    orgao:String(it.nomeOrgao||''),
+    tipo:String(it.tipoComunicacao||''),
+    tipoDoc:String(it.tipoDocumento||''),
+    classe:String(it.nomeClasse||''),
+    num,numMask:it.numeroprocessocommascara||mascaraCNJ(num),
+    link:/^https:\/\//i.test(link)?link:'',
+    partes:dest.map(d=>({nome:String(d.nome||''),polo:String(d.polo||'')})).filter(d=>d.nome).slice(0,8),
+    advs:advs.map(a=>a&&a.advogado?String(a.advogado.nome||'')+(a.advogado.numero_oab?' (OAB '+soDigitos(a.advogado.numero_oab)+'/'+String(a.advogado.uf_oab||'').toUpperCase()+')':''):'').filter(Boolean).slice(0,6),
+    texto:texto.slice(0,DJEN_TEXTO_MAX),
+    aud:detectarAudiencia(texto),
+    semConteudo:/arquivos digitais indisponiveis/.test(semAcento(texto)),
+    oabs:[],status:'nova',pid:null,tarefaIds:[],criadoEm:Date.now(),
+  };
+}
+// liga a publicação ao processo e cria as tarefas (prazo e/ou audiência)
+function vincularPublicacao(pub,p){
+  const r={prazos:0,audiencias:0};
+  if(!p)return r;
+  pub.pid=p.id;
+  if(!p.ultimaPub||pub.data>p.ultimaPub)p.ultimaPub=pub.data;
+  if(!p.numCNJ&&pub.num.length===20&&p.num!==pub.numMask)p.numCNJ=pub.numMask;
+  if(!p.orgao&&(pub.tribunal||pub.orgao))p.orgao=[pub.tribunal,pub.orgao].filter(Boolean).join(' — ');
+  if(!p.area){const a=areaPorNumero(pub.num,pub.tribunal);if(a&&areaInfo(a))p.area=a;}
+  const resp=respDaPublicacao(p,pub);
+  pub.tarefaIds=pub.tarefaIds||[];
+  const regra=regraPrazo(pub,p.area);
+  pub.regra=regra;
+  if(regra.dias){
+    const calc=calcularPrazoFatal(pub.data,regra.dias,regra.contagem);
+    pub.calc=calc;
+    const ed=regra.ed?calcularPrazoFatal(pub.data,5,'uteis').fatal:'';
+    const t={id:uid(),titulo:regra.ato+' — '+(p.numCNJ||p.num),resp,tipo:'prazo',cid:p.cid||null,pid:p.id,
+      prazo:internoPara(calc.fatal),prazoFatal:calc.fatal,hora:'',status:'pendente',concluidoEm:'',
+      origem:'djen',pubId:pub.id,conferir:true,criadoEm:Date.now(),criadoPor:'DJEN',
+      descricao:regra.dias+' dias '+(regra.contagem==='corridos'?'corridos':'úteis')+' · '+regra.base+'.\n'+
+        'Disponibilizada '+fmtData(pub.data)+' · publicada '+fmtData(calc.publicacao)+' · contagem a partir de '+fmtData(calc.inicio)+' · vence '+fmtData(calc.fatal)+'.'+
+        (ed?'\nSe for o caso de embargos de declaração: 5 dias úteis, vencem '+fmtData(ed)+'.':'')+'\n\n'+
+        (pub.tribunal||'')+' · '+(pub.orgao||'')+' · '+(pub.tipoDoc||pub.tipo||'')+'\n'+pub.texto.slice(0,900)};
+    DB.tarefas.push(t);pub.tarefaIds.push(t.id);r.prazos++;
+  }
+  if(pub.aud){
+    const ja=DB.tarefas.some(t=>t.pid===p.id&&t.tipo==='audiencia'&&t.prazo===pub.aud.data);
+    if(!ja){
+      const t={id:uid(),titulo:'Audiência'+(pub.aud.tipo?' '+pub.aud.tipo:'')+(pub.aud.modo?' ('+pub.aud.modo+')':'')+' — '+(p.ativo||'')+' × '+(p.passivo||''),
+        resp,tipo:'audiencia',cid:p.cid||null,pid:p.id,prazo:pub.aud.data,hora:pub.aud.hora,status:'pendente',concluidoEm:'',
+        origem:'djen',pubId:pub.id,conferir:true,criadoEm:Date.now(),criadoPor:'DJEN',
+        descricao:'Audiência identificada no texto da publicação de '+fmtData(pub.data)+' ('+(pub.tribunal||'')+').\n\n'+pub.texto.slice(0,900)};
+      DB.tarefas.push(t);pub.tarefaIds.push(t.id);r.audiencias++;
+    }
+  }
+  pub.status=pub.tarefaIds.length?'auto':'nova';
+  return r;
+}
+// publicações que chegaram antes do cálculo automático: recebem o mesmo
+// tratamento (uma vez; as que já têm tarefa ou foram tratadas não mudam)
+function reprocessarPublicacoesPendentes(){
+  if(!DB||!Array.isArray(DB.publicacoes))return false;
+  let mudou=limparPublicacoesDuplicadas();
+  if(corrigirPartesProcessosDJEN())mudou=true;
+  DB.publicacoes.forEach(x=>{if(x.semConteudo===undefined){x.semConteudo=/arquivos digitais indisponiveis/.test(semAcento(x.texto||''));mudou=true;}});
+  DB.publicacoes.forEach(x=>{
+    if(!Array.isArray(x.oabs)||!x.oabs.length){const k=oabsDaPub(x);if(k.length){x.oabs=k;mudou=true;}}
+    if(x.status!=='nova'||(x.tarefaIds||[]).length||x.regra)return;
+    if(!x.pid)tratarPublicacao(x);
+    else vincularPublicacao(x,processoPorId(x.pid));
+    if(!x.regra)x.regra={dias:0,fonte:'nenhum',motivo:'processo não localizado'};
+    mudou=true;
+  });
+  return mudou;
+}
+// mantém o Gist pequeno: publicações tratadas guardam só um resumo e a
+// lista fica nas mais recentes (as ids continuam em djen.vistos)
+function podarPublicacoes(){
+  const c=djenCfg();
+  DB.publicacoes.forEach(x=>{if((x.status==='tratada'||x.status==='ignorada')&&x.texto&&x.texto.length>DJEN_TEXTO_TRATADA)x.texto=x.texto.slice(0,DJEN_TEXTO_TRATADA)+'…';});
+  if(DB.publicacoes.length>DJEN_MAX_PUBLICACOES){
+    const prioridade=x=>x.status==='nova'?0:x.status==='auto'?1:2;
+    DB.publicacoes.sort((a,b)=>prioridade(a)-prioridade(b)||(b.data<a.data?-1:b.data>a.data?1:0));
+    DB.publicacoes=DB.publicacoes.slice(0,DJEN_MAX_PUBLICACOES);
+  }
+  if(c.vistos.length>3000)c.vistos=c.vistos.slice(-3000);
+}
+function importarDJENColado(){
+  const txt=document.getElementById('djen-colar').value.trim();
+  if(!txt){alert('Cole primeiro o conteúdo da página do DJEN.');return;}
+  let j;
+  try{j=JSON.parse(txt);}catch(e){alert('O conteúdo colado não é o resultado da API (esperava um texto começando com {"status"…).');return;}
+  const itens=Array.isArray(j.items)?j.items:Array.isArray(j)?j:[];
+  const res=processarPublicacoesDJEN(itens);
+  const c=djenCfg();c.ultimoResultado={...res,inicio:'',fim:'',lidas:itens.length};
+  document.getElementById('djen-colar').value='';
+  salvarDB();refreshUI();
+  alert(itens.length+' publicações lidas. '+resumoBuscaDJEN(res));
+}
+function buscaAutomaticaDJEN(){
+  if(!DB||MODO_OFFLINE)return;
+  const c=djenCfg();
+  if(!c.autoBuscar||!c.oabs.length)return;
+  if(c.ultimaBusca&&Date.now()-c.ultimaBusca<DJEN_INTERVALO_AUTO)return;
+  setTimeout(()=>buscarDJEN({silencioso:true}),2500);
+}
+function renderStatusDJEN(){renderPainelPublicacoes();}
+
+// ─── CAIXA DE PUBLICAÇÕES ─────────────────────────────────
+// Uma linha por publicação: vencimento, ato, partes e um botão. O resto
+// (cálculo, base legal, texto) só aparece ao clicar na linha.
+let pubAba='revisar', pubFiltroPid=null, pubFiltroOab='todas', pubAbertas=new Set();
+function pubTarefas(x){return (x.tarefaIds||[]).map(id=>DB.tarefas.find(t=>t.id===id)).filter(Boolean)}
+function pubConferirPendente(x){return pubTarefas(x).some(t=>t.conferir&&t.status!=='concluido')}
+function pubRevisar(x){return x.status==='nova'||(x.status==='auto'&&pubConferirPendente(x))}
+function pubsAnalisar(){return (DB.publicacoes||[]).filter(pubRevisar)}
+function abrirPainelPublicacoes(aba){
+  if(aba)pubAba=aba;
+  pubFiltroPid=null;
+  navegarPara('processos');renderProcessos();
+  setTimeout(()=>{const el=document.getElementById('pub-panel');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},60);
+}
+function verPublicacoesProcesso(pid){abrirPainelPublicacoes('todas');pubFiltroPid=pid;renderPainelPublicacoes();}
+function mudarAbaPub(a){pubAba=a;pubFiltroPid=null;renderPainelPublicacoes();}
+function filtrarOabPub(k){pubFiltroOab=k;renderPainelPublicacoes();}
+function alternarTextoPub(id){if(pubAbertas.has(id))pubAbertas.delete(id);else pubAbertas.add(id);renderPainelPublicacoes();}
+function nomeCurtoOab(k){const o=oabCfg(k);return o&&o.nome?o.nome.split(' ')[0]:k}
+// data que interessa na linha: vencimento do prazo, dia da audiência ou nada
+function vencimentoPub(x){
+  const ts=pubTarefas(x);
+  const pz=ts.find(t=>t.tipo==='prazo'),au=ts.find(t=>t.tipo==='audiencia');
+  return pz?pz.prazoFatal:au?au.prazo:'';
+}
+function renderPainelPublicacoes(){
+  const el=document.getElementById('pub-panel');
+  if(!el)return;
+  const c=djenCfg();
+  const todas=DB.publicacoes||[];
+  if(!todas.length&&!c.oabs.length){
+    el.className='pr-painel vazio';
+    el.innerHTML=`<div class="pr-convite"><i class="ti ti-news"></i><span>Cadastre a OAB dos sócios para receber as publicações do DJEN com o prazo já calculado.</span><button class="btn-nova-tarefa" onclick="abrirConfigDJEN()">Cadastrar OAB</button></div>`;
+    return;
+  }
+  const porOab=x=>pubFiltroOab==='todas'||oabsDaPub(x).includes(pubFiltroOab);
+  const base=todas.filter(porOab);
+  const revisar=base.filter(pubRevisar);
+  let lista;
+  if(pubFiltroPid)lista=todas.filter(x=>x.pid===pubFiltroPid);
+  else lista=pubAba==='revisar'?revisar:base.filter(x=>!pubRevisar(x));
+  // para revisar: o que vence primeiro no topo; as demais, as mais recentes
+  if(pubAba==='revisar'&&!pubFiltroPid)lista=[...lista].sort((a,b)=>(vencimentoPub(a)||'9999')<(vencimentoPub(b)||'9999')?-1:1);
+  else lista=[...lista].sort((a,b)=>b.data<a.data?-1:b.data>a.data?1:0).slice(0,60);
+  const oabs=c.oabs.map(o=>chaveOab(o.numero,o.uf));
+  const selOab=oabs.length>1
+    ?`<select class="pr-oabsel" onchange="filtrarOabPub(this.value)" title="Filtrar pela OAB"><option value="todas">Todas as OABs</option>${oabs.map(k=>`<option value="${k}" ${pubFiltroOab===k?'selected':''}>${esc(rotuloOab(k))}</option>`).join('')}</select>`:'';
+  const p=pubFiltroPid?processoPorId(pubFiltroPid):null;
+  const abas=pubFiltroPid
+    ?`<button class="on">${esc(p?(p.ativo||'').split(' ')[0]+' × '+(p.passivo||'').split(' ')[0]:'Processo')}</button><button onclick="mudarAbaPub('revisar')"><i class="ti ti-x"></i></button>`
+    :`<button class="${pubAba==='revisar'?'on':''}" onclick="mudarAbaPub('revisar')">Para revisar${revisar.length?` <span class="n">${revisar.length}</span>`:''}</button>
+      <button class="${pubAba==='tratadas'?'on':''}" onclick="mudarAbaPub('tratadas')">Conferidas</button>`;
+  const ult=c.ultimaBusca?'atualizado '+tempoRelativo(c.ultimaBusca):'';
+  const erro=__djenUltimoErro||c.ultimoErro;
+  el.className='pr-painel';
+  el.innerHTML=`
+    <div class="pr-head">
+      <h3>Publicações</h3>
+      <div class="pr-abas">${abas}</div>
+      <span class="pr-ult ${erro?'erro':''}" title="${esc(erro||'')}">${erro?'<i class="ti ti-alert-triangle"></i> falha na última busca':esc(ult)}</span>
+      ${selOab}
+      <button class="btn-ico btn-buscar-djen" onclick="buscarDJEN({})" title="Buscar agora no DJEN"><i class="ti ti-refresh"></i></button>
+      <button class="btn-ico" onclick="abrirConfigDJEN()" title="OABs, feriados e antecedência"><i class="ti ti-settings"></i></button>
+    </div>
+    <div class="pr-lista">${lista.length?lista.map(pubItemHTML).join('')
+      :`<div class="pr-vazio">${pubAba==='revisar'?'<i class="ti ti-circle-check"></i> Nada para revisar.':'Nenhuma publicação.'}</div>`}</div>`;
+}
+function pubItemHTML(x){
+  const p=processoPorId(x.pid);
+  const ts=pubTarefas(x);
+  const pz=ts.find(t=>t.tipo==='prazo'), au=ts.find(t=>t.tipo==='audiencia');
+  const rg=x.regra||{};
+  const revisar=pubRevisar(x);
+  const aberto=pubAbertas.has(x.id);
+  const venc=pz?pz.prazoFatal:au?au.prazo:'';
+  const titulo=pz?esc(pz.titulo.split(' — ')[0])+(rg.dias?` <span class="pr-dias">${rg.dias}d${rg.contagem==='corridos'?' corridos':''}</span>`:'')
+    :au?'Audiência'+(au.hora?' às '+esc(au.hora):'')
+    :x.status==='ignorada'?'Ignorada'
+    :esc((rg.motivo||'Sem prazo').split(' — ')[0].replace(/^./,ch=>ch.toUpperCase()));
+  const partes=p?esc((p.ativo||'')+' × '+(p.passivo||'')):esc(x.partes.map(d=>d.nome).slice(0,2).join(' × ')||x.numMask);
+  const conf=ts.some(t=>t.conferir&&t.status!=='concluido');
+  let acao='';
+  if(revisar){
+    if(pz&&pz.conferir)acao=`<button class="pr-ok" onclick="event.stopPropagation();confirmarPub('${x.id}')"><i class="ti ti-check"></i>Confirmar</button>`;
+    else if(au&&au.conferir)acao=`<button class="pr-ok" onclick="event.stopPropagation();confirmarTarefaPub('${x.id}','${au.id}')"><i class="ti ti-check"></i>Confirmar</button>`;
+    else if(!p)acao=`<button class="pr-ok sec" onclick="event.stopPropagation();cadastrarProcessoDaPub('${x.id}')">Cadastrar processo</button>`;
+    else acao=`<button class="pr-ok sec" onclick="event.stopPropagation();marcarPub('${x.id}','tratada')"><i class="ti ti-check"></i>Ciente</button>`;
+  }else{
+    acao=`<span class="pr-feito"><i class="ti ti-circle-check"></i></span>`;
+  }
+  // detalhe (só ao abrir)
+  let det='';
+  if(aberto){
+    const c2=pz&&rg.dias?(x.calc||calcularPrazoFatal(x.data,rg.dias,rg.contagem||'uteis')):null;
+    det=`<div class="pr-det" onclick="event.stopPropagation()">
+      ${c2?`<div class="pr-trilha">Disponibilizada <b>${fmtDataSem(x.data)}</b> → publicada <b>${fmtDataSem(c2.publicacao)}</b> → conta de <b>${fmtDataSem(c2.inicio)}</b> → vence <b>${fmtDataSem(pz.prazoFatal)}</b> · entrega interna ${fmtDataSem(pz.prazo)} (${esc(pz.resp)})</div>`:''}
+      ${rg.base?`<div class="pr-base">${esc(rg.base.charAt(0).toUpperCase()+rg.base.slice(1))}.</div>`:''}
+      <div class="pr-meta">${esc(x.numMask)} · ${esc(x.tribunal)}${x.orgao?' · '+esc(x.orgao):''} · ${esc(x.tipoDoc||x.tipo)} · ${oabsDaPub(x).map(k=>esc(rotuloOab(k))).join(', ')||'OAB não identificada'}</div>
+      ${x.semConteudo?`<div class="pr-pje"><i class="ti ti-lock"></i>O tribunal não publicou o conteúdo do ato no DJEN — abra o documento no PJe para ler.</div>`:''}
+      <div class="pr-txt">${esc(x.texto)}</div>
+      <div class="pr-links">
+        ${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">Abrir no tribunal</a>`:''}
+        ${revisar&&pz&&pz.conferir?`<a onclick="abrirModalPrazo({pubId:'${x.id}',ajustar:true})">Ajustar prazo</a><a onclick="semPrazoPub('${x.id}')">Não há prazo</a>`:''}
+        ${revisar&&!pz&&p?`<a onclick="abrirModalPrazo({pubId:'${x.id}'})">Criar prazo</a>`:''}
+        ${!p&&x.status!=='ignorada'?`<a onclick="cadastrarProcessoDaPub('${x.id}')">Cadastrar processo</a>`:''}
+        ${p?`<a onclick="irParaProcesso('${p.id}')">Ver processo</a>`:''}
+        ${revisar?`<a class="sutil" onclick="ignorarPub('${x.id}')">Ignorar publicação</a>`:`<a class="sutil" onclick="reabrirPub('${x.id}')">Voltar para revisar</a>`}
       </div>
     </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:20px 0;text-align:center">Nenhum processo encontrado neste filtro.</p>';
+  }
+  return `<div class="pr-item ${revisar?'':'feita'} ${aberto?'aberto':''}" onclick="alternarTextoPub('${x.id}')">
+    <div class="pr-linha">
+      ${venc?chipVencimento(venc):`<span class="vc vc-sem"><b>${fmtDataCurta(x.data)}</b>publicada</span>`}
+      <div class="pr-info">
+        <div class="pr-tt">${titulo}${conf&&!revisar?'':''}${x.semConteudo?' <i class="ti ti-lock pr-lock" title="Conteúdo disponível só no PJe"></i>':''}${p&&p.revisar?' <i class="pl-novo">processo novo</i>':''}</div>
+        <div class="pr-sub">${partes}</div>
+      </div>
+      <span class="pr-oab" title="${esc(oabsDaPub(x).map(rotuloOab).join(' · '))}">${esc(oabsDaPub(x).map(nomeCurtoOab).join(' · '))}</span>
+      ${acao}
+      <i class="ti ti-chevron-down pr-chev"></i>
+    </div>
+    ${det}
+  </div>`;
 }
-let mteCtx={pid:null};
-function abrirModalTese(pid){
-  const p=DB.processos.find(x=>x.id===pid);
-  if(!p)return;
-  mteCtx={pid};
-  const c=DB.clientes.find(x=>x.id===p.cid);
-  document.getElementById('mte-contexto').textContent=p.num+' — '+p.ativo+' × '+p.passivo+(c?' · '+c.curto:'');
-  document.getElementById('mte-titulo').value=p.teseTitulo||'';
-  document.getElementById('mte-texto').value=p.teseTexto||'';
-  document.getElementById('mte-del').style.display=(p.teseTitulo||p.teseTexto)?'inline-flex':'none';
-  abrirOverlay('overlay-tese');
-  setTimeout(()=>document.getElementById('mte-titulo').focus(),100);
+function marcarConferida(t){
+  delete t.conferir;
+  t.conferidoEm=Date.now();t.conferidoPor=EU?EU.nome:'';
 }
-function salvarTese(){
-  const p=DB.processos.find(x=>x.id===mteCtx.pid);
-  if(!p)return;
-  p.teseTitulo=document.getElementById('mte-titulo').value.trim();
-  p.teseTexto=document.getElementById('mte-texto').value.trim();
-  salvarDB();
-  fecharOverlay('overlay-tese');
-  refreshUI();
+function fecharPubSeConferida(x){
+  if(!pubConferirPendente(x)&&x.status!=='ignorada'){x.status='tratada';x.tratadaEm=Date.now();x.tratadaPor=EU?EU.nome:'';}
 }
-function limparTese(){
-  const p=DB.processos.find(x=>x.id===mteCtx.pid);
-  if(!p)return;
-  if(!confirm('Remover a tese registrada para o processo '+p.num+'?'))return;
-  p.teseTitulo='';p.teseTexto='';
-  salvarDB();
-  fecharOverlay('overlay-tese');
-  refreshUI();
+function confirmarPub(id){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);if(!x)return;
+  pubTarefas(x).filter(t=>t.tipo==='prazo'&&t.conferir).forEach(marcarConferida);
+  fecharPubSeConferida(x);podarPublicacoes();
+  salvarDB();refreshUI();
+  mostrarToast('Prazo confirmado e mantido na Rotina.');
+}
+function confirmarTarefaPub(id,tid){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);const t=DB.tarefas.find(y=>y.id===tid);
+  if(!x||!t)return;
+  marcarConferida(t);fecharPubSeConferida(x);podarPublicacoes();
+  salvarDB();refreshUI();
+}
+// tira da Rotina as tarefas automáticas ainda não conferidas desta publicação
+function removerTarefasAuto(x,soPrazo){
+  const remover=pubTarefas(x).filter(t=>t.conferir&&t.status!=='concluido'&&(!soPrazo||t.tipo==='prazo'));
+  const ids=new Set(remover.map(t=>t.id));
+  DB.tarefas=DB.tarefas.filter(t=>!ids.has(t.id));
+  x.tarefaIds=(x.tarefaIds||[]).filter(i=>!ids.has(i));
+  return remover;
+}
+function semPrazoPub(id){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);if(!x)return;
+  const antes={status:x.status,tarefaIds:[...(x.tarefaIds||[])]};
+  const removidas=removerTarefasAuto(x,true);
+  x.regra={...(x.regra||{}),dias:0,fonte:'nenhum',motivo:'marcado sem prazo por '+(EU?EU.nome:'usuário')};
+  if(!pubConferirPendente(x)){x.status='tratada';x.tratadaEm=Date.now();x.tratadaPor=EU?EU.nome:'';}
+  salvarDB();refreshUI();
+  mostrarToast('Prazo retirado da Rotina.','Desfazer',()=>{DB.tarefas.push(...removidas);Object.assign(x,antes);salvarDB();refreshUI();});
+}
+function ignorarPub(id){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);if(!x)return;
+  const antes={status:x.status,tarefaIds:[...(x.tarefaIds||[])]};
+  const removidas=removerTarefasAuto(x,false);
+  x.status='ignorada';x.tratadaEm=Date.now();x.tratadaPor=EU?EU.nome:'';
+  podarPublicacoes();
+  salvarDB();refreshUI();
+  mostrarToast('Publicação ignorada'+(removidas.length?' e '+removidas.length+' tarefa'+(removidas.length>1?'s':'')+' retirada'+(removidas.length>1?'s':'')+' da Rotina':'')+'.','Desfazer',
+    ()=>{DB.tarefas.push(...removidas);Object.assign(x,antes);salvarDB();refreshUI();});
+}
+function marcarPub(id,status){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);if(!x)return;
+  x.status=status;
+  if(status!=='nova'){x.tratadaEm=Date.now();x.tratadaPor=EU?EU.nome:'';}
+  podarPublicacoes();
+  salvarDB();refreshUI();
+}
+function reabrirPub(id){
+  const x=(DB.publicacoes||[]).find(y=>y.id===id);if(!x)return;
+  x.status=pubTarefas(x).length?'auto':'nova';
+  pubTarefas(x).forEach(t=>{if(t.status!=='concluido')t.conferir=true;});
+  salvarDB();refreshUI();
+}
+function vincularPubManual(pubId,pid){
+  const x=(DB.publicacoes||[]).find(y=>y.id===pubId);const p=processoPorId(pid);
+  if(!x||!p)return;
+  if(normalizarCNJ(p.num)!==x.num&&normalizarCNJ(p.numCNJ)!==x.num&&x.num.length===20&&!p.numCNJ)p.numCNJ=x.numMask;
+  const r=vincularPublicacao(x,p);
+  salvarDB();refreshUI();
+  if(r.prazos||r.audiencias)mostrarToast('Publicação vinculada e prazo calculado — confira.');
+}
+function cadastrarProcessoDaPub(pubId){
+  const x=(DB.publicacoes||[]).find(y=>y.id===pubId);if(!x)return;
+  abrirModalProc(null,null);
+  mpCtx.pubId=pubId;
+  document.getElementById('mp-num').value=x.numMask||x.num;
+  document.getElementById('mp-ativo').value=x.partes.filter(d=>/^a/i.test(d.polo)).map(d=>d.nome).join(', ');
+  document.getElementById('mp-passivo').value=x.partes.filter(d=>/^p/i.test(d.polo)).map(d=>d.nome).join(', ');
+  document.getElementById('mp-orgao').value=[x.tribunal,x.orgao].filter(Boolean).join(' — ');
+  const a=areaPorNumero(x.num,x.tribunal);
+  if(a&&areaInfo(a))document.getElementById('mp-area').value=a;
+  const r=respDaPublicacao(null,x);
+  if(RESP.includes(r))document.getElementById('mp-resp').value=r;
+}
+
+// ─── MODAL: CONFIGURAÇÃO DO DJEN ──────────────────────────
+function abrirConfigDJEN(){
+  const c=djenCfg();
+  renderOabsDJEN();
+  document.getElementById('djen-antecedencia').value=c.antecedencia;
+  document.getElementById('djen-auto').checked=c.autoBuscar;
+  document.getElementById('djen-autocad').checked=c.autoCadastrar;
+  document.getElementById('djen-feriados').value=c.feriados.map(fmtData).join('\n');
+  const {inicio,fim}=janelaBuscaDJEN();
+  document.getElementById('djen-links').innerHTML=c.oabs.length
+    ?c.oabs.map(o=>`<a href="${esc(urlDJEN(o,inicio,fim,1))}" target="_blank" rel="noopener noreferrer" style="color:var(--navy)">Publicações da OAB ${esc(o.numero)}/${esc(o.uf)} de ${fmtData(inicio)} a ${fmtData(fim)}</a>`).join('<br>')
+    :'<span style="color:var(--t3)">Cadastre uma OAB para gerar o link.</span>';
+  abrirOverlay('overlay-djen');
+}
+function renderOabsDJEN(){
+  const c=djenCfg();
+  document.getElementById('djen-oabs').innerHTML=c.oabs.length?c.oabs.map((o,i)=>`
+    <div class="cfgtipo-row">
+      <i class="ti ti-id-badge-2" style="font-size:18px;color:var(--t3)"></i>
+      <span style="flex:1;font-size:14px"><b>${esc(o.numero)}/${esc(o.uf)}</b>${o.nome?' · '+esc(o.nome):''}</span>
+      <button class="btn-ico" onclick="removerOabDJEN(${i})" title="Parar de monitorar"><i class="ti ti-trash"></i></button>
+    </div>`).join(''):'<p style="font-size:13px;color:var(--t3);padding:6px 0">Nenhuma OAB cadastrada.</p>';
+}
+function adicionarOabDJEN(){
+  const numero=soDigitos(document.getElementById('djen-oab-num').value);
+  const uf=document.getElementById('djen-oab-uf').value.trim().toUpperCase();
+  const nome=document.getElementById('djen-oab-nome').value.trim();
+  if(!numero||!/^[A-Z]{2}$/.test(uf)){alert('Informe o número da OAB e a UF com duas letras.');return;}
+  const c=djenCfg();
+  if(c.oabs.some(o=>o.numero===numero&&o.uf===uf)){alert('Essa OAB já está na lista.');return;}
+  c.oabs.push({numero,uf,nome});
+  ['djen-oab-num','djen-oab-uf','djen-oab-nome'].forEach(id=>document.getElementById(id).value='');
+  salvarDB();renderOabsDJEN();renderStatusDJEN();
+}
+function removerOabDJEN(i){
+  const c=djenCfg();
+  if(!confirm('Parar de monitorar a OAB '+c.oabs[i].numero+'/'+c.oabs[i].uf+'?'))return;
+  c.oabs.splice(i,1);salvarDB();renderOabsDJEN();renderStatusDJEN();
+}
+function salvarConfigDJEN(){
+  const c=djenCfg();
+  const ant=parseInt(document.getElementById('djen-antecedencia').value,10);
+  c.antecedencia=Number.isNaN(ant)?2:Math.max(0,Math.min(10,ant));
+  c.autoBuscar=document.getElementById('djen-auto').checked;
+  c.autoCadastrar=document.getElementById('djen-autocad').checked;
+  const fer=[],ruins=[];
+  document.getElementById('djen-feriados').value.split('\n').forEach(l=>{
+    const m=l.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m)fer.push(m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'));
+    else if(l.trim())ruins.push(l.trim());
+  });
+  if(ruins.length&&!confirm('Estas linhas não estão no formato dd/mm/aaaa e serão descartadas:\n\n'+ruins.join('\n')+'\n\nContinuar?'))return;
+  c.feriados=[...new Set(fer)].sort();
+  salvarDB();fecharOverlay('overlay-djen');refreshUI();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -5224,13 +6786,16 @@ const AGENDA_MESES=['janeiro','fevereiro','março','abril','maio','junho','julho
 let agendaMesRef=null;   // {y, m} — m em base 0
 let agendaDiaSel=null;   // 'AAAA-MM-DD' do dia clicado (null = mostra as próximas)
 
-function audienciasTodas(){return (DB.tarefas||[]).filter(t=>t.tipo==='audiencia')}
-function audienciaHoraOrd(t){return t.hora||'99:99'}
+// Desde a aba Processos, o calendário mostra também os prazos processuais:
+// a audiência entra no dia dela (t.prazo) e o prazo entra no dia em que
+// vence (t.prazoFatal; sem fatal, a data de entrega). Ver dataEvento().
+function audienciasTodas(){return (DB.tarefas||[]).filter(t=>t.tipo==='audiencia'||ehTarefaPrazo(t))}
+function audienciaHoraOrd(t){return t.tipo==='audiencia'?(t.hora||'99:98'):'00:00'}
 function audienciasNoDia(iso){
-  return audienciasTodas().filter(t=>t.prazo===iso)
+  return audienciasTodas().filter(t=>dataEvento(t)===iso)
     .sort((a,b)=>audienciaHoraOrd(a)<audienciaHoraOrd(b)?-1:1);
 }
-function audienciaAtrasada(t){return t.status!=='concluido'&&t.prazo&&t.prazo<hojeISO()}
+function audienciaAtrasada(t){const d=dataEvento(t);return t.status!=='concluido'&&!!d&&d<hojeISO()}
 function isoDe(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
 function agendaGarantirMes(){
   if(agendaMesRef)return;
@@ -5263,6 +6828,7 @@ function abrirNovaAudiencia(iso){
   const dia=iso||agendaDiaSel||hojeISO();
   document.getElementById('mt-prazo').value=dia;
   document.getElementById('mt-titulo-in').value='Audiência — ';
+  mtAtualizarHintFatal();
   if(typeof mtRecalcProjetoAuto==='function')mtRecalcProjetoAuto();
   if(typeof mtAtualizarHintConclusao==='function')mtAtualizarHintConclusao();
   setTimeout(()=>{
@@ -5276,10 +6842,14 @@ function audienciaItemHTML(t){
   const concl=t.status==='concluido';
   const atras=audienciaAtrasada(t);
   const cls=concl?'ok':(atras?'atras':'');
-  const hora=t.hora?`<span class="aud-hora">${esc(t.hora)}</span>`:'<span class="aud-hora sem">sem horário</span>';
-  const dia=t.prazo?`<span class="prazo-badge ${atras?'prazo-late':'prazo-ok'}">${diaSemanaDe(t.prazo)} ${fmtData(t.prazo)}</span>`:'<span class="prazo-badge prazo-sem">sem data</span>';
-  return `<div class="aud-item ${cls}" onclick="abrirModalTarefa('${t.id}',null)" title="Clique para abrir a audiência na Rotina">
-    <div class="aud-top">${hora}${dia}</div>
+  const ehAud=t.tipo==='audiencia';
+  const de=dataEvento(t);
+  const hora=ehAud?(t.hora?`<span class="aud-hora">${esc(t.hora)}</span>`:'<span class="aud-hora sem">sem horário</span>')
+    :`<span class="aud-kind prazo">prazo${t.prazoFatal?' fatal':''}</span>`;
+  const dia=de?`<span class="prazo-badge ${atras?'prazo-late':'prazo-ok'}">${diaSemanaDe(de)} ${fmtData(de)}</span>`:'<span class="prazo-badge prazo-sem">sem data</span>';
+  const entrega=!ehAud&&t.prazoFatal&&t.prazo&&t.prazo!==t.prazoFatal?`<span style="font-size:11px;color:var(--t3)">entrega ${fmtData(t.prazo)}</span>`:'';
+  return `<div class="aud-item ${cls}" onclick="abrirModalTarefa('${t.id}',null)" title="Clique para abrir na Rotina">
+    <div class="aud-top">${hora}${dia}${entrega}</div>
     <div class="aud-tit">${esc(t.titulo)}</div>
     <div class="aud-meta">
       <span><i class="ti ti-user" style="font-size:12px"></i> ${esc(t.resp||'—')}</span>
@@ -5297,13 +6867,14 @@ function renderAgendaAudiencias(){
   const todas=audienciasTodas();
   const pendentes=todas.filter(t=>t.status!=='concluido');
   const atrasadas=pendentes.filter(audienciaAtrasada);
-  const semData=pendentes.filter(t=>!t.prazo);
+  const semData=pendentes.filter(t=>!dataEvento(t));
 
   document.getElementById('agenda-mes').textContent=AGENDA_MESES[m]+' de '+y;
   const sub=document.getElementById('agenda-sub');
+  const nAud=pendentes.filter(t=>t.tipo==='audiencia').length, nPz=pendentes.length-nAud;
   if(sub)sub.textContent=pendentes.length
-    ? pendentes.length+' audiência'+(pendentes.length>1?'s':'')+' pendente'+(pendentes.length>1?'s':'')+(atrasadas.length?' · '+atrasadas.length+' vencida'+(atrasadas.length>1?'s':'')+' sem baixa':'')
-    : 'nenhuma audiência pendente';
+    ? [nAud?nAud+' audiência'+(nAud>1?'s':''):'',nPz?nPz+' prazo'+(nPz>1?'s':''):''].filter(Boolean).join(' · ')+' pendente'+(pendentes.length>1?'s':'')+(atrasadas.length?' · '+atrasadas.length+' vencido'+(atrasadas.length>1?'s':'')+' sem baixa':'')
+    : 'nenhuma audiência ou prazo pendente';
 
   // grade do mês, começando no domingo
   const primeiro=new Date(y,m,1);
@@ -5317,18 +6888,19 @@ function renderAgendaAudiencias(){
     const dow=new Date(y,m,d).getDay();
     const temAtraso=evs.some(audienciaAtrasada);
     const cls=['cal-day'];
-    if(dow===0||dow===6)cls.push('fds');
-    if(evs.length)cls.push(temAtraso?'atras':'temev');
+    const feriado=dow!==0&&dow!==6&&!diaUtil(iso);   // feriado ou recesso forense: prazo não corre
+    if(dow===0||dow===6||feriado)cls.push('fds');
+    if(evs.length)cls.push(temAtraso?'atras':evs.some(t=>t.tipo!=='audiencia'&&t.status!=='concluido')?'temprazo':'temev');
     if(iso===hoje)cls.push('hoje');
     if(iso===agendaDiaSel)cls.push('sel');
     const chips=evs.slice(0,2).map(t=>
-      `<span class="cal-ev ${t.status==='concluido'?'ok':''}">${t.hora?'<b>'+esc(t.hora)+'</b> ':''}${esc(t.titulo)}</span>`).join('');
+      `<span class="cal-ev ${t.tipo==='audiencia'?'aud':'prazo'} ${t.status==='concluido'?'ok':''}">${t.tipo==='audiencia'?(t.hora?'<b>'+esc(t.hora)+'</b> ':''):'<b>Prazo</b> '}${esc(t.titulo)}</span>`).join('');
     const mais=evs.length>2?`<span class="cal-mais">+${evs.length-2}</span>`:'';
     // em tela estreita os rótulos não cabem: fica só a bolinha com a quantidade
     const contador=evs.length?`<span class="cal-count">${evs.length}</span>`:'';
     const tt=evs.length
       ? fmtData(iso)+' — '+evs.map(t=>(t.hora?t.hora+' ':'')+t.titulo).join(' · ')
-      : fmtData(iso)+' — sem audiência';
+      : fmtData(iso)+(feriado?' — feriado/suspensão: prazos não correm':' — sem audiência nem prazo');
     html+=`<button type="button" class="${cls.join(' ')}" onclick="agendaSelecionarDia('${iso}')" title="${esc(tt)}">
       <span class="cal-num">${d}</span>${chips}${mais}${contador}</button>`;
   }
@@ -5342,21 +6914,21 @@ function renderAgendaAudiencias(){
   if(agendaDiaSel){
     const evs=audienciasNoDia(agendaDiaSel);
     tit.textContent=diaSemanaDe(agendaDiaSel)+', '+fmtData(agendaDiaSel);
-    shs.innerHTML=(evs.length?evs.length+' audiência'+(evs.length>1?'s':''):'nenhuma audiência neste dia')+
+    shs.innerHTML=(evs.length?evs.length+' compromisso'+(evs.length>1?'s':''):'nada marcado neste dia')+
       ' · <a onclick="agendaSelecionarDia(\''+agendaDiaSel+'\')" style="color:var(--navy);text-decoration:underline;cursor:pointer">ver as próximas</a>';
     lista.innerHTML=evs.length?evs.map(audienciaItemHTML).join('')
-      :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Dia livre de audiências.</div>';
+      :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Dia livre de audiências e prazos.</div>';
     return;
   }
-  const proximas=pendentes.filter(t=>t.prazo&&t.prazo>=hoje)
-    .sort((a,b)=>(a.prazo+audienciaHoraOrd(a))<(b.prazo+audienciaHoraOrd(b))?-1:1).slice(0,6);
-  tit.textContent='Próximas audiências';
+  const proximas=pendentes.filter(t=>dataEvento(t)&&dataEvento(t)>=hoje)
+    .sort((a,b)=>(dataEvento(a)+audienciaHoraOrd(a))<(dataEvento(b)+audienciaHoraOrd(b))?-1:1).slice(0,7);
+  tit.textContent='Próximas audiências e prazos';
   shs.textContent=proximas.length?'clique num dia do calendário para ver só ele':'nada marcado daqui pra frente';
   let side='';
   if(atrasadas.length)side+=`<div style="font-size:12px;font-weight:600;color:var(--red-hi);background:var(--red-bg);border:1px solid rgba(178,59,59,.24);border-radius:var(--rs);padding:9px 11px;margin-bottom:10px;line-height:1.45"><i class="ti ti-alert-triangle"></i> ${atrasadas.length} audiência${atrasadas.length>1?'s':''} já passou${atrasadas.length>1?'ram':''} e continua${atrasadas.length>1?'m':''} em aberto.</div>`;
   side+=proximas.length?proximas.map(audienciaItemHTML).join('')
-    :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Nenhuma audiência marcada.</div>';
-  if(semData.length)side+=`<div style="font-size:11.5px;color:var(--amber-hi);margin-top:6px"><i class="ti ti-alert-circle"></i> ${semData.length} audiência${semData.length>1?'s':''} sem data marcada na Rotina.</div>`;
+    :'<div class="hbar-empty"><i class="ti ti-calendar-off"></i>Nenhuma audiência ou prazo marcado.</div>';
+  if(semData.length)side+=`<div style="font-size:11.5px;color:var(--amber-hi);margin-top:6px"><i class="ti ti-alert-circle"></i> ${semData.length} audiência${semData.length>1?'s':''} ou prazo${semData.length>1?'s':''} sem data na Rotina.</div>`;
   lista.innerHTML=side;
 }
 function irParaCliente(id){navegarPara('crm');abrirCliente(id);}
@@ -5370,7 +6942,7 @@ function rotinaFiltroCat(resp,val){rotinaCat[resp]=val;renderRotina();}
 function filtroRotina(f,btn){
   rotinaFiltro=f;
   // :not(.desemp-chips) — o painel de cumprimento de prazos tem os próprios chips
-  document.querySelectorAll('.rotina-chips:not(.desemp-chips) .chip').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#rot-status-chips .chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderRotina();
 }
@@ -5401,24 +6973,377 @@ function taskCard(t){
     </div>
   </div>`;
 }
+// ═══════════════════════════════════════════════════════════
+//  ROTINA — AGENDA POR PRAZO
+//  A lista principal agrupa as tarefas pelo que vence primeiro
+//  (atrasadas, hoje, amanhã, próximos 7 dias…). A ideia é que a
+//  pergunta "o que eu preciso entregar agora?" se responda olhando
+//  o topo da tela, sem varrer quatro colunas.
+//  · conclusão em um clique (com "desfazer")
+//  · adiar é possível, mas fica registrado (t.adiamentos, t.prazoOriginal)
+//    e aparece no placar e no relatório de cumprimento
+//  · tarefa sem prazo fica em grupo próprio, pedindo uma data
+//  O quadro por responsável continua disponível ("Por responsável").
+// ═══════════════════════════════════════════════════════════
+const LS_ROTINA_PREF='bgl_rotina_pref';
+let rotinaPref=(()=>{try{const v=JSON.parse(localStorage.getItem(LS_ROTINA_PREF)||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}})();
+let rotinaHorizonte=null, rotinaBusca='', rrAtalho='hoje', __rrIniciado=false;
+function salvarPrefRotina(){try{localStorage.setItem(LS_ROTINA_PREF,JSON.stringify(rotinaPref))}catch(e){}}
+function rotinaModo(){return rotinaPref.modo==='board'?'board':'agenda'}
+function rotinaPessoa(){const p=rotinaPref.pessoa;return p&&RESP.includes(p)?p:'todos'}
+function mudarModoRotina(m){rotinaPref.modo=m;salvarPrefRotina();renderRotina();}
+function mudarPessoaRotina(p){rotinaPref.pessoa=p;salvarPrefRotina();__rrIniciado=false;renderRotina();}
+function buscaRotina(v){rotinaBusca=v;renderRotina();}
+function filtroHorizonte(h){
+  rotinaHorizonte=rotinaHorizonte===h?null:h;
+  if(rotinaModo()!=='agenda'){rotinaPref.modo='agenda';salvarPrefRotina();}
+  renderRotina();
+}
+// tarefa conjunta (Cecília e Thallys) aparece para os dois
+function tarefaDaPessoa(t,p){
+  if(p==='todos'||t.resp===p)return true;
+  return t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys');
+}
+function tarefaCasaBusca(t,q){
+  if(!q)return true;
+  const p=processoPorId(t.pid);
+  return [t.titulo,nomeCliente(t.cid),t.resp,tipoInfo(t.tipo).lbl,p&&p.num,p&&p.numCNJ,p&&p.ativo,p&&p.passivo].some(x=>semAcento(x).includes(q));
+}
+function grupoDaTarefa(t,hoje,amanha,fim7){
+  if(!t.prazo)return 'semprazo';
+  if(t.prazo<hoje)return 'atrasadas';
+  if(t.prazo===hoje)return 'hoje';
+  if(t.prazo===amanha)return 'amanha';
+  if(t.prazo<=fim7)return 'semana';
+  return 'proximas';
+}
+const GRUPOS_AGENDA=[
+  {k:'atrasadas',lbl:'Atrasadas',cor:'var(--red)',dica:'conclua ou renegocie a data ainda hoje'},
+  {k:'hoje',lbl:'Hoje',cor:'var(--amber)'},
+  {k:'amanha',lbl:'Amanhã',cor:'var(--blue)'},
+  {k:'semana',lbl:'Próximos 7 dias',cor:'var(--navy-soft)'},
+  {k:'semprazo',lbl:'Sem prazo',cor:'var(--silver)',dica:'tarefa sem data tende a ficar para depois — defina uma'},
+  {k:'proximas',lbl:'Mais adiante',cor:'var(--silver-dark)',fechado:true},
+];
+// próximo dia de expediente para tarefas internas (sem recesso forense)
+function proximoDiaTrabalho(iso){
+  let d=isoAdd(iso,1),g=0;
+  while((isoDow(d)===0||isoDow(d)===6||feriadosDoAno(+d.slice(0,4)).has(d))&&g++<15)d=isoAdd(d,1);
+  return d;
+}
+function proximaSexta(){
+  const h=hojeISO();let d=h,g=0;
+  while(isoDow(d)!==5&&g++<7)d=isoAdd(d,1);
+  return d;
+}
+
+// ─── PLACAR, AVISOS E FILTROS ─────────────────────────────
 function renderRotina(){
-  const atividades=DB.tarefas.filter(t=>t.tipo!=='followup');
-  const pend=atividades.filter(t=>t.status==='pendente').length;
-  const and=atividades.filter(t=>t.status==='andamento').length;
-  const conc=atividades.filter(t=>t.status==='concluido').length;
-  const atras=atividades.filter(t=>t.status!=='concluido'&&t.prazo&&t.prazo<hojeISO()).length;
+  const pessoa=rotinaPessoa(), modo=rotinaModo();
+  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
+  const todas=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaDaPessoa(t,pessoa));
+  const abertas=todas.filter(t=>t.status!=='concluido');
+  const cont={atrasadas:0,hoje:0,amanha:0,semana:0,proximas:0,semprazo:0};
+  abertas.forEach(t=>cont[grupoDaTarefa(t,hoje,amanha,fim7)]++);
+  const maisAntiga=abertas.reduce((m,t)=>t.prazo&&t.prazo<hoje&&(!m||t.prazo<m)?t.prazo:m,'');
+  const fataisHoje=abertas.filter(t=>t.prazoFatal===hoje).length;
+  const r30=resumoConclusao(todas.filter(t=>t.status==='concluido'&&t.concluidoEm&&t.concluidoEm>=isoAdd(hoje,-30)));
+  const pct=r30.pctNoPrazo;
+  const corPct=pct===null?'var(--silver)':pct>=85?'var(--green)':pct>=65?'var(--amber)':'var(--red)';
+  const box=(h,c,lbl,val,sub,alerta,extra)=>`<button type="button" class="rp-box ${rotinaHorizonte===h?'sel':''}" data-c="${c}" data-alerta="${alerta?1:0}" onclick="${h==='desempenho'?'irParaDesempenho()':`filtroHorizonte('${h}')`}">
+      <div class="rp-lbl">${lbl}</div><div class="rp-val">${val}</div>${extra||''}<div class="rp-sub">${sub}</div></button>`;
   const st=document.getElementById('rotina-stats');
-  if(st)st.innerHTML=`
-    <div class="stat-card"><div class="stat-label">Pendentes</div><div class="stat-val">${pend}</div></div>
-    <div class="stat-card" data-c="blue"><div class="stat-label">Em andamento</div><div class="stat-val">${and}</div></div>
-    <div class="stat-card" data-c="green"><div class="stat-label">Concluídas</div><div class="stat-val">${conc}</div></div>
-    <div class="stat-card" data-c="red"><div class="stat-label">Atrasadas</div><div class="stat-val">${atras}</div></div>`;
+  if(st)st.innerHTML=
+    box('atrasadas','red','Atrasadas',cont.atrasadas,maisAntiga?'a mais antiga venceu há '+diasEntreISO(maisAntiga,hoje)+'d':'nada vencido',cont.atrasadas>0)+
+    box('hoje','amber','Para hoje',cont.hoje,fataisHoje?fataisHoje+' prazo'+(fataisHoje>1?'s':'')+' fata'+(fataisHoje>1?'is':'l')+' hoje':cont.hoje?'entregas do dia':'nada marcado para hoje',false)+
+    box('semana','blue','Próximos 7 dias',cont.amanha+cont.semana,cont.amanha+' para amanhã',false)+
+    box('semprazo','','Sem prazo',cont.semprazo,cont.semprazo?'defina uma data':'todas com data',false)+
+    box('desempenho','green','No prazo · 30 dias',pct===null?'—':pct+'%',
+      r30.comPrazo?r30.dentroDoPrazo+' de '+r30.comPrazo+' no prazo'+(r30.adiadas?' · '+r30.adiadas+' adiada'+(r30.adiadas>1?'s':''):''):'nenhuma conclusão com prazo',false,
+      `<div class="rp-meter"><span style="width:${pct||0}%;background:${corPct}"></span></div>`);
+
+  renderAvisosRotina(pessoa);
+  renderPessoasRotina(pessoa,hoje);
+  renderRapidaRotina(pessoa);
+  document.getElementById('rot-modo-agenda').classList.toggle('on',modo==='agenda');
+  document.getElementById('rot-modo-board').classList.toggle('on',modo==='board');
+  document.getElementById('rot-status-chips').style.display=modo==='board'?'flex':'none';
+  const ag=document.getElementById('rotina-agenda'),bd=document.getElementById('rotina-board');
+  if(modo==='board'){ag.innerHTML='';ag.style.display='none';bd.style.display='';renderRotinaBoard(pessoa);}
+  else{bd.innerHTML='';bd.style.display='none';ag.style.display='';renderAgendaRotina(pessoa);}
+
   renderChatGeral();
   renderProjetos();
   renderDesempenhoRotina();
+}
+function irParaDesempenho(){
+  const el=document.getElementById('rotina-desempenho');
+  if(el)el.closest('.modulo-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderAvisosRotina(pessoa){
+  const el=document.getElementById('rotina-avisos');
+  if(!el)return;
+  let h='';
+  const nPub=pubsAnalisar().length;
+  const nConf=tarefasConferir().filter(t=>tarefaDaPessoa(t,pessoa)).length;
+  if(nPub)h+=`<div class="rot-aviso ambar"><i class="ti ti-news"></i><span><b>${nPub} publicaç${nPub>1?'ões':'ão'} do DJEN para revisar.</b>${nConf?' Os prazos já foram calculados e estão na lista abaixo, marcados “conferir”.':''}</span><button class="btn-sec" onclick="abrirPainelPublicacoes('revisar')">Revisar</button></div>`;
+  else if(nConf)h+=`<div class="rot-aviso ambar"><i class="ti ti-alert-triangle"></i><span><b>${nConf} prazo${nConf>1?'s':''} ou audiência${nConf>1?'s':''}</b> lido${nConf>1?'s':''} do DJEN aguardando conferência.</span><button class="btn-sec" onclick="filtroHorizonte('conferir')">${rotinaHorizonte==='conferir'?'Mostrar tudo':'Conferir'}</button></div>`;
+  if(rotinaHorizonte&&rotinaHorizonte!=='conferir'){
+    const nome={atrasadas:'atrasadas',hoje:'para hoje',semana:'dos próximos 7 dias',semprazo:'sem prazo'}[rotinaHorizonte]||rotinaHorizonte;
+    h+=`<div class="rot-aviso azul"><i class="ti ti-filter"></i><span>Mostrando só as tarefas <b>${nome}</b>.</span><button class="btn-sec" onclick="filtroHorizonte('${rotinaHorizonte}')">Mostrar tudo</button></div>`;
+  }
+  el.innerHTML=h;
+}
+function renderPessoasRotina(pessoa,hoje){
+  const el=document.getElementById('rot-pessoas');
+  if(!el)return;
+  const abertas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido');
+  const atras=p=>abertas.filter(t=>tarefaDaPessoa(t,p)&&t.prazo&&t.prazo<hoje).length;
+  el.innerHTML=`<button class="rot-pessoa todos ${pessoa==='todos'?'on':''}" onclick="mudarPessoaRotina('todos')">Todos</button>`+
+    RESP.map(r=>{
+      const av=corResp(r),n=abertas.filter(t=>tarefaDaPessoa(t,r)).length,a=atras(r);
+      return `<button class="rot-pessoa ${pessoa===r?'on':''}" onclick="mudarPessoaRotina('${r}')" title="${esc(r)}: ${n} em aberto${a?' · '+a+' atrasada'+(a>1?'s':''):''}">
+        <span class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</span>${esc(r==='Escritório'?'Escritório':r===RESP_DUPLA?'Dupla':r)}
+        <span class="n">${n}</span>${a?`<span class="nav-badge" style="margin-left:0">${a}</span>`:''}</button>`;
+    }).join('');
+}
+
+// ─── CRIAÇÃO RÁPIDA ───────────────────────────────────────
+const RR_ATALHOS=[
+  {k:'hoje',lbl:'Hoje',data:()=>hojeISO()},
+  {k:'amanha',lbl:'Amanhã',data:()=>isoAdd(hojeISO(),1)},
+  {k:'sexta',lbl:'Sexta',data:()=>proximaSexta()},
+  {k:'semana',lbl:'+7d',data:()=>isoAdd(hojeISO(),7)},
+];
+function renderRapidaRotina(pessoa){
+  const sel=document.getElementById('rr-resp');
+  if(!sel)return;
+  if(sel.options.length!==RESP.length)sel.innerHTML=RESP.map(r=>`<option>${esc(r)}</option>`).join('');
+  if(!__rrIniciado){
+    sel.value=pessoa!=='todos'?pessoa:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+    rrMarcarAtalho('hoje');
+    __rrIniciado=true;
+  }
+  document.getElementById('rr-datas').innerHTML=RR_ATALHOS.map(a=>`<button type="button" class="${rrAtalho===a.k?'on':''}" onclick="rrMarcarAtalho('${a.k}')">${a.lbl}</button>`).join('');
+}
+function rrMarcarAtalho(k){
+  rrAtalho=k;
+  const a=RR_ATALHOS.find(x=>x.k===k);
+  if(a)document.getElementById('rr-prazo').value=a.data();
+  document.querySelectorAll('#rr-datas button').forEach((b,i)=>b.classList.toggle('on',RR_ATALHOS[i]&&RR_ATALHOS[i].k===k));
+}
+// tipo provável pelo título; o usuário corrige no formulário completo se precisar
+function tipoPeloTitulo(titulo){
+  const t=semAcento(titulo);
+  const regras=[['audiencia',/audiencia/],['inicial',/inicial/],['peticao',/peti|contesta|recurso|manifesta|replica|embargo|memoria|razoes|impugna/],
+    ['diligencia',/diligen|cartorio|protocol|despachar com|balcao/],['lead',/\blead\b|responder lead/]];
+  const keys=tiposTarefa().map(x=>x.key);
+  for(const [k,re] of regras)if(re.test(t)&&keys.includes(k))return k;
+  return keys.includes('outro')?'outro':keys[0];
+}
+function criarTarefaRapida(){
+  const inp=document.getElementById('rr-titulo');
+  const titulo=inp.value.trim();
+  if(!titulo){inp.focus();return;}
+  const prazo=document.getElementById('rr-prazo').value;
+  const resp=document.getElementById('rr-resp').value;
+  const t={id:uid(),titulo,resp,tipo:tipoPeloTitulo(titulo),cid:null,prazo,hora:'',status:'pendente',concluidoEm:'',criadoEm:Date.now(),criadoPor:EU?EU.nome:''};
+  DB.tarefas.push(t);
+  inp.value='';
+  salvarDB();refreshUI();
+  mostrarToast('Incluída para '+resp+(prazo?' · '+fmtDataSem(prazo):' · sem prazo'),'Editar',()=>abrirModalTarefa(t.id,null));
+  setTimeout(()=>inp.focus(),30);
+}
+
+// ─── AGENDA ───────────────────────────────────────────────
+function ordenarAgenda(a,b){
+  const pa=a.prazo||'9999',pb=b.prazo||'9999';
+  if(pa!==pb)return pa<pb?-1:1;
+  const fa=a.prazoFatal||'9999',fb=b.prazoFatal||'9999';
+  if(fa!==fb)return fa<fb?-1:1;
+  return (a.hora||'99')<(b.hora||'99')?-1:1;
+}
+function renderAgendaRotina(pessoa){
+  const el=document.getElementById('rotina-agenda');
+  if(!el)return;
+  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
+  const q=semAcento(rotinaBusca.trim());
+  const todas=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaDaPessoa(t,pessoa)&&tarefaCasaBusca(t,q));
+  let abertas=todas.filter(t=>t.status!=='concluido');
+  if(rotinaHorizonte==='conferir')abertas=abertas.filter(t=>t.conferir);
+  const grupos={};
+  abertas.forEach(t=>{const g=grupoDaTarefa(t,hoje,amanha,fim7);(grupos[g]=grupos[g]||[]).push(t);});
+  const visivel=k=>!rotinaHorizonte||rotinaHorizonte==='conferir'||rotinaHorizonte===k||(rotinaHorizonte==='semana'&&k==='amanha');
+  let html='';
+  GRUPOS_AGENDA.forEach(g=>{
+    const ts=(grupos[g.k]||[]).sort(ordenarAgenda);
+    if(!ts.length||!visivel(g.k))return;
+    html+=grupoAgendaHTML(g.k,g.lbl,g.cor,ts,g.dica,!!g.fechado);
+  });
+  if(!html)html=`<div class="ag-vazio"><i class="ti ti-circle-check"></i>${q?'Nenhuma tarefa encontrada para esta busca.':rotinaHorizonte?'Nada neste recorte.':'Nenhuma tarefa em aberto. Tudo em dia.'}</div>`;
+  if(!rotinaHorizonte){
+    const recentes=todas.filter(t=>t.status==='concluido'&&t.concluidoEm&&t.concluidoEm>=isoAdd(hoje,-7))
+      .sort((a,b)=>(b.concluidoEm||'').localeCompare(a.concluidoEm||''));
+    if(recentes.length)html+=grupoAgendaHTML('concluidas','Concluídas nos últimos 7 dias','var(--green)',recentes,'clique no círculo para reabrir',true);
+  }
+  el.innerHTML=html;
+}
+function grupoAgendaHTML(k,lbl,cor,ts,dica,fechadoPadrao){
+  const chave='ag:'+k;
+  const fechado=blocoRecolhido(chave,fechadoPadrao);
+  return `<div class="ag-grupo ${fechado?'recolhida':''}" data-g="${k}">
+    <div class="ag-head" style="--c:${cor}" onclick="alternarBloco('${chave}',${fechadoPadrao})">
+      ${chevron()}<span class="ag-tit">${lbl}</span><span class="ag-ct">${ts.length}</span>
+      ${dica?`<span class="ag-dica">${dica}</span>`:''}
+    </div>
+    <div class="ag-corpo">${ts.map(agRowHTML).join('')}</div>
+  </div>`;
+}
+function rotuloPrazoAgenda(t){
+  const h=hojeISO();
+  if(t.prazo===h)return 'Hoje';
+  if(t.prazo===isoAdd(h,1))return 'Amanhã';
+  if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
+  return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
+}
+function agRowHTML(t){
+  const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
+  const done=t.status==='concluido', and=t.status==='andamento';
+  const h=hojeISO();
+  let prazo;
+  if(done){
+    const ci=conclusaoInfo(t);
+    prazo=`<div class="d" style="color:var(--green-hi)">${esc(ci.txt)}</div>`;
+  }else if(!t.prazo){
+    prazo=`<input type="date" onchange="definirPrazoRapido('${t.id}',this.value)" title="Defina o prazo desta tarefa">`;
+  }else{
+    const cls=t.prazo<h?'late':t.prazo===h?'soon':'';
+    prazo=`<div class="d ${cls}">${rotuloPrazoAgenda(t)}${t.hora?' · '+esc(t.hora):''}</div>`;
+    if(t.prazoFatal){
+      const df=diasEntreISO(h,t.prazoFatal);
+      prazo+=`<div class="f" title="Prazo fatal do processo">${df<0?'fatal vencido em ':'fatal '}${fmtDataSem(t.prazoFatal).replace(/\/\d{4}$/,'')}${df>=0&&df<=2?' — '+(df===0?'HOJE':df+'d'):''}</div>`;
+    }
+    if(t.adiamentos)prazo+=`<div class="s" title="Prazo original: ${esc(fmtData(t.prazoOriginal||''))}">adiada ${t.adiamentos}x</div>`;
+  }
+  const chips=[
+    `<span class="ag-tipo"><i style="background:${tp.cor}"></i>${esc(tp.lbl)}</span>`,
+    `<span class="ag-av" style="background:${av[0]};color:${av[1]}" title="${esc(t.resp)}">${avatarResp(t.resp)}</span>`,
+    and?'<span class="ag-chip andamento">em andamento</span>':'',
+    t.conferir?`<span class="ag-chip conferir" onclick="abrirModalTarefa('${t.id}',null)" title="Lido automaticamente do DJEN — confira"><i class="ti ti-alert-triangle" style="font-size:11px"></i> conferir</span>`:'',
+    p?`<span class="ag-chip proc" onclick="irParaProcesso('${p.id}')" title="${esc(rotuloProcesso(p))}">${esc(p.numCNJ||p.num)}</span>`:'',
+    cli?`<span class="ag-chip" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:'',
+    t.leadId?`<span class="ag-chip" onclick="abrirLeadDeTarefa('${t.leadId}','${t.leadMod}')"><i class="ti ti-user" style="font-size:11px"></i> lead</span>`:'',
+    seloProjeto(t),
+  ].join('');
+  const acoes=done
+    ?`<button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>`
+    :`<button class="btn-ico" onclick="alternarAndamento('${t.id}')" title="${and?'Voltar para pendente':'Marcar como em andamento'}"><i class="ti ti-${and?'player-pause':'player-play'}"></i></button>
+      <span class="ag-menu" id="agm-${t.id}">
+        <button class="btn-ico" onclick="event.stopPropagation();abrirMenuAdiar('${t.id}')" title="Adiar"><i class="ti ti-clock-pause"></i></button>
+        <span class="ag-menu-pop">
+          <div class="nota">O adiamento fica registrado e entra no relatório de cumprimento.</div>
+          <button onclick="adiarTarefa('${t.id}','dia')">+1 dia</button>
+          <button onclick="adiarTarefa('${t.id}','util')">Próximo dia útil</button>
+          <button onclick="adiarTarefa('${t.id}','semana')">+1 semana</button>
+          <div class="sep"></div>
+          <button onclick="fecharMenusAdiar();abrirModalTarefa('${t.id}',null)">Escolher outra data…</button>
+        </span>
+      </span>
+      <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>`;
+  return `<div class="ag-row ${done?'done':''} ${and?'andamento':''}" id="ag-${t.id}">
+    <button class="ag-check" onclick="${done?`reabrirTarefa('${t.id}')`:`concluirRapido('${t.id}')`}" title="${done?'Reabrir tarefa':'Concluir'}"><i class="ti ti-check"></i></button>
+    <div class="ag-main">
+      <div class="ag-tt" onclick="abrirModalTarefa('${t.id}',null)">${esc(t.titulo)}</div>
+      <div class="ag-meta">${chips}</div>
+    </div>
+    <div class="ag-prazo">${prazo}</div>
+    <div class="ag-acoes">${acoes}</div>
+  </div>`;
+}
+
+// ─── AÇÕES RÁPIDAS ────────────────────────────────────────
+function concluirRapido(id){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  const antes={status:t.status,concluidoEm:t.concluidoEm};
+  aplicarStatusTarefa(t,'concluido');
+  const row=document.getElementById('ag-'+id);
+  if(row)row.classList.add('saindo');
+  salvarDB();
+  setTimeout(refreshUI,220);
+  const ci=conclusaoInfo(t);
+  const sufixo=ci&&ci.cat==='atrasada'?' com '+plural(ci.dias,' de atraso'):ci&&(ci.cat==='antecipada'||ci.cat==='noprazo')?' no prazo':'';
+  mostrarToast('Concluída'+sufixo+': '+t.titulo,'Desfazer',()=>{
+    t.status=antes.status;t.concluidoEm=antes.concluidoEm;salvarDB();refreshUI();
+  });
+}
+function reabrirTarefa(id){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  aplicarStatusTarefa(t,'pendente');
+  salvarDB();refreshUI();
+}
+function alternarAndamento(id){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  aplicarStatusTarefa(t,t.status==='andamento'?'pendente':'andamento');
+  salvarDB();refreshUI();
+}
+function definirPrazoRapido(id,val){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!val)return;
+  t.prazo=val;salvarDB();refreshUI();
+}
+function registrarAdiamento(t){
+  if(!t.prazoOriginal)t.prazoOriginal=t.prazo;
+  t.adiamentos=(t.adiamentos||0)+1;
+  t.adiadaEm=Date.now();t.adiadaPor=EU?EU.nome:'';
+}
+function abrirMenuAdiar(id){
+  const m=document.getElementById('agm-'+id);
+  const abrir=m&&!m.classList.contains('open');
+  fecharMenusAdiar();
+  if(abrir)m.classList.add('open');
+}
+function fecharMenusAdiar(){document.querySelectorAll('.ag-menu.open').forEach(m=>m.classList.remove('open'))}
+document.addEventListener('click',e=>{if(!e.target.closest('.ag-menu'))fecharMenusAdiar();});
+function adiarTarefa(id,modo){
+  fecharMenusAdiar();
+  const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  const h=hojeISO();
+  const base=t.prazo&&t.prazo>=h?t.prazo:h;
+  const nova=modo==='util'?proximoDiaTrabalho(base):modo==='semana'?isoAdd(base,7):isoAdd(base,1);
+  if(t.prazoFatal&&nova>t.prazoFatal&&!confirm('A nova data ('+fmtData(nova)+') passa do PRAZO FATAL do processo ('+fmtData(t.prazoFatal)+').\n\nAdiar assim mesmo?'))return;
+  const anterior={prazo:t.prazo,prazoOriginal:t.prazoOriginal,adiamentos:t.adiamentos,adiadaEm:t.adiadaEm,adiadaPor:t.adiadaPor};
+  registrarAdiamento(t);
+  t.prazo=nova;
+  salvarDB();refreshUI();
+  mostrarToast('Adiada para '+fmtDataSem(nova),'Desfazer',()=>{Object.assign(t,anterior);if(!t.prazoOriginal)delete t.prazoOriginal;if(!t.adiamentos)delete t.adiamentos;salvarDB();refreshUI();});
+}
+
+// ─── AVISO RÁPIDO (toast) ─────────────────────────────────
+let __toastFn=null,__toastTimer=null;
+function mostrarToast(txt,rotulo,fn){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  document.getElementById('toast-txt').textContent=txt;
+  const b=document.getElementById('toast-btn');
+  __toastFn=fn||null;
+  b.style.display=fn?'':'none';
+  b.textContent=rotulo||'Desfazer';
+  el.classList.add('on');
+  clearTimeout(__toastTimer);
+  __toastTimer=setTimeout(()=>{el.classList.remove('on');__toastFn=null;},fn?7000:4500);
+}
+function toastAcao(){
+  const fn=__toastFn;__toastFn=null;
+  document.getElementById('toast').classList.remove('on');
+  if(fn)fn();
+}
+
+// ─── QUADRO POR RESPONSÁVEL (visão anterior) ──────────────
+function renderRotinaBoard(pessoa){
+  const q=semAcento(rotinaBusca.trim());
+  const atividades=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaCasaBusca(t,q));
   const board=document.getElementById('rotina-board');
   if(!board)return;
-  board.innerHTML=RESP.map(r=>{
+  board.innerHTML=(pessoa&&pessoa!=='todos'?[pessoa]:RESP).map(r=>{
     const av=corResp(r);
     let ts=atividades.filter(t=>t.resp===r);
     if(rotinaFiltro!=='todos')ts=ts.filter(t=>t.status===rotinaFiltro);
@@ -5826,10 +7751,12 @@ function cortePeriodoDesempenho(){
 // resumo de um conjunto de tarefas concluídas
 function resumoConclusao(tarefas){
   const r={total:tarefas.length,antecipada:0,noprazo:0,atrasada:0,semprazo:0,semregistro:0,
-           diasAtraso:0,maiorAtraso:0,diasAntes:0,comPrazo:0};
+           diasAtraso:0,maiorAtraso:0,diasAntes:0,comPrazo:0,adiadas:0,foraDoOriginal:0};
   tarefas.forEach(t=>{
     const ci=conclusaoInfo(t);
     r[ci.cat]++;
+    // "no prazo" depois de adiar não é o mesmo que no prazo combinado: conta à parte
+    if(t.adiamentos){r.adiadas++;if(t.prazoOriginal&&t.concluidoEm&&t.concluidoEm>t.prazoOriginal)r.foraDoOriginal++;}
     if(ci.cat==='atrasada'){r.diasAtraso+=ci.dias;r.comPrazo++;if(ci.dias>r.maiorAtraso)r.maiorAtraso=ci.dias;}
     else if(ci.cat==='noprazo'){r.comPrazo++;}
     else if(ci.cat==='antecipada'){r.diasAntes+=-ci.dias;r.comPrazo++;}
@@ -5870,7 +7797,7 @@ function renderDesempenhoRotina(){
       <div class="desemp-box">
         <div class="desemp-lbl">% no prazo</div>
         <div class="desemp-val">${r.pctNoPrazo===null?'—':r.pctNoPrazo+'%'}</div>
-        <div class="desemp-sub">${r.comPrazo} tarefa${r.comPrazo!==1?'s':''} com prazo definido</div>
+        <div class="desemp-sub">${r.comPrazo} tarefa${r.comPrazo!==1?'s':''} com prazo definido${r.adiadas?' · '+r.adiadas+' adiada'+(r.adiadas>1?'s':'')+(r.foraDoOriginal?', '+r.foraDoOriginal+' entregue'+(r.foraDoOriginal>1?'s':'')+' depois da data original':''):''}</div>
       </div>
       <div class="desemp-box">
         <div class="desemp-lbl">Fora da conta</div>
@@ -5975,8 +7902,19 @@ function abrirModalTarefa(id,respOuCid){
   selCli.innerHTML='<option value="">— sem cliente —</option>'+ordenarPorNome(DB.clientes).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
   const selTipo=document.getElementById('mt-tipo');
   selTipo.innerHTML=tiposTarefa().map(x=>`<option value="${x.key}">${esc(x.lbl)}</option>`).join('');
+  const tAtual=id?DB.tarefas.find(x=>x.id===id):null;
+  const selProc=document.getElementById('mt-proc');
+  selProc.innerHTML='<option value="">— sem processo —</option>'+ordenarProcessosPorCliente(DB.processos.filter(p=>p.status!=='Arquivado'||(tAtual&&tAtual.pid===p.id)))
+    .map(p=>`<option value="${p.id}">${esc(rotuloProcesso(p))}</option>`).join('');
+  selProc.value=tAtual&&tAtual.pid&&processoPorId(tAtual.pid)?tAtual.pid:'';
+  document.getElementById('mt-fatal').value=tAtual?(tAtual.prazoFatal||''):'';
+  document.getElementById('mt-conferir-wrap').style.display=tAtual&&tAtual.conferir?'block':'none';
+  document.getElementById('mt-conferido').checked=false;
+  if(tAtual&&tAtual.conferir)document.getElementById('mt-conferir-txt').textContent=tAtual.tipo==='audiencia'
+    ?'Esta audiência foi lida automaticamente da publicação do DJEN — confirme data e horário no processo.'
+    :'Este prazo foi calculado automaticamente a partir da publicação do DJEN — confirme a quantidade de dias e o vencimento antes de marcar.';
   if(id){
-    const t=DB.tarefas.find(x=>x.id===id);
+    const t=tAtual;
     document.getElementById('mt-titulo').textContent='Editar tarefa';
     document.getElementById('mt-titulo-in').value=t.titulo;
     document.getElementById('mt-resp').value=t.resp;
@@ -6015,6 +7953,7 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-status-hint').textContent='A data/hora é registrada automaticamente a cada mudança de etapa.';
     mtRecalcProjetoAuto();
   }
+  mtAtualizarHintFatal();
   abrirOverlay('overlay-tarefa');
   setTimeout(()=>document.getElementById('mt-titulo-in').focus(),100);
 }
@@ -6028,13 +7967,23 @@ function salvarTarefa(){
     cid:document.getElementById('mt-cli').value||null,
     prazo:document.getElementById('mt-prazo').value,
     hora:document.getElementById('mt-hora').value,
+    pid:document.getElementById('mt-proc').value||null,
+    prazoFatal:document.getElementById('mt-fatal').value,
   };
+  if(dados.prazoFatal&&!dados.prazo)dados.prazo=internoPara(dados.prazoFatal);
+  if(dados.prazoFatal&&dados.prazo>dados.prazoFatal&&!confirm('A data de entrega ('+fmtData(dados.prazo)+') ficou DEPOIS do prazo fatal ('+fmtData(dados.prazoFatal)+'). Salvar assim mesmo?'))return;
+  if(dados.pid&&!dados.cid){const p=processoPorId(dados.pid);if(p&&p.cid)dados.cid=p.cid;}
   // concluída: vale a data informada no modal; em qualquer outro status a data sai
   const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
   let t;
   if(mtCtx.id){
     t=DB.tarefas.find(x=>x.id===mtCtx.id);
+    // empurrar a data para frente numa tarefa em aberto conta como adiamento
+    if(t.status!=='concluido'&&mtCtx.status!=='concluido'&&t.prazo&&dados.prazo&&dados.prazo>t.prazo)registrarAdiamento(t);
     Object.assign(t,dados);
+    if(!t.prazoFatal)delete t.prazoFatal;
+    if(!t.pid)delete t.pid;
+    if(t.conferir&&document.getElementById('mt-conferido').checked)marcarConferida(t);
     aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
   }
   else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};DB.tarefas.push(t);}
@@ -6043,6 +7992,30 @@ function salvarTarefa(){
   aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);
   if(marcado)definirStatusExec(t,document.getElementById('mt-status').value);
   salvarDB();fecharOverlay('overlay-tarefa');refreshUI();
+}
+function mtProcessoMudou(){
+  mtAtualizarHintFatal();
+  const p=processoPorId(document.getElementById('mt-proc').value);
+  if(!p)return;
+  const cli=document.getElementById('mt-cli');
+  if(p.cid&&!cli.value)cli.value=p.cid;
+}
+function mtAtualizarHintFatal(){
+  const el=document.getElementById('mt-fatal-hint');
+  if(!el)return;
+  const f=document.getElementById('mt-fatal').value;
+  // prazo fatal só aparece em prazo processual ou tarefa ligada a processo
+  const tipo=document.getElementById('mt-tipo').value;
+  const mostra=!!f||tipo==='prazo'||(!!document.getElementById('mt-proc').value&&tipo!=='audiencia');
+  document.getElementById('mt-fatal-wrap').style.display=mostra?'':'none';
+  document.getElementById('mt-prazo-lbl').textContent=f?'Entregar até (prazo interno)':'Prazo (data de entrega)';
+  el.className='mt-conc-hint';
+  if(!f){el.textContent='Deixe em branco se não for prazo de processo. Quando preenchido, o prazo de entrega acima funciona como prazo interno, antes do fatal.';return;}
+  const pr=document.getElementById('mt-prazo');
+  if(!pr.value){pr.value=internoPara(f);}
+  const folga=contarDiasUteis(pr.value,f);
+  if(pr.value>f){el.classList.add('atraso');el.textContent='A data de entrega está depois do prazo fatal.';}
+  else el.textContent='Vence '+fmtDataSem(f)+' · entrega interna '+fmtDataSem(pr.value)+(folga?' ('+folga+(folga>1?' dias úteis':' dia útil')+' de folga)':' (sem folga)')+'.';
 }
 function excluirTarefa(){
   const t=DB.tarefas.find(x=>x.id===mtCtx.id);if(!t)return;
@@ -6795,7 +8768,7 @@ function marcarRecebido(cid,fid){
 // ═══════════════════════════════════════════════════════════
 //  MODAL: PROCESSO
 // ═══════════════════════════════════════════════════════════
-let mpCtx={pid:null,cid:null,polo:'a',status:'Ativo'};
+let mpCtx={pid:null,cid:null,polo:'a',status:'Ativo',pubId:null};
 function mpPolo(p){
   mpCtx.polo=p;
   document.getElementById('mp-polo-a').classList.toggle('on',p==='a');
@@ -6815,11 +8788,26 @@ function mpStatus(s){
 function abrirModalProc(pid,cid){
   const p=pid?DB.processos.find(x=>x.id===pid):null;
   const cidResolvido=cid||(p&&p.cid)||'';
-  mpCtx={pid,cid:cidResolvido,polo:'a',status:'Ativo'};
+  mpCtx={pid,cid:cidResolvido,polo:'a',status:'Ativo',pubId:null};
+  garantirEstruturaProcessos();
   const c=DB.clientes.find(x=>x.id===cidResolvido);
   const selCli=document.getElementById('mp-cli');
   selCli.innerHTML='<option value="">— sem cliente vinculado —</option>'+ordenarPorNome(DB.clientes).map(x=>`<option value="${x.id}">${esc(x.nome)}</option>`).join('');
   selCli.value=cidResolvido;
+  const fases=fasesProcesso();
+  const faseAtual=p?(p.fase||''):'';
+  document.getElementById('mp-area').innerHTML='<option value="">— sem área —</option>'+areasProcesso().map(a=>`<option value="${a.key}">${esc(a.lbl)}</option>`).join('');
+  document.getElementById('mp-fase').innerHTML='<option value="">— fase não informada —</option>'+fases.map(f=>`<option>${esc(f)}</option>`).join('')+
+    (faseAtual&&!fases.includes(faseAtual)?`<option>${esc(faseAtual)}</option>`:'');
+  // área sugerida: a aba aberta na tela de Processos
+  document.getElementById('mp-area').value=p?(p.area||''):(typeof procArea==='string'&&areaInfo(procArea)?procArea:'');
+  document.getElementById('mp-fase').value=faseAtual;
+  document.getElementById('mp-resp').value=p&&p.resp&&RESP.includes(p.resp)?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.getElementById('mp-orgao').value=p?(p.orgao||''):'';
+  document.getElementById('mp-obs').value=p?(p.obs||''):'';
+  document.getElementById('mp-tese-titulo').value=p?(p.teseTitulo||''):'';
+  document.getElementById('mp-tese-texto').value=p?(p.teseTexto||''):'';
+  document.querySelector('#overlay-proc .mp-tese').open=!!(p&&(p.teseTitulo||p.teseTexto));
   if(pid){
     document.getElementById('mp-titulo').textContent='Editar processo — '+(c?c.curto:'sem cliente');
     document.getElementById('mp-num').value=p.num;
@@ -6856,21 +8844,56 @@ function salvarProc(){
   }
   if(!num){alert('Informe o número do processo.');return;}
   if(!at||!pa){alert('Informe as partes dos dois polos.');return;}
+  const dup=DB.processos.find(x=>x.id!==mpCtx.pid&&soDigitos(x.num).length>=10&&soDigitos(x.num)===soDigitos(num));
+  if(dup&&!confirm('Já existe um processo com este número ('+dup.ativo+' × '+dup.passivo+'). Cadastrar mesmo assim?'))return;
+  const extras={
+    area:document.getElementById('mp-area').value,
+    resp:document.getElementById('mp-resp').value,
+    orgao:document.getElementById('mp-orgao').value.trim(),
+    obs:document.getElementById('mp-obs').value.trim(),
+    teseTitulo:document.getElementById('mp-tese-titulo').value.trim(),
+    teseTexto:document.getElementById('mp-tese-texto').value.trim(),
+  };
+  const fase=document.getElementById('mp-fase').value;
+  let p;
   if(mpCtx.pid){
-    const p=DB.processos.find(x=>x.id===mpCtx.pid);
+    p=DB.processos.find(x=>x.id===mpCtx.pid);
+    // número corrigido à mão: o número completo guardado pelo DJEN deixa de valer
+    if(soDigitos(p.num)!==soDigitos(num))delete p.numCNJ;
     p.num=num;p.ativo=at;p.passivo=pa;p.dist=dist;p.cid=cid;p.polo=mpCtx.polo;p.status=mpCtx.status;p.exito=exito;
+    Object.assign(p,extras);
+    delete p.revisar;   // cadastro conferido por alguém
   }else{
-    DB.processos.push({id:uid(),num,ativo:at,passivo:pa,dist,cid,polo:mpCtx.polo,status:mpCtx.status,exito});
+    p={id:uid(),num,ativo:at,passivo:pa,dist,cid,polo:mpCtx.polo,status:mpCtx.status,exito,...extras,criadoEm:Date.now()};
+    DB.processos.push(p);
+  }
+  if((p.fase||'')!==fase){
+    p.fase=fase;p.faseEm=Date.now();
+    if(!Array.isArray(p.fases))p.fases=[];
+    p.fases.push({fase,em:p.faseEm,por:EU?EU.nome:''});
+  }
+  // prazos e audiências do processo acompanham o cliente vinculado
+  DB.tarefas.forEach(t=>{if(t.pid===p.id&&t.status!=='concluido'&&!t.cid&&p.cid)t.cid=p.cid;});
+  // processo cadastrado a partir de uma publicação do DJEN: já liga e cria o prazo
+  let r=null;
+  if(mpCtx.pubId){
+    const pub=(DB.publicacoes||[]).find(x=>x.id===mpCtx.pubId);
+    if(pub&&!pub.pid)r=vincularPublicacao(pub,p);
+    mpCtx.pubId=null;
   }
   salvarDB();
   fecharOverlay('overlay-proc');
   refreshUI();
+  if(r&&(r.prazos||r.audiencias))mostrarToast('Processo cadastrado e publicação vinculada · '+(r.prazos?'prazo criado na Rotina ':'')+(r.audiencias?'audiência criada':'')+' — confira.');
 }
 function excluirProc(){
   const p=DB.processos.find(x=>x.id===mpCtx.pid);
   if(!p)return;
-  if(!confirm('Excluir o processo '+p.num+'?'))return;
+  const vinc=DB.tarefas.filter(t=>t.pid===p.id&&t.status!=='concluido').length;
+  if(!confirm('Excluir o processo '+p.num+'?'+(vinc?'\n\n'+vinc+' tarefa(s) em aberto ligadas a ele continuam na Rotina, só perdem o vínculo.':'')))return;
   DB.processos=DB.processos.filter(x=>x.id!==mpCtx.pid);
+  DB.tarefas.forEach(t=>{if(t.pid===p.id)t.pid=null;});
+  (DB.publicacoes||[]).forEach(x=>{if(x.pid===p.id){x.pid=null;if(x.status==='auto')x.status='nova';}});
   salvarDB();
   fecharOverlay('overlay-proc');
   refreshUI();
@@ -8471,7 +10494,7 @@ document.getElementById('nl-nome').addEventListener('keydown',e=>{if(e.key==='En
 document.getElementById('nl-tel').addEventListener('keydown',e=>{if(e.key==='Enter')criarLead()});
 
 // fecha overlays clicando fora
-['overlay-novo','overlay-fin','overlay-proc','overlay-cli','overlay-tarefa','overlay-config','overlay-backup','overlay-conversa','overlay-custo','overlay-lanc','overlay-saldo','overlay-conteudo','overlay-metas','overlay-processos','overlay-mesdet','overlay-mescli','overlay-fundo','overlay-extrato','overlay-tese','overlay-notif','overlay-metacrm','overlay-followup'].forEach(id=>{
+['overlay-novo','overlay-fin','overlay-proc','overlay-cli','overlay-tarefa','overlay-config','overlay-backup','overlay-conversa','overlay-custo','overlay-lanc','overlay-saldo','overlay-conteudo','overlay-metas','overlay-mesdet','overlay-mescli','overlay-fundo','overlay-extrato','overlay-prazo','overlay-areas','overlay-notif','overlay-metacrm','overlay-followup'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)fecharOverlay(id)});
 });
 
