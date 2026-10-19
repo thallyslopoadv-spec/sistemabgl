@@ -27,13 +27,17 @@
   .cal-day{min-height:54px;padding:5px 4px}
   .agenda-wrap{padding:var(--s4)}
   .agenda-side{padding-left:0}
-  /* login no celular: o painel da marca vira uma faixa com o logo */
+  /* login no celular: o painel vira uma faixa com a foto da sala e o nome */
   #screen-login{grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow-y:auto}
-  .la-conteudo{padding:28px 24px;align-items:center}
-  .la-texto,.la-rodape{display:none}
-  .la-logo{height:64px;align-self:center}
+  .login-arte{height:230px}
+  .la-quadro{display:none}
+  .la-conteudo{padding:0 22px 22px}
+  .la-titulo{font-size:26px;margin-top:10px}
+  .la-eyebrow{font-size:10.5px}
+  .la-eyebrow::after{margin-top:10px}
   .login-lado{align-items:flex-start;padding:28px 20px 40px}
-  .login-cab{text-align:center}
+  .login-marca{margin-bottom:24px}
+  .login-marca img{height:72px}
   .modal{padding:22px 18px 0}
   .modal-btns{margin:var(--s5) -18px 0;padding:12px 18px 16px;flex-wrap:wrap}
   .paleta-veu{padding-top:8vh}

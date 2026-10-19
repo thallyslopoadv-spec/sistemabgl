@@ -34,9 +34,13 @@ const js=dev
   : '<script>\n'+manifesto.js.map(f=>ler('assets/js/'+f)).join('')+'</script>\n';
 // funções de substituição: um "$" dentro do código não pode ser lido como padrão
 html=html.replace(marcador('css'),()=>css).replace(marcador('js'),()=>js);
-html=html.replace(/\{\{img:([\w.-]+)\}\}/g,(_,nome)=>dev
-  ? 'src/assets/img/'+nome
-  : 'data:image/png;base64,'+readFileSync(join(SRC,'assets/img',nome)).toString('base64'));
+const MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',svg:'image/svg+xml'};
+html=html.replace(/\{\{img:([\w.-]+)\}\}/g,(_,nome)=>{
+  if(dev)return 'src/assets/img/'+nome;
+  const tipo=MIME[nome.split('.').pop().toLowerCase()];
+  if(!tipo)throw new Error('formato de imagem não suportado: '+nome);
+  return 'data:'+tipo+';base64,'+readFileSync(join(SRC,'assets/img',nome)).toString('base64');
+});
 if(/\{\{img:|<!-- @(css|js) -->/.test(html))throw new Error('sobrou marcador sem substituir');
 
 const destino=join(RAIZ,dev?'dev.html':'index.html');
