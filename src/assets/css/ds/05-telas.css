@@ -1,0 +1,61 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · telas
+   Ajustes específicos de cada tela sobre os componentes gerais.
+   ========================================================================== */
+
+/* ─── VISÃO GERAL ─── */
+#view-dash .page-head{display:flex;flex-direction:column;margin-bottom:var(--s5)}
+#view-dash .page-head h1{font-size:30px}
+.agenda-destaque{border:1px solid var(--border);box-shadow:var(--shadow-card)}
+.agenda-destaque .card-head h3{font-size:var(--fs-lg)}
+.agenda-wrap{padding:var(--s5);gap:var(--s6)}
+.agenda-mes{font-size:20px}
+.cal-grid{gap:6px}
+.cal-dow{font-size:10.5px;letter-spacing:.06em;color:var(--t3);padding-bottom:6px}
+.cal-day{min-height:84px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:7px 7px 6px;transition:border-color .12s,box-shadow .12s}
+.cal-day:hover{background:var(--surface);border-color:var(--border-hi);box-shadow:var(--shadow-hover)}
+.cal-day.fds{background:var(--surface2)}
+.cal-num{font-size:12px;font-weight:600;color:var(--t2);width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;margin:-3px 0 0 -3px}
+.cal-day.hoje{box-shadow:none;border-color:var(--navy-soft)}
+.cal-day.hoje .cal-num{background:var(--navy);color:var(--cream)}
+.cal-day.temev{background:#f3f8f3;border-color:rgba(47,125,63,.28)}
+.cal-day.temprazo{background:#fbf6ec;border-color:rgba(169,116,27,.30)}
+.cal-day.atras{background:#fbf1f0;border-color:rgba(178,59,59,.30)}
+.cal-day.sel{background:var(--navy);border-color:var(--navy);box-shadow:var(--shadow-hover)}
+.cal-day.sel .cal-num{background:var(--cream);color:var(--navy)}
+.cal-ev{border-radius:5px;font-size:10.5px}
+.agenda-side{padding-left:var(--s6)}
+.aud-item{border-left:3px solid var(--green);margin-bottom:8px}
+.aud-item:hover{background:var(--surface);border-left-color:var(--navy)}
+.agenda-legenda{padding:var(--s3) var(--s5);border-top:1px solid var(--border)}
+
+/* caixa: o bloco escuro da tela, com a luz prata da marca */
+.caixa-card{border-radius:var(--r);border:1px solid rgba(0,0,0,.2);overflow:hidden;box-shadow:var(--shadow-card);
+  background:radial-gradient(ellipse 70% 80% at 0% 0%,rgba(173,180,196,.18),transparent 60%),linear-gradient(160deg,var(--navy-soft),var(--navy-deep))}
+.caixa-label{font-size:var(--fs-sm);font-weight:500;letter-spacing:0;text-transform:none;color:var(--silver-light)}
+.caixa-val{font-size:40px}
+.caixa-trend-lbl{text-transform:none;letter-spacing:0;font-size:var(--fs-xs)}
+
+/* metas */
+.meta-bloco{background:var(--surface);border-color:var(--border)}
+.meta-explica{border-radius:var(--rs);background:var(--surface2)}
+
+/* ─── CLIENTES (lista + ficha) ─── */
+.tri-layout{height:calc(100vh - var(--cb-h) - 150px);gap:var(--s5)}
+.detalhe-header{padding:var(--s5) var(--s6);gap:var(--s3)}
+.dh-nome{font-size:24px;letter-spacing:-.01em;color:var(--t)}
+.cli-detail-scroll{padding:var(--s5) var(--s6)}
+.det-sec{margin-bottom:28px}
+
+/* ─── ROTINA ─── */
+.ag-head{padding:12px var(--s4);border-left-width:3px}
+.ag-tit{font-family:var(--font-sans);font-size:var(--fs-lg);color:var(--t)}
+.ag-row{padding:11px var(--s4)}
+.rp-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card)}
+.rp-lbl{font-size:var(--fs-sm);letter-spacing:0;text-transform:none;color:var(--t2);font-weight:500}
+.rp-val{font-size:28px}
+.rot-rapida{border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-card)}
+.proj-pct,.desemp-val{color:var(--t)}
+
+/* ─── FINANCEIRO ─── */
+.fin-table{overflow:hidden}

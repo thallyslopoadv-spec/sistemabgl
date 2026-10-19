@@ -33,13 +33,28 @@
 
 <!-- ═══════════════ LOGIN ═══════════════ -->
 <div id="screen-login">
-  <div class="login-glow"></div>
-  <div class="login-grid"></div>
+  <section class="login-arte">
+    <div class="login-glow"></div>
+    <div class="login-grid"></div>
+    <div class="la-conteudo">
+      <img class="la-logo" src="{{img:logo-login.png}}" alt="BGL Advogados">
+      <div class="la-texto">
+        <p class="la-eyebrow">Sistema interno</p>
+        <h2 class="la-titulo">O escritório inteiro,<br>em uma tela.</h2>
+        <ul class="la-lista">
+          <li><i class="ti ti-calendar-event"></i>Audiências e prazos com contagem em dias úteis</li>
+          <li><i class="ti ti-users"></i>Clientes, contratos e processos ligados entre si</li>
+          <li><i class="ti ti-chart-line"></i>Faturamento, honorários e metas do mês</li>
+        </ul>
+      </div>
+      <p class="la-rodape">BGL Advogados · acesso restrito aos sócios e à equipe</p>
+    </div>
+  </section>
+  <section class="login-lado">
   <div class="login-card">
-    <div class="login-marca">
-      <img src="{{img:logo-login.png}}" alt="BGL Advogados">
-      <div class="sub">Sistema interno</div>
-      <div class="linha"></div>
+    <div class="login-cab">
+      <h1>Entrar</h1>
+      <p>Use o seu usuário do escritório.</p>
     </div>
     <div class="token-wrap" id="token-wrap">
       <div class="tw-title"><i class="ti ti-cloud"></i> Primeira vez neste dispositivo</div>
@@ -52,35 +67,57 @@
     <div class="login-err" id="login-err"></div>
     <div class="login-foot"><a onclick="trocarSincronizacao()">Trocar Gist/Token deste dispositivo</a></div>
   </div>
+  </section>
 </div>
 
 <!-- ═══════════════ APP ═══════════════ -->
 <div id="screen-dashboard" class="app">
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <img class="tb-logo" src="{{img:logo-barra.png}}" alt="BGL Advogados">
-    <span class="tb-brand">BGL</span>
-    <div class="tb-div"></div>
-    <span class="tb-sub">Advogados</span>
-    <div class="tb-div"></div>
-    <button class="tb-nav-btn active" id="nav-dash" onclick="navegarPara('dash')">Visão geral</button>
-    <button class="tb-nav-btn" id="nav-trab" onclick="navegarPara('trab')">Atendimento</button>
-    <button class="tb-nav-btn" id="nav-crm" onclick="navegarPara('crm')">Clientes</button>
-    <button class="tb-nav-btn" id="nav-processos" onclick="navegarPara('processos')">Processos<span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
-    <button class="tb-nav-btn" id="nav-arquivados" onclick="navegarPara('arquivados')">Arquivados</button>
-    <button class="tb-nav-btn" id="nav-rotina" onclick="navegarPara('rotina')">Rotina<span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
-    <button class="tb-nav-btn" id="nav-comercial" onclick="navegarPara('comercial')">Comercial</button>
-    <button class="tb-nav-btn" id="nav-fin" onclick="navegarPara('fin')">Financeiro</button>
-    <div class="tb-space"></div>
-    <span class="save-status" id="sync-status" style="margin-right:2px"></span>
-    <button class="tb-eye" id="btn-sino" onclick="abrirNotificacoes()" title="Notificações — tarefas atrasadas"><i class="ti ti-bell"></i><span class="sino-badge" id="sino-badge" style="display:none">0</span></button>
-    <button class="tb-eye" id="btn-backup" onclick="abrirBackup()" title="Backup dos dados — baixe uma cópia completa"><i class="ti ti-download"></i><span class="sino-badge" id="backup-badge" style="display:none">!</span></button>
-    <button class="tb-eye" onclick="abrirConfiguracoes()" title="Configurações — tipos de tarefa"><i class="ti ti-settings"></i></button>
-    <button class="tb-eye" id="btn-eye" onclick="toggleMoney()" title="Ocultar/mostrar valores"><i class="ti ti-eye"></i></button>
-    <span class="tb-user" id="tb-user"></span>
-    <button class="tb-btn" onclick="logout()">Sair</button>
-  </div>
+  <!-- BARRA LATERAL: navegação agrupada por fluxo de trabalho -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-marca">
+      <img class="sb-logo" src="{{img:logo-barra.png}}" alt="BGL Advogados">
+      <div class="sb-marca-txt"><b>BGL</b><span>Advogados</span></div>
+      <button class="sb-recolher" onclick="alternarSidebar()" title="Recolher menu"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+    </div>
+    <button class="sb-busca" onclick="abrirPaleta()" title="Buscar (Ctrl K)"><i class="ti ti-search"></i><span class="sb-rot">Buscar</span><kbd>Ctrl K</kbd></button>
+    <nav class="sb-nav">
+      <button class="sb-item active" id="nav-dash" onclick="navegarPara('dash')" title="Visão geral"><i class="ti ti-layout-dashboard"></i><span class="sb-rot">Visão geral</span></button>
+      <div class="sb-grupo"><span>Operação</span></div>
+      <button class="sb-item" id="nav-rotina" onclick="navegarPara('rotina')" title="Rotina"><i class="ti ti-checklist"></i><span class="sb-rot">Rotina</span><span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
+      <button class="sb-item" id="nav-processos" onclick="navegarPara('processos')" title="Processos"><i class="ti ti-gavel"></i><span class="sb-rot">Processos</span><span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
+      <button class="sb-item" id="nav-arquivados" onclick="navegarPara('arquivados')" title="Arquivados"><i class="ti ti-archive"></i><span class="sb-rot">Arquivados</span></button>
+      <div class="sb-grupo"><span>Carteira</span></div>
+      <button class="sb-item" id="nav-crm" onclick="navegarPara('crm')" title="Clientes"><i class="ti ti-users"></i><span class="sb-rot">Clientes</span></button>
+      <button class="sb-item" id="nav-fin" onclick="navegarPara('fin')" title="Financeiro"><i class="ti ti-wallet"></i><span class="sb-rot">Financeiro</span></button>
+      <div class="sb-grupo"><span>Comercial</span></div>
+      <button class="sb-item" id="nav-trab" onclick="navegarPara('trab')" title="Atendimento"><i class="ti ti-headset"></i><span class="sb-rot">Atendimento</span></button>
+      <button class="sb-item" id="nav-comercial" onclick="navegarPara('comercial')" title="Comercial"><i class="ti ti-speakerphone"></i><span class="sb-rot">Comercial</span></button>
+    </nav>
+    <div class="sb-rodape">
+      <button class="sb-item" onclick="abrirConfiguracoes()" title="Configurações"><i class="ti ti-settings"></i><span class="sb-rot">Configurações</span></button>
+      <button class="sb-item" id="btn-backup" onclick="abrirBackup()" title="Backup dos dados"><i class="ti ti-cloud-download"></i><span class="sb-rot">Backup</span><span class="sino-badge" id="backup-badge" style="display:none">!</span></button>
+      <div class="sb-usuario">
+        <span class="sb-av" id="sb-av"></span>
+        <div class="sb-u-txt"><b id="tb-user"></b><span>BGL Advogados</span></div>
+        <button class="sb-sair" onclick="logout()" title="Sair"><i class="ti ti-logout"></i></button>
+      </div>
+    </div>
+  </aside>
+  <div class="sb-veu" onclick="fecharSidebarMovel()"></div>
+
+  <div class="principal">
+  <!-- CABEÇALHO: onde estou, busca global e ações rápidas -->
+  <header class="cabecalho">
+    <button class="cb-ico cb-menu" onclick="abrirSidebarMovel()" title="Menu"><i class="ti ti-menu-2"></i></button>
+    <div class="cb-trilha"><span>BGL</span><i class="ti ti-chevron-right"></i><b id="cb-titulo">Visão geral</b></div>
+    <div class="cb-espaco"></div>
+    <button class="cb-busca" onclick="abrirPaleta()"><i class="ti ti-search"></i><span>Buscar clientes, processos, leads…</span><kbd>Ctrl K</kbd></button>
+    <span class="save-status" id="sync-status"></span>
+    <button class="cb-ico" id="btn-eye" onclick="toggleMoney()" title="Ocultar/mostrar valores"><i class="ti ti-eye"></i></button>
+    <button class="cb-ico" id="btn-sino" onclick="abrirNotificacoes()" title="Notificações — tarefas atrasadas"><i class="ti ti-bell"></i><span class="sino-badge" id="sino-badge" style="display:none">0</span></button>
+    <button class="cb-novo" onclick="abrirPaleta('acoes')"><i class="ti ti-plus"></i><span>Novo</span></button>
+  </header>
 
   <!-- Faixa mostrada só quando a página é uma cópia de segurança aberta do computador -->
   <div class="faixa-offline" id="faixa-offline">
@@ -901,7 +938,7 @@
       </div>
 
       <div class="rotina-chips">
-        <span style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin-right:auto">Todas as pautas</span>
+        <span class="titulo-secao" style="margin-right:auto">Todas as pautas</span>
         <button class="chip active" data-f="todos" onclick="filtroComercial('todos',this)">Todos</button>
         <button class="chip" data-f="artigo" onclick="filtroComercial('artigo',this)">Artigos</button>
         <button class="chip" data-f="video" onclick="filtroComercial('video',this)">Vídeos</button>
@@ -910,6 +947,20 @@
       <div class="comercial-board" id="comercial-board"></div>
     </div>
 
+  </div>
+  </div><!-- /.principal -->
+</div>
+
+<!-- ═══════════════ PALETA DE COMANDOS (Ctrl K) ═══════════════ -->
+<div class="paleta-veu" id="paleta" onclick="if(event.target===this)fecharPaleta()">
+  <div class="paleta" role="dialog" aria-label="Buscar e executar">
+    <div class="paleta-busca">
+      <i class="ti ti-search"></i>
+      <input type="text" id="paleta-inp" placeholder="Buscar cliente, processo, lead, tela ou ação…" autocomplete="off" oninput="renderPaleta()" onkeydown="teclaPaleta(event)">
+      <kbd>Esc</kbd>
+    </div>
+    <div class="paleta-lista" id="paleta-lista"></div>
+    <div class="paleta-pe"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> fechar</span></div>
   </div>
 </div>
 
@@ -1649,7 +1700,7 @@
     <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5" id="mmd-sub"></p>
     <div id="mmd-resumo"></div>
     <div class="meta-explica" id="mmd-explica"></div>
-    <div style="font-family:var(--font-serif);font-size:16px;font-weight:600;color:var(--navy);margin-bottom:6px">Contratos contados neste mês</div>
+    <div class="titulo-secao" style="margin-bottom:6px">Contratos contados neste mês</div>
     <div id="mmd-lista"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-metadetalhe')">Fechar</button>

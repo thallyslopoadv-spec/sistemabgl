@@ -438,6 +438,7 @@ function entrarApp(){
   document.getElementById('screen-login').style.display='none';
   document.getElementById('screen-dashboard').style.display='flex';
   document.getElementById('tb-user').textContent=EU.nome;
+  prepararCasca();
   const h=new Date().getHours();
   const s=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
   document.getElementById('greeting-h1').textContent=s+', '+EU.nome+'.';
@@ -554,10 +555,11 @@ async function initApp(){
 // ─── NAVEGAÇÃO ────────────────────────────────────────────
 function navegarPara(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.tb-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
   const nb=document.getElementById('nav-'+id);
   if(nb)nb.classList.add('active');
+  aoNavegar(id);   // casca: título do cabeçalho, menu do celular, topo da página
   // desenha a tela só agora, se ela ficou desatualizada por edições feitas em outra aba
   if(telasDesatualizadas.has(id))desenharTela(id);
   else if(id==='trab'&&typeof renderFilaHoje==='function'&&atendAba==='fila')renderFilaHoje();
