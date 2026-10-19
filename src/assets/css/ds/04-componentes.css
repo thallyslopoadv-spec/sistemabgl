@@ -1,0 +1,138 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · componentes
+   Regras que valem para o sistema inteiro. Cada bloco sobrepõe o componente
+   correspondente de legacy/ com a mesma especificidade, carregando depois.
+   ========================================================================== */
+
+/* ─── CARDS / PAINÉIS ───
+   Branco sobre o fundo quente, borda fina e sombra mínima. O título do card é
+   DM Sans (interface); a Playfair fica para títulos de página e números. */
+.modulo-card,.tri-panel,.ag-grupo,.chat-panel,.proj-panel,.pr-painel,.rot-col,.fin-table,.desemp-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card)
+}
+.card-head,.modulo-head,.tri-panel-head,.fin-panel-head,.proj-panel-head,.chat-panel-head{
+  padding:14px var(--s5);border-bottom:1px solid var(--border);min-height:52px;gap:var(--s3)
+}
+.card-head h3,.modulo-titulo,.tri-panel-titulo,.fin-panel-head h3,.proj-panel-head h3,.chat-panel-head h3,.pr-head h3,.agenda-side h4,.rot-col-head .nm{
+  font-family:var(--font-sans);font-size:var(--fs-lg);font-weight:600;color:var(--t);letter-spacing:-.005em
+}
+.card-head h3 i,.modulo-titulo i{color:var(--t3);font-size:17px;vertical-align:-2px}
+.card-head .sub{font-size:var(--fs-sm);color:var(--t3)}
+.card-body{padding:var(--s5)}
+.modulo-link{font-size:var(--fs-sm);font-weight:600;color:var(--t2);padding:6px 10px;border-radius:7px;margin-right:-10px}
+.modulo-link:hover{background:var(--surface3);color:var(--navy)}
+.modulo-card[onclick],.modulo-card[style*="cursor:pointer"]{transition:border-color .15s,box-shadow .15s}
+.modulo-card[onclick]:hover,.modulo-card[style*="cursor:pointer"]:hover{border-color:var(--border-hi);box-shadow:var(--shadow-hover)}
+
+/* ─── NÚMEROS-CHAVE ───
+   Rótulo pequeno com marcador na cor do indicador, valor grande em Playfair. */
+.stats-row{gap:var(--s4);margin-bottom:var(--s5)}
+.stat-card{padding:var(--s4) var(--s5) 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);transition:border-color .15s,box-shadow .15s}
+.stat-card:hover{transform:none;border-color:var(--border-hi);box-shadow:var(--shadow-hover)}
+.stat-card::before{display:none}
+.stat-label{display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);font-weight:500;letter-spacing:0;text-transform:none;color:var(--t2);margin-bottom:10px}
+.stat-label::before{content:'';width:8px;height:8px;border-radius:3px;flex-shrink:0;background:var(--c,var(--navy-soft))}
+.stat-val{font-size:30px;font-weight:600;letter-spacing:-.01em;color:var(--t)}
+.stat-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:8px}
+
+/* faixas de alerta: discretas, informativas */
+.alerts-row{gap:var(--s2);margin-bottom:var(--s6)}
+.alert-pill{padding:6px 12px;font-size:var(--fs-sm);border-radius:var(--rs);background:var(--surface);border-color:var(--border);color:var(--t2)}
+.alert-pill.amber .alert-dot{color:var(--amber)}
+.alert-pill.green .alert-dot{color:var(--green)}
+.alert-pill.red .alert-dot{color:var(--red)}
+.alert-pill.amber,.alert-pill.green,.alert-pill.red{background:var(--surface);border-color:var(--border);color:var(--t2)}
+
+/* ─── BOTÕES ───
+   Raio de 8px (o formato "pílula" fica só para status). Primário navy,
+   secundário branco com borda, perigo só no contorno. */
+.btn-confirm,.btn-salvar,.btn-login,.btn-novo-lead,.btn-nova-tarefa,.btn-fin-novo,.chat-send-btn{
+  border-radius:var(--rs);background:var(--navy);color:var(--cream);font-weight:600;border:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.1) inset,var(--shadow-xs);transition:background .15s,box-shadow .15s
+}
+.btn-confirm:hover,.btn-salvar:hover:not(:disabled),.btn-login:hover,.btn-novo-lead:hover,.btn-nova-tarefa:hover,.btn-fin-novo:hover,.chat-send-btn:hover{background:var(--navy-soft)}
+.btn-confirm,.btn-cancel,.btn-del{height:38px;padding:0 16px;font-size:var(--fs-md);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-cancel,.btn-sec{border-radius:var(--rs);background:var(--surface);border:1px solid var(--border-med);color:var(--t);font-weight:500;box-shadow:var(--shadow-xs)}
+.btn-cancel:hover,.btn-sec:hover{background:var(--surface2);border-color:var(--border-hi)}
+.btn-del{border-radius:var(--rs);background:var(--surface);border-color:rgba(178,59,59,.35)}
+.det-add,.agenda-hoje,.btn-drive-root,.proj-btn{
+  border-radius:var(--rs);background:var(--surface);border:1px solid var(--border-med);color:var(--t);font-weight:600;
+  box-shadow:var(--shadow-xs);transition:background .15s,border-color .15s
+}
+.det-add{font-size:var(--fs-sm);padding:6px 11px;letter-spacing:0}
+.det-add:hover,.agenda-hoje:hover,.proj-btn:hover{background:var(--surface2);border-color:var(--border-hi)}
+.btn-drive-root{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.btn-drive-root.sem-link{background:var(--surface);color:var(--t2);border-style:dashed}
+.btn-ico{width:32px;height:32px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--t2)}
+.btn-ico:hover{background:var(--surface3);border-color:var(--border-med);color:var(--navy)}
+.agenda-btn{border-radius:var(--rs)}
+
+/* ─── FILTROS (chips) E CONTROLES SEGMENTADOS ─── */
+.chip{border-radius:var(--rs);padding:6px 11px;font-size:var(--fs-sm);font-weight:500;background:var(--surface);border:1px solid var(--border-med);color:var(--t2);box-shadow:var(--shadow-xs)}
+.chip:hover{color:var(--t);border-color:var(--border-hi)}
+.chip.active{background:var(--navy);border-color:var(--navy);color:var(--cream);box-shadow:none}
+.seg{display:flex;gap:2px;padding:3px;border:1px solid var(--border);border-radius:10px;background:var(--surface3);overflow:visible}
+.seg button{flex:1;padding:8px 12px;border:none;border-radius:7px;background:transparent;color:var(--t2);font-size:var(--fs-md);font-weight:500;transition:background .15s,color .15s,box-shadow .15s}
+.seg button+button{border-left:none}
+.seg button:hover:not(.on){color:var(--t)}
+.seg button.on{background:var(--surface);color:var(--navy);font-weight:600;box-shadow:0 1px 3px rgba(16,24,40,.12),0 0 0 1px rgba(16,24,40,.04)}
+.aba-btn{font-size:var(--fs-md);padding:14px 4px;margin-right:22px;border-bottom-width:2px}
+.aba-btn.active{color:var(--t);font-weight:600}
+.abas-row{padding:0 var(--s5)}
+
+/* ─── CAMPOS ─── */
+.fg{margin-bottom:var(--s4)}
+.fg label{font-size:var(--fs-sm);font-weight:600;letter-spacing:0;text-transform:none;color:var(--t2);margin-bottom:6px}
+.fg input,.fg select,.fg textarea,.search-inp,.fin-search,.chat-input{
+  min-height:38px;padding:9px 12px;font-size:var(--fs-base);background:var(--surface);border:1px solid var(--border-med);border-radius:var(--rs);
+  color:var(--t);box-shadow:var(--shadow-xs);transition:border-color .15s,box-shadow .15s
+}
+.fg textarea{min-height:76px}
+.fg input:hover,.fg select:hover,.fg textarea:hover,.search-inp:hover{border-color:var(--border-hi)}
+.fg input:focus,.fg select:focus,.fg textarea:focus,.search-inp:focus,.fin-search:focus,.chat-input:focus{border-color:var(--navy-soft);box-shadow:var(--foco);outline:none}
+.fg-row{gap:var(--s3)}
+.search-wrap{padding:var(--s3) var(--s4)}
+
+/* ─── MODAIS ───
+   Fundo desfocado, cartão com raio maior, ações fixas no rodapé. */
+.overlay{background:rgba(14,26,46,.40);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:400;padding:20px}
+.modal{border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow-pop);padding:26px 28px 0}
+.overlay.open .modal{animation:entraModal .2s var(--ease) both}
+@keyframes entraModal{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+.modal h3{font-size:22px;letter-spacing:-.01em;color:var(--t);margin-bottom:var(--s5)}
+.modal-btns{position:sticky;bottom:0;z-index:2;margin:var(--s6) -28px 0;padding:14px 28px 18px;background:var(--surface);border-top:1px solid var(--border);gap:var(--s2)}
+
+/* ─── LISTAS E LINHAS ─── */
+.lead-item{padding:10px var(--s4);gap:12px;border-left:none;margin:1px 8px;border-radius:var(--rs)}
+.lead-item:hover{background:var(--surface2);border-left-color:transparent}
+.lead-item.selected{background:var(--cream);box-shadow:inset 3px 0 0 var(--navy)}
+.lead-nome{font-size:var(--fs-base);font-weight:600;color:var(--t)}
+.lead-meta{font-size:var(--fs-sm);color:var(--t3)}
+.lead-av,.cli-av{border-radius:10px}
+.cli-row{padding:10px var(--s5)}
+.fin-row{padding:12px var(--s5)}
+.fin-row:hover,.cli-row:hover,.ag-row:hover{background:var(--surface2)}
+.fin-thead{background:var(--surface2);font-size:var(--fs-xs);letter-spacing:.06em}
+.proc-row,.ct-card,.aud-item,.pasta-card,.bk-op{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-xs)}
+.proc-row:hover,.ct-card:hover,.pasta-card:hover{border-color:var(--border-hi);box-shadow:var(--shadow-hover);background:var(--surface)}
+.det-fin-item{border-bottom:1px solid var(--border);padding:11px 4px}
+.fin-bloco{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:var(--s3) 14px}
+.fin-label{font-size:var(--fs-xs);font-weight:500;letter-spacing:.02em;text-transform:none;color:var(--t3)}
+.fin-val{font-size:22px}
+.det-obs{border-radius:var(--rs)}
+
+/* ─── STATUS (aqui o formato pílula continua: ele significa "estado") ─── */
+.cli-status,.fin-tipo,.proc-st,.proc-polo,.exito-badge,.lead-pill,.resultado-pill,.ag-chip,.ct-chip,.meta-chip{font-weight:600;letter-spacing:0}
+.nav-badge{background:#c2453f}
+
+/* ─── GRÁFICOS ─── */
+.vcol-bar{background:var(--navy);border-radius:4px 4px 1px 1px;width:58%}
+.vcol:hover .vcol-bar,.vcol-bar:hover{background:var(--navy-soft)}
+.vcol-num{font-size:11.5px;color:var(--t2)}
+.vchart-foot{border-top-color:var(--border)}
+.hbar-track{background:var(--surface3);border-radius:6px}
+.hbar-fill{border-radius:6px}
+
+/* ─── TOAST E VAZIOS ─── */
+.toast{border-radius:10px;background:var(--navy-deep);box-shadow:var(--shadow-pop);border:1px solid rgba(255,255,255,.08)}
+.ag-vazio,.rot-empty,.proj-vazio,.pr-vazio,.proc-vazio,.desemp-vazio,.fin-empty,.chat-empty{color:var(--t3);border-radius:var(--r)}

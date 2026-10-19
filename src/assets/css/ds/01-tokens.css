@@ -1,0 +1,48 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · tokens
+   A marca não muda: navy, creme e prata; Playfair Display nos títulos de
+   página e nos números de destaque; DM Sans em toda a interface. O que muda
+   é o uso: superfícies claras e neutras, hierarquia por tipografia e espaço,
+   bordas finas no lugar de sombras pesadas e cor reservada para o que pede
+   atenção (status, alertas, ação principal).
+   Os arquivos de legacy/ continuam carregando antes; estes tokens redefinem
+   as variáveis que eles usam, e os arquivos seguintes sobrepõem os componentes.
+   ========================================================================== */
+:root{
+  /* marca: inalterada */
+  --navy:#16243d;--navy-deep:#0e1a2e;--navy-soft:#1e3252;--navy-line:#2b3f5e;
+  --cream:#f4efe6;--cream-bright:#faf7f1;--cream-dim:#e9e2d4;
+  --silver:#adb4c4;--silver-light:#c9cfd9;--silver-dark:#8a93a6;
+
+  /* superfícies: o creme da marca vira um fundo quase branco e quente */
+  --canvas:#f5f3ee;
+  --surface:#ffffff;--surface2:#f9f7f3;--surface3:#f1eee7;
+  --border:#e7e3da;--border-med:#dcd6ca;--border-hi:#c2bbac;
+
+  /* texto */
+  --t:#141d2b;--t2:#4a5363;--t3:#7d8594;--ink:var(--t);
+  --accent:var(--navy);--accent-hi:var(--navy-deep);
+
+  /* espaço: base de 4px */
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;--s10:40px;--s12:48px;
+
+  /* forma */
+  --r:12px;--rs:8px;--r-pill:999px;
+
+  /* tipografia */
+  --font-serif:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --fs-xs:11.5px;--fs-sm:12.5px;--fs-md:13.5px;--fs-base:14px;--fs-lg:15px;--fs-xl:18px;--fs-2xl:24px;--fs-3xl:28px;
+
+  /* elevação: borda faz o trabalho; sombra só para o que flutua */
+  --shadow-xs:0 1px 2px rgba(16,24,40,.05);
+  --shadow-card:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.03);
+  --shadow-hover:0 8px 20px -6px rgba(16,24,40,.12),0 2px 4px -2px rgba(16,24,40,.05);
+  --shadow-pop:0 24px 56px -16px rgba(16,24,40,.30),0 6px 14px -6px rgba(16,24,40,.10);
+  --foco:0 0 0 3px rgba(30,50,82,.16);
+  --ease:cubic-bezier(.2,.7,.2,1);
+
+  /* casca */
+  --sb-w:256px;--sb-w-mini:72px;--cb-h:60px;
+}

@@ -1,0 +1,39 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · base
+   ========================================================================== */
+body{background:var(--canvas);font-size:var(--fs-base);color:var(--t);line-height:1.45}
+body::before{display:none}
+::selection{background:var(--navy);color:var(--cream)}
+*{scrollbar-width:thin;scrollbar-color:#cfc8ba transparent}
+:where(button,a,[onclick],input,select,textarea):focus-visible{outline:2px solid var(--navy-soft);outline-offset:2px}
+button:active{transform:none}
+kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;padding:3px 6px;border-radius:5px;
+  border:1px solid var(--border-med);border-bottom-width:2px;background:var(--surface);color:var(--t3);white-space:nowrap}
+.mono{font-family:var(--font-mono);font-weight:500}
+
+/* área de conteúdo */
+.content{overflow:visible}
+.view{padding:var(--s8) var(--s8) 64px;max-width:1360px}
+
+/* cabeçalho de cada tela */
+.page-head{margin-bottom:var(--s6)}
+.page-head h1{font-size:var(--fs-3xl);font-weight:600;letter-spacing:-.015em;line-height:1.15;margin-bottom:var(--s1);color:var(--navy)}
+.page-head p{font-size:var(--fs-md);color:var(--t3)}
+.greeting-verse{font-size:var(--fs-md);color:var(--t2);margin-top:var(--s3);max-width:720px;border-left:2px solid var(--silver);padding-left:var(--s3)}
+.greeting-verse .ref{font-family:var(--font-sans);font-size:var(--fs-xs);color:var(--t3);letter-spacing:.02em}
+.titulo-secao{font-family:var(--font-sans);font-size:var(--fs-lg);font-weight:600;color:var(--t)}
+.section-label{font-size:var(--fs-xs);letter-spacing:.08em;color:var(--t3)}
+
+/* rótulos de seção dentro de cards: menos gritados */
+.det-sec-titulo{font-size:var(--fs-xs);letter-spacing:.08em;color:var(--t3);border-bottom-color:var(--border)}
+.cli-group{font-size:10.5px;letter-spacing:.1em;padding:16px 16px 6px;border-bottom:none;color:var(--t3)}
+
+/* entrada da visão geral logo após o login (uma vez só) */
+.app-entrada #view-dash>*{animation:fadeUp .45s var(--ease) both}
+.app-entrada #view-dash>*:nth-child(2){animation-delay:.05s}
+.app-entrada #view-dash>*:nth-child(3){animation-delay:.10s}
+.app-entrada #view-dash>*:nth-child(4){animation-delay:.15s}
+.app-entrada #view-dash>*:nth-child(n+5){animation-delay:.2s}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}

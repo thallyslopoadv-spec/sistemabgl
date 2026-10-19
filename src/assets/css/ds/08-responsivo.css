@@ -1,0 +1,51 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · responsivo
+   ========================================================================== */
+@media (max-width:1180px){
+  .cb-busca{width:260px}
+}
+/* tablet e celular: a barra lateral vira gaveta */
+@media (max-width:960px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;height:100%;width:min(300px,86vw)!important;transform:translateX(-102%);
+    transition:transform .24s var(--ease);box-shadow:var(--shadow-pop)}
+  .app.sb-aberta .sidebar{transform:none}
+  .app.sb-mini .sb-rot,.app.sb-mini .sb-marca-txt,.app.sb-mini .sb-u-txt,.app.sb-mini .sb-sair,.app.sb-mini .sb-grupo span{display:revert}
+  .app.sb-mini .sb-item,.app.sb-mini .sb-busca{justify-content:flex-start;padding:0 10px}
+  .app.sb-mini .sb-marca{flex-direction:row;padding:4px 6px 18px}
+  .sb-recolher{display:none}
+  .sb-veu{position:fixed;inset:0;z-index:290;background:rgba(14,26,46,.45);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+  .app.sb-aberta .sb-veu{display:block}
+  .cb-menu{display:inline-flex}
+  .cabecalho{padding:0 12px;gap:4px}
+  .cb-trilha span,.cb-trilha i{display:none}
+  .cb-busca{width:36px;padding:0;justify-content:center;margin-right:0}
+  .cb-busca span,.cb-busca kbd{display:none}
+  .cb-novo span{display:none}
+  .cb-novo{padding:0 10px}
+  .view{padding:20px 16px 64px}
+  .tri-layout{height:auto}
+  .cal-day{min-height:54px;padding:5px 4px}
+  .agenda-wrap{padding:var(--s4)}
+  .agenda-side{padding-left:0}
+  /* login no celular: o painel vira uma faixa com a foto da sala e o nome */
+  #screen-login{grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow-y:auto}
+  .login-arte{height:240px}
+  .la-diptico{grid-template-columns:1.6fr 1fr}
+  .la-foto--sala img{object-position:30% 58%}
+  .la-foto--pantera img{object-position:36% 76%}
+  .la-conteudo{padding:0 22px 22px}
+  .la-titulo{font-size:26px;margin-top:10px}
+  .la-eyebrow{font-size:10.5px}
+  .la-eyebrow::after{margin-top:10px}
+  .login-lado{align-items:flex-start;padding:28px 20px 40px}
+  .login-marca{margin-bottom:24px}
+  .login-marca img{height:72px}
+  .modal{padding:22px 18px 0}
+  .modal-btns{margin:var(--s5) -18px 0;padding:12px 18px 16px;flex-wrap:wrap}
+  .paleta-veu{padding-top:8vh}
+  .paleta-pe{display:none}
+}
+@media (max-width:460px){
+  .stat-val{font-size:26px}
+  .page-head h1{font-size:24px}
+}

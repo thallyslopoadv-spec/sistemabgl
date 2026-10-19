@@ -1,0 +1,129 @@
+/* ==========================================================================
+   BGL Advogados — Sistema interno
+   Identidade compartilhada com bgladvogados.com.br
+   Paleta: navy / creme / prata  ·  Tipografia: Playfair Display + DM Sans
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#16243d;
+  --navy-deep:#0e1a2e;
+  --navy-soft:#1e3252;
+  --navy-line:#2b3f5e;
+
+  --cream:#f4efe6;
+  --cream-bright:#faf7f1;
+  --cream-dim:#e9e2d4;
+
+  --silver:#adb4c4;
+  --silver-light:#c9cfd9;
+  --silver-dark:#8a93a6;
+
+  --surface:#ffffff;
+  --surface2:#faf7f1;
+  --surface3:#efe9dd;
+  --border:rgba(22,36,61,.10);
+  --border-med:rgba(22,36,61,.16);
+  --border-hi:rgba(22,36,61,.28);
+
+  --t:#1b2533;
+  --t2:#4a5466;
+  --t3:#828b9c;
+  --ink:#1b2533;
+
+  --accent:var(--navy-soft);
+  --accent-hi:var(--navy);
+
+  --green:#2f7d3f; --green-bg:rgba(47,125,63,.10);  --green-hi:#256a33;
+  --amber:#a9741b; --amber-bg:rgba(169,116,27,.12); --amber-hi:#8a5e12;
+  --red:#b23b3b;   --red-bg:rgba(178,59,59,.10);    --red-hi:#8f2f2f;
+  --blue:#2f5d94;  --blue-bg:rgba(47,93,148,.10);   --blue-hi:#264d7c;
+
+  --r:8px;--rs:5px;
+  --font-serif:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow-card:0 1px 2px rgba(8,16,30,.04),0 8px 22px -14px rgba(8,16,30,.22);
+  --shadow-hover:0 4px 12px rgba(8,16,30,.08),0 18px 40px -18px rgba(8,16,30,.30);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);font-size:15px;background:var(--cream);color:var(--t);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 55% at 50% -10%,rgba(22,36,61,.05) 0%,transparent 60%);}
+
+button{font-family:var(--font-sans)}
+button:active{transform:scale(.985)}
+
+/* ─── LAYOUT ROOT ─── */
+.app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding:0 28px;height:64px;
+  background:var(--navy);
+  border-bottom:1px solid var(--navy-line);
+  position:sticky;top:0;z-index:200;flex-shrink:0;
+  box-shadow:0 6px 24px -18px rgba(8,16,30,.9);
+}
+.tb-logo{height:34px;width:auto;display:block}
+.tb-brand{font-family:var(--font-serif);font-size:21px;font-weight:600;letter-spacing:.10em;color:var(--cream)}
+.tb-div{width:1px;height:20px;background:rgba(255,255,255,.16)}
+.tb-sub{font-size:11px;font-weight:500;letter-spacing:.18em;color:var(--silver);text-transform:uppercase}
+.tb-space{flex:1}
+.tb-user{font-size:13.5px;font-weight:500;color:var(--silver-light)}
+.tb-btn{
+  font-size:12.5px;font-weight:500;padding:7px 16px;border-radius:20px;cursor:pointer;transition:.15s;
+  border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--silver-light);
+}
+.tb-btn:hover{color:var(--cream);border-color:rgba(255,255,255,.4)}
+.tb-nav-btn{
+  font-size:13.5px;font-weight:500;padding:8px 17px;border-radius:20px;cursor:pointer;transition:.15s;
+  border:1px solid transparent;background:transparent;color:var(--silver);
+}
+.tb-nav-btn.active{color:var(--navy);border-color:transparent;background:var(--cream)}
+.tb-nav-btn:hover:not(.active){color:var(--cream);border-color:rgba(255,255,255,.22)}
+
+/* ─── TELA DE LOGIN ─── */
+#screen-login{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:var(--navy-deep)}
+.login-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 40%,rgba(173,180,196,.10) 0%,transparent 70%)}
+.login-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 0%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 0%,transparent 75%);
+}
+.login-card{
+  position:relative;width:400px;padding:48px 44px;
+  background:var(--cream-bright);border:1px solid var(--cream-dim);border-radius:14px;
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.6);
+  animation:fadeUp .5s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.login-marca{text-align:center;margin-bottom:36px}
+.login-marca img{height:80px;width:auto;margin:0 auto 6px;display:block}
+.login-marca .sub{font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--t3);margin-top:6px}
+.login-marca .linha{width:30px;height:1px;background:linear-gradient(90deg,transparent,var(--silver-dark),transparent);margin:16px auto 0}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.fg input,.fg select,.fg textarea{
+  width:100%;padding:12px 15px;background:#fff;
+  border:1px solid var(--border-med);border-radius:var(--rs);
+  font-family:var(--font-sans);font-size:14.5px;color:var(--t);outline:none;transition:.2s;
+}
+.fg textarea{min-height:72px;resize:vertical}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--t3)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--navy-soft);box-shadow:0 0 0 3px rgba(30,50,82,.10)}
+.btn-login{
+  width:100%;margin-top:6px;padding:14px;background:var(--navy);
+  border:none;border-radius:var(--rs);font-size:13.5px;font-weight:600;letter-spacing:.08em;
+  color:var(--cream);cursor:pointer;transition:.15s;
+}
+.btn-login:hover{background:var(--navy-soft)}
+.login-err{display:none;margin-top:12px;font-size:12.5px;color:var(--red-hi);text-align:center}
+.login-foot{text-align:center;margin-top:16px}
+.login-foot a{font-size:11.5px;color:var(--t3);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.login-foot a:hover{color:var(--t2)}
+.token-wrap{background:var(--amber-bg);border:1px solid rgba(169,116,27,.28);border-radius:var(--rs);padding:13px 15px;margin-bottom:18px}
+.token-wrap .tw-title{font-size:11.5px;font-weight:600;color:var(--amber-hi);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.token-wrap input{font-family:'IBM Plex Mono',monospace;font-size:12px}
+
