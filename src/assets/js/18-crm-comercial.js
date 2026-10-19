@@ -933,8 +933,8 @@ function contratosFechadosTodos(){
 // ─── FECHAMENTO DE CONTRATO COM CLIENTE QUE JÁ ESTÁ NA CARTEIRA ───
 // Antes, todo "fechar contrato" criava um cadastro de cliente novo — um cliente
 // que volta para o 2º ou 3º contrato aparecia duplicado. Agora, se já existe um
-// cliente com o mesmo nome (ou nome que começa igual, ex.: "Bello Pane" e
-// "Bello Pane Ltda"), o sistema pergunta se o fechamento é um novo contrato dele.
+// cliente com o mesmo nome (ou nome que começa igual, ex.: "Padaria Exemplo" e
+// "Padaria Exemplo Ltda"), o sistema pergunta se o fechamento é um novo contrato dele.
 function nomeComparavel(s){return semAcento(s).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
 function clientesComMesmoNome(nome){
   const n=nomeComparavel(nome);

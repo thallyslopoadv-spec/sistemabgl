@@ -327,10 +327,28 @@ function agendarSnapshotRepo(){
   if(__snapshotTimer)clearTimeout(__snapshotTimer);
   __snapshotTimer=setTimeout(enviarSnapshotRepo,5000);
 }
+// Trava: a cópia só é gravada se o GitHub confirmar que o repositório de
+// destino é PRIVADO. A confirmação de quem liga a opção não basta: um
+// repositório pode ser privado hoje e tornado público amanhã. Se o destino
+// for público (ou não der para confirmar), a opção é desligada neste aparelho.
+async function repoDestinoPrivado(hdr){
+  try{
+    const r=await fetch('https://api.github.com/repos/'+SNAPSHOT_OWNER+'/'+SNAPSHOT_REPO,{headers:hdr});
+    if(!r.ok)return false;
+    const j=await r.json();
+    return j.private===true;
+  }catch(e){return false;}
+}
 async function enviarSnapshotRepo(){
   if(!snapshotRepoAtivo()||MODO_OFFLINE)return;
   if(!temCredenciais())return;
   try{
+    if(!(await repoDestinoPrivado({'Authorization':'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json'}))){
+      try{localStorage.removeItem(LS_SNAPSHOT);}catch(e){}
+      console.warn('[snapshot] cancelado: '+SNAPSHOT_OWNER+'/'+SNAPSHOT_REPO+' não é um repositório privado (ou não foi possível confirmar). A opção foi desligada neste aparelho.');
+      alert('A cópia automática dos dados para '+SNAPSHOT_OWNER+'/'+SNAPSHOT_REPO+' foi desligada.\n\nEsse repositório não é privado (ou não foi possível confirmar), e gravar a base nele deixaria os dados dos clientes visíveis na internet.');
+      return;
+    }
     const api='https://api.github.com/repos/'+SNAPSHOT_OWNER+'/'+SNAPSHOT_REPO+'/contents/'+SNAPSHOT_PATH;
     const hdrGet={'Authorization':'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json'};
     let sha=null;
@@ -446,7 +464,7 @@ async function carregarDBRemoto(){
   // importação/enriquecimento dos leads reais da planilha CRM.
   // V2: além de criar os que faltam, MESCLA os dados da planilha nos leads que
   // já existiam (por nome/telefone) — antes só criava os ausentes, deixando os
-  // pré-existentes (ex.: Emerson, Ismael, Bela Massa) sem as informações.
+  // pré-existentes sem as informações.
   if(!DB.crmImportadoV2){
     SEED_LEADS_CRM_IMPORT.forEach(d=>{
       const alvo=d.mod==='civel'?DB.leadsCivel:DB.leads;
