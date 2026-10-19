@@ -1,0 +1,113 @@
+/* ─── FINANCEIRO (VIEW) ─── */
+.fin-chips{display:flex;gap:7px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.fin-search{max-width:280px;margin-left:auto}
+.fin-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-card)}
+.fin-thead{
+  display:flex;align-items:center;gap:12px;padding:13px 20px;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);
+}
+.fin-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:.12s}
+.fin-row:last-child{border-bottom:none}
+.fin-row:hover{background:var(--surface2)}
+.fin-c-cli{width:230px;flex-shrink:0;display:flex;align-items:center;gap:10px;min-width:0}
+.fin-c-cli .nm{font-size:14.5px;font-weight:500;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-c-desc{flex:1;min-width:0;font-size:13.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-c-data{width:100px;flex-shrink:0;font-size:13px;color:var(--t3);font-variant-numeric:tabular-nums;text-align:center}
+.fin-c-tipo{width:98px;flex-shrink:0;text-align:center}
+.fin-c-val{width:120px;flex-shrink:0;text-align:right;font-size:14.5px;font-weight:600;color:var(--t);font-variant-numeric:tabular-nums}
+.fin-c-act{width:74px;flex-shrink:0;display:flex;justify-content:flex-end;gap:6px}
+.fin-empty{padding:30px;text-align:center;font-size:13.5px;color:var(--t3)}
+.btn-fin-novo{
+  font-size:13px;font-weight:600;padding:9px 18px;border-radius:20px;cursor:pointer;transition:.15s;
+  background:var(--navy);border:none;color:var(--cream);display:inline-flex;align-items:center;gap:7px;
+}
+.btn-fin-novo:hover{background:var(--navy-soft)}
+
+/* ─── MODAIS ─── */
+/* Fundo dos modais SEM backdrop-filter, de propósito.
+   O "blur(4px)" obrigava o navegador a fotografar tudo que está atrás do
+   modal (a página inteira, milhares de elementos), montar uma camada nova
+   e borrá-la. Enquanto esse trabalho não terminava, ele pintava apenas o
+   preenchimento escuro da camada — era o flash preto que aparecia antes
+   da janela. Um fundo escuro simples cumpre o mesmo papel visual (separar
+   o modal do resto) e é praticamente de graça para desenhar. */
+.overlay{position:fixed;inset:0;z-index:400;background:rgba(14,26,46,.62);display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{width:440px;max-width:calc(100vw - 40px);max-height:calc(100vh - 60px);overflow-y:auto;background:var(--surface);border:1px solid var(--cream-dim);border-radius:14px;padding:30px;box-shadow:0 30px 80px -30px rgba(8,16,30,.6)}
+/* A animação de entrada do modal foi removida de propósito: o modal fica por
+   cima de um fundo com backdrop-filter (desfoque), e animar qualquer coisa
+   acima dele faz o navegador recalcular o desfoque da tela inteira a cada
+   quadro da animação. Parado, o desfoque é barato; animado, custa caro. */
+.modal h3{font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--navy);margin-bottom:22px}
+.modal .fg{margin-bottom:15px}
+.modal-btns{display:flex;gap:10px;margin-top:24px;justify-content:flex-end;align-items:center}
+.btn-cancel{font-size:13px;font-weight:500;padding:10px 20px;border-radius:20px;background:transparent;border:1px solid var(--border-med);color:var(--t2);cursor:pointer;transition:.15s}
+.btn-cancel:hover{border-color:var(--border-hi);color:var(--t)}
+.btn-confirm{font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;background:var(--navy);border:none;color:var(--cream);cursor:pointer;transition:.15s}
+.btn-confirm:hover{background:var(--navy-soft)}
+.btn-del{font-size:13px;font-weight:500;padding:10px 16px;border-radius:20px;background:transparent;border:1px solid rgba(178,59,59,.35);color:var(--red-hi);cursor:pointer;transition:.15s;margin-right:auto}
+.btn-del:hover{background:var(--red-bg)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.jr-followup-row{display:grid;grid-template-columns:130px 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+
+/* segmentado (tipo recebido/previsto · status ativo/arquivado) */
+.seg{display:flex;gap:0;border:1px solid var(--border-med);border-radius:var(--rs);overflow:hidden}
+.seg button{
+  flex:1;padding:11px;font-size:13.5px;font-weight:500;border:none;background:#fff;color:var(--t3);cursor:pointer;transition:.15s;
+}
+.seg button+button{border-left:1px solid var(--border-med)}
+.seg button.on{background:var(--navy);color:var(--cream)}
+
+/* SAVE STATUS */
+.save-status{font-size:12px;font-weight:600;color:var(--green-hi);transition:.3s}
+
+/* ─── OLHO / MÁSCARA DE VALORES ─── */
+.tb-eye{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--silver-light);
+  cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:.15s;
+}
+.tb-eye:hover{color:var(--cream);border-color:rgba(255,255,255,.4)}
+.tb-eye.off{color:var(--amber-hi);border-color:rgba(224,169,74,.5)}
+.tb-eye{position:relative}
+.sino-badge{
+  position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;
+  background:var(--red-hi,#c0392b);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;
+}
+
+/* ─── BACKUP / MODO CÓPIA OFFLINE ─── */
+.faixa-offline{
+  display:none;align-items:center;gap:10px;padding:10px 28px;
+  background:var(--amber-bg);border-bottom:1px solid rgba(169,116,27,.3);
+  font-size:12.5px;font-weight:500;color:var(--amber-hi);flex-shrink:0;
+}
+.faixa-offline.on{display:flex}
+.bk-op{
+  display:flex;gap:13px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
+  padding:14px 16px;margin-bottom:10px;border-radius:var(--r);
+  background:var(--surface2);border:1px solid var(--border-med);transition:.15s;
+}
+.bk-op:hover{border-color:var(--border-hi);background:var(--surface3);transform:translateY(-1px)}
+.bk-op:disabled{opacity:.55;cursor:progress;transform:none}
+.bk-op i{font-size:20px;color:var(--navy);flex-shrink:0;margin-top:1px}
+.bk-op .bk-tit{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:3px;display:block}
+.bk-op .bk-sub{font-size:12px;color:var(--t2);line-height:1.45;display:block}
+.bk-info{
+  font-size:12px;color:var(--t2);line-height:1.5;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:16px;
+}
+.bk-alerta{background:var(--amber-bg);border-color:rgba(169,116,27,.28);color:var(--amber-hi)}
+.bk-aba{display:flex;gap:6px;margin:-6px 0 18px;border-bottom:1px solid var(--border);padding-bottom:0}
+.bk-aba button{
+  font-size:13px;font-weight:500;padding:8px 14px;background:transparent;border:none;
+  border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;
+}
+.bk-aba button.active{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+.bk-pane{display:none}
+.bk-pane.active{display:block}
+.bk-hist{font-size:12px;color:var(--t2);display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.bk-hist:last-child{border-bottom:none}
+.bk-hist button{font-size:11.5px;padding:5px 11px;border-radius:14px;border:1px solid var(--border-med);background:var(--surface);color:var(--t2);cursor:pointer}
+.bk-hist button:hover{border-color:var(--border-hi);color:var(--navy)}
+

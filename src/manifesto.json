@@ -1,0 +1,40 @@
+{
+  "_leia": "Ordem em que os arquivos entram no index.html final. CSS: o que vem depois sobrepõe o que vem antes. JS: scripts clássicos que compartilham o escopo global, na ordem de dependência.",
+  "css": [
+    "legacy/01-base.css",
+    "legacy/02-painel.css",
+    "legacy/03-paineis-e-cliente.css",
+    "legacy/04-financeiro-e-modais.css",
+    "legacy/05-cards-e-caixa.css",
+    "legacy/06-rotina.css",
+    "legacy/07-processos.css",
+    "legacy/08-projetos-e-prazos.css",
+    "legacy/09-responsivo.css",
+    "legacy/10-agenda-e-metas.css",
+    "legacy/11-camada-2026.css"
+  ],
+  "js": [
+    "00-sementes.js",
+    "01-dados-e-nuvem.js",
+    "02-utilidades.js",
+    "03-sessao-e-tarefas.js",
+    "04-painel.js",
+    "05-processos.js",
+    "06-arquivados.js",
+    "07-financeiro-caixa.js",
+    "08-agenda.js",
+    "09-rotina.js",
+    "10-projetos.js",
+    "11-comercial.js",
+    "12-clientes.js",
+    "13-modal-lancamento.js",
+    "14-modal-processo.js",
+    "15-modal-cliente-e-contrato.js",
+    "16-financeiro.js",
+    "17-atendimento-trabalhista.js",
+    "18-crm-comercial.js",
+    "19-atendimento-civel.js",
+    "20-backup.js",
+    "99-inicializacao.js"
+  ]
+}

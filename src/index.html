@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BGL Advogados — Sistema</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="referrer" content="no-referrer">
+<!-- Content-Security-Policy: restringe de onde a página pode carregar código e,
+     principalmente, PARA ONDE ela pode enviar dados (connect-src). Mesmo que
+     algum script malicioso entrasse na página, ele não conseguiria mandar os
+     dados dos clientes para um servidor de fora — só a API do GitHub é aceita.
+     A API pública do DJEN (comunicaapi.pje.jus.br) também é liberada, mas só
+     para LEITURA: o sistema faz apenas consultas GET de publicações por OAB e
+     nunca envia dados do escritório para lá. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self' blob:;
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+  font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
+  img-src 'self' data: blob:;
+  connect-src 'self' https://api.github.com https://gist.githubusercontent.com https://comunicaapi.pje.jus.br;
+  frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';
+">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<!-- @css -->
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="screen-login">
+  <div class="login-glow"></div>
+  <div class="login-grid"></div>
+  <div class="login-card">
+    <div class="login-marca">
+      <img src="{{img:logo-login.png}}" alt="BGL Advogados">
+      <div class="sub">Sistema interno</div>
+      <div class="linha"></div>
+    </div>
+    <div class="token-wrap" id="token-wrap">
+      <div class="tw-title"><i class="ti ti-cloud"></i> Primeira vez neste dispositivo</div>
+      <div class="fg" style="margin-bottom:.65rem"><label>Gist ID</label><input type="text" id="l-gist" autocomplete="off" placeholder="53428f4179a5364b2d488233218f02d4"></div>
+      <div class="fg" style="margin-bottom:0"><label>Token GitHub</label><input type="password" id="l-token" autocomplete="off" placeholder="ghp_..."></div>
+    </div>
+    <div class="fg"><label>Usuário</label><input type="text" id="inp-u" placeholder="seu@email.com" autocomplete="username"></div>
+    <div class="fg"><label>Senha</label><input type="password" id="inp-p" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-login" id="btn-entrar" onclick="tentarLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-foot"><a onclick="trocarSincronizacao()">Trocar Gist/Token deste dispositivo</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="screen-dashboard" class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <img class="tb-logo" src="{{img:logo-barra.png}}" alt="BGL Advogados">
+    <span class="tb-brand">BGL</span>
+    <div class="tb-div"></div>
+    <span class="tb-sub">Advogados</span>
+    <div class="tb-div"></div>
+    <button class="tb-nav-btn active" id="nav-dash" onclick="navegarPara('dash')">Visão geral</button>
+    <button class="tb-nav-btn" id="nav-trab" onclick="navegarPara('trab')">Atendimento</button>
+    <button class="tb-nav-btn" id="nav-crm" onclick="navegarPara('crm')">Clientes</button>
+    <button class="tb-nav-btn" id="nav-processos" onclick="navegarPara('processos')">Processos<span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
+    <button class="tb-nav-btn" id="nav-arquivados" onclick="navegarPara('arquivados')">Arquivados</button>
+    <button class="tb-nav-btn" id="nav-rotina" onclick="navegarPara('rotina')">Rotina<span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
+    <button class="tb-nav-btn" id="nav-comercial" onclick="navegarPara('comercial')">Comercial</button>
+    <button class="tb-nav-btn" id="nav-fin" onclick="navegarPara('fin')">Financeiro</button>
+    <div class="tb-space"></div>
+    <span class="save-status" id="sync-status" style="margin-right:2px"></span>
+    <button class="tb-eye" id="btn-sino" onclick="abrirNotificacoes()" title="Notificações — tarefas atrasadas"><i class="ti ti-bell"></i><span class="sino-badge" id="sino-badge" style="display:none">0</span></button>
+    <button class="tb-eye" id="btn-backup" onclick="abrirBackup()" title="Backup dos dados — baixe uma cópia completa"><i class="ti ti-download"></i><span class="sino-badge" id="backup-badge" style="display:none">!</span></button>
+    <button class="tb-eye" onclick="abrirConfiguracoes()" title="Configurações — tipos de tarefa"><i class="ti ti-settings"></i></button>
+    <button class="tb-eye" id="btn-eye" onclick="toggleMoney()" title="Ocultar/mostrar valores"><i class="ti ti-eye"></i></button>
+    <span class="tb-user" id="tb-user"></span>
+    <button class="tb-btn" onclick="logout()">Sair</button>
+  </div>
+
+  <!-- Faixa mostrada só quando a página é uma cópia de segurança aberta do computador -->
+  <div class="faixa-offline" id="faixa-offline">
+    <i class="ti ti-device-floppy"></i>
+    <span id="faixa-offline-txt">Cópia de segurança — os dados desta tela vieram do arquivo de backup e nada aqui é salvo na nuvem.</span>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── VIEW: DASHBOARD ─── -->
+    <div class="view active" id="view-dash">
+      <div class="page-head">
+        <h1 id="greeting-h1">Bom dia.</h1>
+        <p id="greeting-p">Resumo do escritório</p>
+        <p class="greeting-verse" id="greeting-verse"></p>
+      </div>
+
+      <div class="modulo-card agenda-destaque" style="margin-bottom:20px">
+        <div class="card-head">
+          <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências e prazos</h3>
+          <span class="sub" id="agenda-sub"></span>
+        </div>
+        <div class="agenda-wrap">
+          <div>
+            <div class="agenda-nav">
+              <button class="agenda-btn" onclick="agendaMudarMes(-1)" title="Mês anterior"><i class="ti ti-chevron-left"></i></button>
+              <span class="agenda-mes" id="agenda-mes"></span>
+              <button class="agenda-hoje" onclick="agendaIrParaHoje()">Hoje</button>
+              <button class="agenda-btn" onclick="agendaMudarMes(1)" title="Próximo mês"><i class="ti ti-chevron-right"></i></button>
+            </div>
+            <div class="cal-grid" id="agenda-cal"></div>
+          </div>
+          <div class="agenda-side">
+            <h4 id="agenda-side-tit">Próximas audiências e prazos</h4>
+            <p class="sh" id="agenda-side-sub"></p>
+            <div class="agenda-side-lista" id="agenda-side-lista"></div>
+            <button class="det-add" style="width:100%;justify-content:center;margin-top:6px" onclick="abrirNovaAudiencia()"><i class="ti ti-plus"></i> Marcar audiência</button>
+          </div>
+        </div>
+        <div class="agenda-legenda">
+          <span><i class="leg-dot" style="background:var(--green-bg);border-color:rgba(47,125,63,.4)"></i> audiência</span>
+          <span><i class="leg-dot" style="background:var(--amber-bg);border-color:rgba(169,116,27,.4)"></i> vencimento de prazo</span>
+          <span><i class="leg-dot" style="background:var(--red-bg);border-color:rgba(178,59,59,.4)"></i> vencido sem baixa</span>
+          <span><i class="leg-dot" style="background:transparent;border-color:var(--navy);border-width:2px"></i> hoje</span>
+          <span><i class="leg-dot" style="background:var(--navy);border-color:var(--navy)"></i> dia selecionado</span>
+          <span style="margin-left:auto"><i class="ti ti-info-circle"></i> vem das audiências e prazos da Rotina e da aba Processos</span>
+        </div>
+      </div>
+
+      <div class="stats-row" id="dash-stats"></div>
+      <div class="alerts-row" id="alerts-row"></div>
+
+      <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="abrirDetalheMetaContratos()" title="Clique para ver quais contratos foram contados e editar a meta">
+        <div class="card-head">
+          <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Metas do mês</h3>
+          <span class="sub" id="dash-meta-sub"></span>
+        </div>
+        <div class="card-body" id="dash-meta-body"></div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Pendências do escritório</h3>
+            <button class="modulo-link" onclick="navegarPara('rotina')">Ver rotina →</button>
+          </div>
+          <div class="card-body" id="dash-pend"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid g11">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Desempenho</h3>
+            <span class="sub">contratos fechados por mês</span>
+          </div>
+          <div class="card-body" id="dash-desempenho"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Faturamento mensal</h3>
+            <span class="sub">recebido por mês</span>
+          </div>
+          <div class="card-body" id="dash-faturamento"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid g11">
+        <div class="caixa-card caixa-card--dash">
+          <button class="btn-ico" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.22)" onclick="abrirModalLancamento(null)" title="Novo lançamento (entrada ou saída)"><i class="ti ti-plus"></i></button>
+          <div class="caixa-label">Caixa atual</div>
+          <div class="caixa-val" id="caixa-val-dash">R$ 0</div>
+          <div class="caixa-sub" id="caixa-sub-dash"></div>
+          <div class="caixa-trend" id="caixa-trend-dash"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="modulo-head"><span class="modulo-titulo">Financeiro</span><button class="modulo-link" onclick="navegarPara('fin')">Detalhar →</button></div>
+          <div class="fin-body" id="dash-fin"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─── VIEW: ATENDIMENTO (TRIAGEM) ─── -->
+    <div class="view" id="view-trab">
+      <div class="page-head">
+        <h1>Atendimento</h1>
+        <p>Dashboard comercial, funil de conversão e jornada de cada lead</p>
+      </div>
+
+      <div class="rotina-chips" style="margin-bottom:18px">
+        <button class="chip active" id="atendaba-fila" onclick="mudarAtendAba('fila')">Fila de hoje</button>
+        <button class="chip" id="atendaba-painel" onclick="mudarAtendAba('painel')">Painel &amp; triagem</button>
+      </div>
+
+      <div id="atend-fila">
+        <div class="modulo-card" style="margin-bottom:20px">
+          <div class="card-head"><h3><i class="ti ti-list-check" style="margin-right:7px"></i>Fila de hoje</h3><span class="sub" id="fila-hoje-sub"></span></div>
+          <div class="card-body" id="fila-hoje-lista"></div>
+        </div>
+      </div>
+
+      <div id="atend-painel" style="display:none">
+
+      <div class="modulo-card" id="crm-dash-card" style="margin-bottom:20px">
+        <div class="card-head" style="cursor:pointer" onclick="toggleCrmDash()">
+          <h3><i class="ti ti-chart-infographic" style="margin-right:7px"></i>Dashboard Comercial</h3>
+          <span class="sub"><i class="ti ti-chevron-up" id="crm-dash-chevron"></i></span>
+        </div>
+        <div class="card-body" id="crm-dash-body">
+          <div class="stats-row" id="crm-kpis" style="margin-bottom:20px"></div>
+          <div class="dash-grid g11" style="margin-bottom:20px">
+            <div class="modulo-card">
+              <div class="card-head"><h3 style="font-size:15px">Origem dos leads</h3><span class="sub">com participação %</span></div>
+              <div class="card-body" id="crm-origem"></div>
+            </div>
+            <div class="modulo-card">
+              <div class="card-head"><h3 style="font-size:15px">Principais objeções</h3><span class="sub">com participação %</span></div>
+              <div class="card-body" id="crm-objecao"></div>
+            </div>
+          </div>
+          <div class="dash-grid g11" style="margin-bottom:20px">
+            <div class="modulo-card">
+              <div class="card-head"><h3 style="font-size:15px">Áreas mais procuradas</h3><span class="sub">nº de leads por área</span></div>
+              <div class="card-body" id="crm-areas"></div>
+            </div>
+            <div class="modulo-card">
+              <div class="card-head"><h3 style="font-size:15px">Funil de conversão</h3><span class="sub">com taxa de conversão por etapa</span></div>
+              <div class="card-body" id="crm-funil"></div>
+            </div>
+          </div>
+          <div class="modulo-card">
+            <div class="card-head"><h3 style="font-size:15px">Propostas enviadas esta semana</h3><span class="sub">por sócio</span></div>
+            <div class="card-body" id="crm-propostas-socio"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rotina-chips" style="margin-bottom:18px">
+        <button class="chip active" id="triatipo-trab" onclick="mudarTipoTriagem('trab')">Trabalhista</button>
+        <button class="chip" id="triatipo-civel" onclick="mudarTipoTriagem('civel')">Cível</button>
+      </div>
+      <div class="tri-layout" id="tri-layout-trab">
+
+        <div class="tri-panel leads-col">
+          <div class="tri-panel-head">
+            <span class="tri-panel-titulo">Leads</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="save-status" id="save-status"></span>
+              <span id="stat-total-badge" style="font-size:12px;color:var(--t3)">0 leads</span>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input class="search-inp" id="trab-search" placeholder="Buscar por nome ou telefone…" oninput="filtrarLeads(this.value)">
+          </div>
+          <div class="lead-chips" id="lead-chips-trab"></div>
+          <div class="leads-list" id="leads-list"></div>
+          <div style="padding:0 8px 8px">
+            <button class="btn-novo-lead" onclick="abrirModalNovo('trab')">
+              <i class="ti ti-plus" aria-hidden="true"></i>Novo lead
+            </button>
+          </div>
+        </div>
+
+        <div class="tri-panel detalhe-col">
+          <div class="detalhe-empty" id="detalhe-empty">
+            <i class="ti ti-user-search" aria-hidden="true"></i>
+            <p>Selecione um lead para ver a jornada comercial</p>
+          </div>
+          <div class="detalhe-content" id="detalhe-content" style="display:none">
+            <div class="detalhe-header">
+              <div>
+                <div class="dh-nome" id="dh-nome">—</div>
+                <div class="dh-tel" id="dh-tel">—</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn-excluir" onclick="confirmarExclusao()"><i class="ti ti-trash" style="font-size:13px"></i></button>
+                <button class="btn-ico ok" id="btn-fechar-contrato" onclick="fecharContrato()" title="Contrato fechado — transferir para a carteira de clientes"><i class="ti ti-user-check"></i></button>
+                <button class="btn-salvar" id="btn-salvar" onclick="salvarLead()" disabled>Salvar</button>
+              </div>
+            </div>
+            <div style="padding:12px 20px 0">
+              <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:7px">Status do atendimento</label>
+              <div class="seg">
+                <button type="button" id="ls-responder" onclick="mudarStatusLead('responder')">A responder</button>
+                <button type="button" id="ls-reuniao" onclick="mudarStatusLead('reuniao')">Reunião marcada</button>
+                <button type="button" id="ls-seguimento" onclick="mudarStatusLead('seguimento')">Follow-up</button>
+                <button type="button" id="ls-perdido" onclick="mudarStatusLead('perdido')">Sem interesse</button>
+                <button type="button" id="ls-convertido" onclick="mudarStatusLead('convertido')">Convertido</button>
+              </div>
+            </div>
+            <div class="pane active" id="pane-jornada">
+              <span class="prazo-badge" id="jr-parado-badge" style="display:none;margin-bottom:14px;margin-right:8px"></span>
+              <span class="prazo-badge" id="jr-etapa-badge" style="display:none;margin-bottom:14px"></span>
+              <label class="ck-obs-label" style="margin-top:2px">Observações internas</label>
+              <textarea class="ck-obs" id="ck-obs" placeholder="Anotações sobre o caso…" oninput="marcarDirty()" style="margin-bottom:16px"></textarea>
+
+              <button type="button" class="btn-novo-lead" id="jr-expandir" onclick="jrToggleAvancado('')" style="margin-bottom:16px"><i class="ti ti-chevron-down"></i>Expandir campos completos</button>
+
+              <div class="ck-secao jr-avancado-trab" style="display:none">
+                <div class="ck-secao-titulo">Origem e contexto</div>
+                <div class="fg-row">
+                  <div class="fg"><label>Categoria de origem</label>
+                    <select id="jr-origem" onchange="jrField(this,'categoriaOrigem')"><option value="">—</option></select>
+                  </div>
+                  <div class="fg"><label>Origem (detalhe)</label><input type="text" id="jr-origem-texto" placeholder="Ex.: indicação de fulano" oninput="jrField(this,'origemTexto')"></div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Área</label><input type="text" id="jr-area" placeholder="Ex.: Trabalhista empregada" oninput="jrField(this,'area')"></div>
+                  <div class="fg"><label>Responsável</label><input type="text" id="jr-responsavel" placeholder="Quem atendeu" oninput="jrField(this,'responsavel')"></div>
+                </div>
+                <div class="fg"><label>Por que procurou a BGL?</label><textarea id="jr-motivo" placeholder="Contexto do caso…" oninput="jrField(this,'motivoBusca')"></textarea></div>
+                <div class="fg"><label>Problema central</label><input type="text" id="jr-problema" oninput="jrField(this,'problema')"></div>
+                <div class="fg"><label>Urgência (1 a 5)</label>
+                  <div class="seg">
+                    <button type="button" id="jr-urg-1" data-val="1" onclick="jrSeg(this,'urgencia')">1</button>
+                    <button type="button" id="jr-urg-2" data-val="2" onclick="jrSeg(this,'urgencia')">2</button>
+                    <button type="button" id="jr-urg-3" data-val="3" onclick="jrSeg(this,'urgencia')">3</button>
+                    <button type="button" id="jr-urg-4" data-val="4" onclick="jrSeg(this,'urgencia')">4</button>
+                    <button type="button" id="jr-urg-5" data-val="5" onclick="jrSeg(this,'urgencia')">5</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ck-secao jr-avancado-trab" style="display:none">
+                <div class="ck-secao-titulo">Honorários e objeção</div>
+                <div class="fg"><label>Honorários propostos</label><input type="text" id="jr-honorarios-texto" placeholder="Ex.: Inicial de 3.000 + 25% no êxito" oninput="jrField(this,'honorariosTexto')"></div>
+                <div class="fg-row">
+                  <div class="fg"><label>Valor estimado (R$)</label><input type="number" id="jr-valor-estimado" min="0" step="50" oninput="jrField(this,'valorHonorarioEstimado',true)"></div>
+                  <div class="fg"><label>Probabilidade de fechamento</label>
+                    <select id="jr-probabilidade" onchange="jrField(this,'probabilidadeFechamento',true)"></select>
+                  </div>
+                </div>
+                <div class="fg"><label>Objeção principal</label><input type="text" id="jr-objecao" oninput="jrField(this,'objecaoPrincipal')"></div>
+                <div class="fg"><label>Categoria da objeção</label>
+                  <select id="jr-cat-objecao" onchange="jrField(this,'categoriaObjecao')"><option value="">—</option></select>
+                </div>
+                <div class="fg"><label>Honorários foram obstáculo?</label>
+                  <div class="seg">
+                    <button type="button" id="jr-hobst-sim" data-val="Sim" onclick="jrSeg(this,'honorariosObstaculo')">Sim</button>
+                    <button type="button" id="jr-hobst-nao" data-val="Nao" onclick="jrSeg(this,'honorariosObstaculo')">Não</button>
+                    <button type="button" id="jr-hobst-talvez" data-val="Talvez" onclick="jrSeg(this,'honorariosObstaculo')">Talvez</button>
+                  </div>
+                </div>
+                <div class="fg"><label>Havia insegurança?</label><textarea id="jr-inseguranca" oninput="jrField(this,'inseguranca')"></textarea></div>
+              </div>
+
+              <div class="ck-secao">
+                <div class="ck-secao-titulo">Funil de conversão</div>
+                <div class="fg"><label>Canal de follow-up</label><input type="text" id="jr-canal-followup" placeholder="Ex.: Wpp da BGL" oninput="jrField(this,'canalFollowup')"></div>
+                <div class="fg"><label>Como entrou em contato</label><input type="text" id="jr-entrou-contato" oninput="jrField(this,'entrouContatoTexto')"></div>
+                <div class="fg"><label>Reunião agendada (quando/como)</label><input type="text" id="jr-reuniao-agendada" oninput="jrField(this,'reuniaoAgendadaTexto')"></div>
+                <div class="fg-row">
+                  <div class="fg"><label>Compareceu?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-compareceu-sim" data-val="Sim" onclick="jrSeg(this,'compareceu')">Sim</button>
+                      <button type="button" id="jr-compareceu-nao" data-val="Nao" onclick="jrSeg(this,'compareceu')">Não</button>
+                    </div>
+                  </div>
+                  <div class="fg"><label>Proposta enviada?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-proposta-sim" data-val="Sim" onclick="jrSeg(this,'propostaEnviada')">Sim</button>
+                      <button type="button" id="jr-proposta-nao" data-val="Nao" onclick="jrSeg(this,'propostaEnviada')">Não</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Fechou?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-fechou-sim" data-val="Sim" onclick="jrSeg(this,'fechouCRM')">Sim</button>
+                      <button type="button" id="jr-fechou-nao" data-val="Nao" onclick="jrSeg(this,'fechouCRM')">Não</button>
+                    </div>
+                  </div>
+                  <div class="fg"><label>Status (funil de vendas)</label>
+                    <select id="jr-status-crm" onchange="jrMudarStatusCRM(this)"></select>
+                  </div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Data/hora da reunião marcada</label><input type="datetime-local" id="jr-reuniao-datahora" onchange="jrField(this,'reuniaoDataHora')"></div>
+                  <div class="fg"><label>Próxima ação (data/hora) <span style="color:var(--red-hi)">*</span></label><input type="datetime-local" id="jr-proxima-acao" onchange="jrField(this,'proximaAcaoEm')"></div>
+                </div>
+                <div class="fg" id="jr-motivo-perda-wrap" style="display:none">
+                  <label>Motivo da perda</label>
+                  <select id="jr-motivo-perda" onchange="jrField(this,'motivoPerda')"></select>
+                </div>
+              </div>
+
+              <div class="ck-secao">
+                <div class="ck-secao-titulo">Follow-ups (registro manual)</div>
+                <div id="jr-followups"></div>
+                <button type="button" class="btn-novo-lead" onclick="jrAddFollowup(false)"><i class="ti ti-plus"></i>Adicionar follow-up</button>
+              </div>
+
+              <div class="ck-secao jr-avancado-trab" style="display:none">
+                <div class="ck-secao-titulo">Aprendizado</div>
+                <div class="fg"><label>Motivo perda/ganho</label><textarea id="jr-motivo-perda-ganho" oninput="jrField(this,'motivoPerdaGanho')"></textarea></div>
+                <div class="fg"><label>Lições aprendidas</label><textarea id="jr-licoes" oninput="jrField(this,'licoes')"></textarea></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tri-layout" id="tri-layout-civel" style="display:none">
+
+        <div class="tri-panel leads-col">
+          <div class="tri-panel-head">
+            <span class="tri-panel-titulo">Leads</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="save-status" id="save-status-civel"></span>
+              <span id="stat-total-badge-civel" style="font-size:12px;color:var(--t3)">0 leads</span>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input class="search-inp" id="civel-search" placeholder="Buscar por nome ou telefone…" oninput="filtrarLeadsCivel(this.value)">
+          </div>
+          <div class="lead-chips" id="lead-chips-civel"></div>
+          <div class="leads-list" id="leads-list-civel"></div>
+          <div style="padding:0 8px 8px">
+            <button class="btn-novo-lead" onclick="abrirModalNovo('civel')">
+              <i class="ti ti-plus" aria-hidden="true"></i>Novo lead
+            </button>
+          </div>
+        </div>
+
+        <div class="tri-panel detalhe-col">
+          <div class="detalhe-empty" id="detalhe-empty-civel">
+            <i class="ti ti-user-search" aria-hidden="true"></i>
+            <p>Selecione um lead para ver a jornada comercial</p>
+          </div>
+          <div class="detalhe-content" id="detalhe-content-civel" style="display:none">
+            <div class="detalhe-header">
+              <div>
+                <div class="dh-nome" id="dh-nome-civel">—</div>
+                <div class="dh-tel" id="dh-tel-civel">—</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn-excluir" onclick="confirmarExclusaoCivel()"><i class="ti ti-trash" style="font-size:13px"></i></button>
+                <button class="btn-ico ok" id="btn-fechar-contrato-civel" title="Contrato fechado — transferir para a carteira de clientes"><i class="ti ti-user-check"></i></button>
+                <button class="btn-salvar" id="btn-salvar-civel" onclick="salvarLeadCivel()" disabled>Salvar</button>
+              </div>
+            </div>
+            <div style="padding:12px 20px 0">
+              <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:7px">Status do atendimento</label>
+              <div class="seg">
+                <button type="button" id="ls-responder-civel" onclick="mudarStatusLeadCivel('responder')">A responder</button>
+                <button type="button" id="ls-reuniao-civel" onclick="mudarStatusLeadCivel('reuniao')">Reunião marcada</button>
+                <button type="button" id="ls-seguimento-civel" onclick="mudarStatusLeadCivel('seguimento')">Follow-up</button>
+                <button type="button" id="ls-perdido-civel" onclick="mudarStatusLeadCivel('perdido')">Sem interesse</button>
+                <button type="button" id="ls-convertido-civel" onclick="mudarStatusLeadCivel('convertido')">Convertido</button>
+              </div>
+            </div>
+            <div class="pane active" id="pane-jornada-civel">
+              <span class="prazo-badge" id="jr-parado-badge-civel" style="display:none;margin-bottom:14px;margin-right:8px"></span>
+              <span class="prazo-badge" id="jr-etapa-badge-civel" style="display:none;margin-bottom:14px"></span>
+              <label class="ck-obs-label" style="margin-top:2px">Observações internas</label>
+              <textarea class="ck-obs" id="ck-obs-civel" placeholder="Anotações sobre o caso…" oninput="marcarDirtyCivel()" style="margin-bottom:16px"></textarea>
+
+              <button type="button" class="btn-novo-lead" id="jr-expandir-civel" onclick="jrToggleAvancado('-civel')" style="margin-bottom:16px"><i class="ti ti-chevron-down"></i>Expandir campos completos</button>
+
+              <div class="ck-secao jr-avancado-civel" style="display:none">
+                <div class="ck-secao-titulo">Origem e contexto</div>
+                <div class="fg-row">
+                  <div class="fg"><label>Categoria de origem</label>
+                    <select id="jr-origem-civel" onchange="jrField(this,'categoriaOrigem')"><option value="">—</option></select>
+                  </div>
+                  <div class="fg"><label>Origem (detalhe)</label><input type="text" id="jr-origem-texto-civel" placeholder="Ex.: indicação de fulano" oninput="jrField(this,'origemTexto')"></div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Área</label><input type="text" id="jr-area-civel" placeholder="Ex.: Cível/Consumidor" oninput="jrField(this,'area')"></div>
+                  <div class="fg"><label>Responsável</label><input type="text" id="jr-responsavel-civel" placeholder="Quem atendeu" oninput="jrField(this,'responsavel')"></div>
+                </div>
+                <div class="fg"><label>Por que procurou a BGL?</label><textarea id="jr-motivo-civel" placeholder="Contexto do caso…" oninput="jrField(this,'motivoBusca')"></textarea></div>
+                <div class="fg"><label>Problema central</label><input type="text" id="jr-problema-civel" oninput="jrField(this,'problema')"></div>
+                <div class="fg"><label>Urgência (1 a 5)</label>
+                  <div class="seg">
+                    <button type="button" id="jr-urg-1-civel" data-val="1" onclick="jrSeg(this,'urgencia')">1</button>
+                    <button type="button" id="jr-urg-2-civel" data-val="2" onclick="jrSeg(this,'urgencia')">2</button>
+                    <button type="button" id="jr-urg-3-civel" data-val="3" onclick="jrSeg(this,'urgencia')">3</button>
+                    <button type="button" id="jr-urg-4-civel" data-val="4" onclick="jrSeg(this,'urgencia')">4</button>
+                    <button type="button" id="jr-urg-5-civel" data-val="5" onclick="jrSeg(this,'urgencia')">5</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ck-secao jr-avancado-civel" style="display:none">
+                <div class="ck-secao-titulo">Honorários e objeção</div>
+                <div class="fg"><label>Honorários propostos</label><input type="text" id="jr-honorarios-texto-civel" placeholder="Ex.: Inicial de 3.000 + 25% no êxito" oninput="jrField(this,'honorariosTexto')"></div>
+                <div class="fg-row">
+                  <div class="fg"><label>Valor estimado (R$)</label><input type="number" id="jr-valor-estimado-civel" min="0" step="50" oninput="jrField(this,'valorHonorarioEstimado',true)"></div>
+                  <div class="fg"><label>Probabilidade de fechamento</label>
+                    <select id="jr-probabilidade-civel" onchange="jrField(this,'probabilidadeFechamento',true)"></select>
+                  </div>
+                </div>
+                <div class="fg"><label>Objeção principal</label><input type="text" id="jr-objecao-civel" oninput="jrField(this,'objecaoPrincipal')"></div>
+                <div class="fg"><label>Categoria da objeção</label>
+                  <select id="jr-cat-objecao-civel" onchange="jrField(this,'categoriaObjecao')"><option value="">—</option></select>
+                </div>
+                <div class="fg"><label>Honorários foram obstáculo?</label>
+                  <div class="seg">
+                    <button type="button" id="jr-hobst-sim-civel" data-val="Sim" onclick="jrSeg(this,'honorariosObstaculo')">Sim</button>
+                    <button type="button" id="jr-hobst-nao-civel" data-val="Nao" onclick="jrSeg(this,'honorariosObstaculo')">Não</button>
+                    <button type="button" id="jr-hobst-talvez-civel" data-val="Talvez" onclick="jrSeg(this,'honorariosObstaculo')">Talvez</button>
+                  </div>
+                </div>
+                <div class="fg"><label>Havia insegurança?</label><textarea id="jr-inseguranca-civel" oninput="jrField(this,'inseguranca')"></textarea></div>
+              </div>
+
+              <div class="ck-secao">
+                <div class="ck-secao-titulo">Funil de conversão</div>
+                <div class="fg"><label>Canal de follow-up</label><input type="text" id="jr-canal-followup-civel" placeholder="Ex.: Wpp da BGL" oninput="jrField(this,'canalFollowup')"></div>
+                <div class="fg"><label>Como entrou em contato</label><input type="text" id="jr-entrou-contato-civel" oninput="jrField(this,'entrouContatoTexto')"></div>
+                <div class="fg"><label>Reunião agendada (quando/como)</label><input type="text" id="jr-reuniao-agendada-civel" oninput="jrField(this,'reuniaoAgendadaTexto')"></div>
+                <div class="fg-row">
+                  <div class="fg"><label>Compareceu?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-compareceu-sim-civel" data-val="Sim" onclick="jrSeg(this,'compareceu')">Sim</button>
+                      <button type="button" id="jr-compareceu-nao-civel" data-val="Nao" onclick="jrSeg(this,'compareceu')">Não</button>
+                    </div>
+                  </div>
+                  <div class="fg"><label>Proposta enviada?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-proposta-sim-civel" data-val="Sim" onclick="jrSeg(this,'propostaEnviada')">Sim</button>
+                      <button type="button" id="jr-proposta-nao-civel" data-val="Nao" onclick="jrSeg(this,'propostaEnviada')">Não</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Fechou?</label>
+                    <div class="seg">
+                      <button type="button" id="jr-fechou-sim-civel" data-val="Sim" onclick="jrSeg(this,'fechouCRM')">Sim</button>
+                      <button type="button" id="jr-fechou-nao-civel" data-val="Nao" onclick="jrSeg(this,'fechouCRM')">Não</button>
+                    </div>
+                  </div>
+                  <div class="fg"><label>Status (funil de vendas)</label>
+                    <select id="jr-status-crm-civel" onchange="jrMudarStatusCRM(this)"></select>
+                  </div>
+                </div>
+                <div class="fg-row">
+                  <div class="fg"><label>Data/hora da reunião marcada</label><input type="datetime-local" id="jr-reuniao-datahora-civel" onchange="jrField(this,'reuniaoDataHora')"></div>
+                  <div class="fg"><label>Próxima ação (data/hora) <span style="color:var(--red-hi)">*</span></label><input type="datetime-local" id="jr-proxima-acao-civel" onchange="jrField(this,'proximaAcaoEm')"></div>
+                </div>
+                <div class="fg" id="jr-motivo-perda-wrap-civel" style="display:none">
+                  <label>Motivo da perda</label>
+                  <select id="jr-motivo-perda-civel" onchange="jrField(this,'motivoPerda')"></select>
+                </div>
+              </div>
+
+              <div class="ck-secao">
+                <div class="ck-secao-titulo">Follow-ups (registro manual)</div>
+                <div id="jr-followups-civel"></div>
+                <button type="button" class="btn-novo-lead" onclick="jrAddFollowup(true)"><i class="ti ti-plus"></i>Adicionar follow-up</button>
+              </div>
+
+              <div class="ck-secao jr-avancado-civel" style="display:none">
+                <div class="ck-secao-titulo">Aprendizado</div>
+                <div class="fg"><label>Motivo perda/ganho</label><textarea id="jr-motivo-perda-ganho-civel" oninput="jrField(this,'motivoPerdaGanho')"></textarea></div>
+                <div class="fg"><label>Lições aprendidas</label><textarea id="jr-licoes-civel" oninput="jrField(this,'licoes')"></textarea></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /atend-painel -->
+    </div>
+
+    <!-- ─── VIEW: CLIENTES (CRM) ─── -->
+    <div class="view" id="view-crm">
+      <div class="page-head">
+        <h1>Clientes</h1>
+        <p>Carteira de clientes · processos vinculados · pastas no Google Drive</p>
+      </div>
+      <div class="tri-layout">
+
+        <div class="tri-panel leads-col leads-col--wide">
+          <div class="tri-panel-head">
+            <span class="tri-panel-titulo">Carteira</span>
+            <span id="cli-total-badge" style="font-size:12px;color:var(--t3)"></span>
+          </div>
+          <div class="chips-row" id="cli-chips">
+            <button class="chip active" data-f="todos" onclick="filtroCliente('todos',this)">Todos</button>
+            <button class="chip" data-f="ativos" onclick="filtroCliente('ativos',this)">Ativos</button>
+            <button class="chip" data-f="arquivados" onclick="filtroCliente('arquivados',this)">Arquivados</button>
+            <button class="chip" data-f="socios" onclick="filtroCliente('socios',this)">Sócios</button>
+          </div>
+          <div class="search-wrap">
+            <input class="search-inp" id="cli-search" placeholder="Buscar cliente ou demanda…" oninput="buscaCliente(this.value)">
+          </div>
+          <div class="leads-list" id="cli-list"></div>
+          <div style="padding:0 8px 8px">
+            <button class="btn-novo-lead" onclick="abrirModalCliente(null)">
+              <i class="ti ti-user-plus" aria-hidden="true"></i>Novo cliente
+            </button>
+          </div>
+        </div>
+
+        <div class="tri-panel detalhe-col">
+          <div class="detalhe-empty" id="cli-empty">
+            <i class="ti ti-users" aria-hidden="true"></i>
+            <p>Selecione um cliente para ver processos, financeiro e pastas</p>
+          </div>
+          <div class="detalhe-content" id="cli-detail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── VIEW: PROCESSOS ───
+         Substituiu a antiga aba "Teses". Cada processo tem área, fase e os
+         prazos que correm nele — e esses prazos são tarefas da Rotina (tipo
+         "prazo", com t.pid apontando para o processo), por isso aparecem
+         também na Rotina e no calendário da visão geral. As publicações do
+         DJEN entram pela caixa "Publicações" e são ligadas ao processo pelo
+         número CNJ. O conteúdo é montado em renderProcessos(). -->
+    <div class="view" id="view-processos">
+      <div class="page-head proc-page-head">
+        <div>
+          <h1>Processos</h1>
+          <div class="proc-resumo" id="proc-stats"></div>
+        </div>
+        <div class="proc-head-acoes">
+          <button class="btn-nova-tarefa" onclick="abrirModalProc(null,null)"><i class="ti ti-plus"></i>Novo processo</button>
+        </div>
+      </div>
+      <!-- caixa de entrada das publicações do DJEN -->
+      <div class="pr-painel" id="pub-panel"></div>
+
+      <div class="area-tabs" id="proc-areas"></div>
+      <div class="rotina-chips">
+        <button class="chip active" data-f="ativos" onclick="filtroProcStatus('ativos',this)">Ativos</button>
+        <button class="chip" data-f="prazo" onclick="filtroProcStatus('prazo',this)">Com prazo correndo</button>
+        <button class="chip" data-f="arquivados" onclick="filtroProcStatus('arquivados',this)">Arquivados</button>
+        <button class="chip" data-f="todos" onclick="filtroProcStatus('todos',this)">Todos</button>
+        <input class="search-inp" id="proc-search" style="margin-left:auto;max-width:300px" placeholder="Buscar por número, parte, cliente ou fase…" oninput="buscaProcessos(this.value)">
+      </div>
+      <div class="pl-lista" id="proc-lista"></div>
+    </div>
+
+    <!-- ─── VIEW: PROCESSOS ARQUIVADOS (DESEMPENHO) ─── -->
+    <div class="view" id="view-arquivados">
+      <div class="page-head">
+        <h1>Processos Arquivados</h1>
+        <p>Resultado de cada processo encerrado e aproveitamento do escritório</p>
+      </div>
+      <div class="stats-row" id="arq-stats"></div>
+      <div class="dash-grid g11">
+        <div class="modulo-card">
+          <div class="card-head"><h3>Aproveitamento</h3><span class="sub">ganhos sobre processos já decididos</span></div>
+          <div class="card-body" id="arq-aproveitamento"></div>
+        </div>
+      </div>
+      <div class="rotina-chips">
+        <button class="chip active" data-f="todos" onclick="filtroArquivados('todos',this)">Todos</button>
+        <button class="chip" data-f="ganho" onclick="filtroArquivados('ganho',this)">Ganhos</button>
+        <button class="chip" data-f="perdido" onclick="filtroArquivados('perdido',this)">Perdidos</button>
+        <button class="chip" data-f="pendente" onclick="filtroArquivados('pendente',this)">Sem resultado</button>
+        <input class="search-inp" id="arq-search" style="margin-left:auto;max-width:280px" placeholder="Buscar por processo ou cliente…" oninput="buscaArquivados(this.value)">
+      </div>
+      <div id="arq-lista"></div>
+    </div>
+
+    <!-- ─── VIEW: FINANCEIRO ─── -->
+    <div class="view" id="view-fin">
+      <div class="page-head">
+        <h1>Financeiro</h1>
+        <p>Honorários e retornos por cliente — recebidos e previstos</p>
+      </div>
+
+      <div class="stats-row" id="fin-stats"></div>
+
+      <div class="dash-grid g21" style="margin-bottom:24px">
+        <div class="modulo-card">
+          <div class="card-head"><h3>Faturamento mensal</h3><span class="sub">recebido de clientes · últimos 12 meses</span></div>
+          <div class="card-body" id="fin-faturamento"></div>
+        </div>
+        <div class="caixa-card">
+          <button class="btn-ico" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.22)" onclick="abrirModalLancamento(null)" title="Novo lançamento (entrada ou saída)"><i class="ti ti-plus"></i></button>
+          <div class="caixa-label">Caixa atual</div>
+          <div class="caixa-val" id="caixa-val">R$ 0</div>
+          <div class="caixa-sub" id="caixa-sub"></div>
+          <div class="caixa-trend" id="caixa-trend"></div>
+        </div>
+      </div>
+
+      <div class="modulo-card" style="margin-bottom:24px">
+        <div class="card-head"><h3>Pró-labore recomendado</h3><span class="sub">mediana móvel de receita</span></div>
+        <div class="card-body" id="prolabore-card"></div>
+      </div>
+
+      <div class="dash-grid g21" style="margin-bottom:24px">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Fundo do Escritório</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="det-add" onclick="abrirModalRetiradaFundo(null)"><i class="ti ti-cash-banknote"></i> Retirar do fundo</button>
+              <button class="det-add" onclick="abrirModalAporte(null)"><i class="ti ti-plus"></i> Registrar guarda</button>
+            </div>
+          </div>
+          <div class="card-body" id="fundo-resumo"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="card-head"><h3>Movimentações do fundo</h3><span class="sub">guardas e retiradas</span></div>
+          <div class="card-body" id="fundo-lista"></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--t3);margin:-14px 0 24px"><i class="ti ti-info-circle"></i> Toda entrada nova (recebido de cliente ou lançamento geral) mostra um lembrete de guardar pelo menos 10% aqui — o valor guardado é registrado manualmente, quando você de fato reservar o dinheiro.</p>
+
+      <div class="dash-grid g21" style="margin-bottom:24px">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Custos fixos do escritório</h3>
+            <button class="det-add" onclick="abrirModalCusto(null)"><i class="ti ti-plus"></i> Novo custo</button>
+          </div>
+          <div class="card-body" id="custos-list"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="card-head"><h3>Resumo de custos</h3><span class="sub">por categoria</span></div>
+          <div class="card-body" id="custos-resumo"></div>
+        </div>
+      </div>
+
+      <!-- painel recolhível: fechado, a página do Financeiro não estica.
+           Aberto, mostra por padrão só o mês corrente. -->
+      <div class="fin-panel" id="lanc-panel" style="margin-bottom:24px">
+        <div class="fin-panel-head" onclick="alternarBloco('fin:lancamentos',true)" title="Abrir ou fechar os lançamentos do caixa">
+          <i class="ti ti-chevron-down chev"></i>
+          <h3>Lançamentos do caixa</h3>
+          <span class="ct" id="lanc-badge">—</span>
+          <span class="sub" id="lanc-resumo"></span>
+        </div>
+        <div class="fin-panel-corpo">
+          <div class="fin-chips" id="lanc-chips" style="flex-wrap:wrap;gap:8px">
+            <button class="chip active" data-p="mes" onclick="setLancPeriodo('mes')">Mês atual</button>
+            <button class="chip" data-p="tudo" onclick="setLancPeriodo('tudo')">Todo o período</button>
+            <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px;margin-left:6px">Do dia <input type="date" id="lanc-de" onchange="renderLancamentos()" style="width:auto"></label>
+            <label style="font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px">até <input type="date" id="lanc-ate" onchange="renderLancamentos()" style="width:auto"></label>
+            <button class="chip" onclick="limparPeriodoLanc()">Limpar datas</button>
+            <button class="btn-fin-novo" style="margin-left:auto" onclick="abrirModalLancamento(null)"><i class="ti ti-plus"></i>Novo lançamento</button>
+          </div>
+          <p style="font-size:12px;color:var(--t3);margin-bottom:14px"><i class="ti ti-info-circle"></i> Entradas e saídas gerais do escritório — não ligadas a um cliente específico. Pagamentos de clientes ficam na tabela de honorários, mais abaixo. <span id="lanc-periodo-txt" style="color:var(--navy);font-weight:600"></span></p>
+          <div class="fin-table">
+            <div class="fin-thead">
+              <div class="fin-c-desc">Descrição</div>
+              <div class="fin-c-data">Data</div>
+              <div class="fin-c-tipo">Categoria</div>
+              <div class="fin-c-tipo">Tipo</div>
+              <div class="fin-c-val">Valor</div>
+              <div class="fin-c-act"></div>
+            </div>
+            <div id="lancamentos-rows"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fin-panel" id="hon-panel">
+        <div class="fin-panel-head" onclick="alternarBloco('fin:honorarios',true)" title="Abrir ou fechar os honorários por cliente">
+          <i class="ti ti-chevron-down chev"></i>
+          <h3>Honorários por cliente</h3>
+          <span class="ct" id="hon-badge">—</span>
+          <span class="sub" id="hon-resumo"></span>
+        </div>
+        <div class="fin-panel-corpo">
+          <div class="fin-chips" id="fin-chips">
+            <button class="chip" data-f="todos" onclick="filtroFin('todos',this)">Todos</button>
+            <button class="chip active" data-f="alc" onclick="filtroFin('alc',this)">Recebidos</button>
+            <button class="chip" data-f="prev" onclick="filtroFin('prev',this)">Previstos</button>
+            <button class="chip" data-f="saida" onclick="filtroFin('saida',this)">Saídas</button>
+            <select class="search-inp" id="fin-periodo" style="width:auto;margin-left:6px" onchange="setFinPeriodo(this.value)">
+              <option value="mesAtual">Mês atual</option>
+              <option value="tudo">Todo o período</option>
+              <option value="mes">Últimos 30 dias</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m">Últimos 12 meses</option>
+              <option value="ano">Ano atual</option>
+            </select>
+            <button class="chip" onclick="verTodosRecebidos()" title="Mostra todos os recebimentos já registrados, de todos os meses">Ver todos os recebidos</button>
+            <button class="btn-fin-novo" onclick="abrirModalFin(null,null)"><i class="ti ti-plus"></i>Novo lançamento</button>
+            <input class="search-inp fin-search" id="fin-search" placeholder="Buscar cliente…" oninput="buscaFin(this.value)">
+          </div>
+          <p id="fin-periodo-hint" style="font-size:12px;color:var(--t3);margin-bottom:14px;display:none"><i class="ti ti-info-circle"></i> Filtros de período usam a data de recebimento — lançamentos sem data ficam de fora.</p>
+
+          <div class="fin-table">
+            <div class="fin-thead">
+              <div class="fin-c-cli">Cliente</div>
+              <div class="fin-c-desc">Descrição</div>
+              <div class="fin-c-data">Data</div>
+              <div class="fin-c-tipo">Tipo</div>
+              <div class="fin-c-val">Valor</div>
+              <div class="fin-c-act"></div>
+            </div>
+            <div id="fin-rows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── VIEW: ROTINA ─── -->
+    <div class="view" id="view-rotina">
+      <div class="page-head">
+        <h1>Rotina do Escritório</h1>
+        <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
+      </div>
+
+      <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
+      <div class="rot-placar" id="rotina-stats"></div>
+
+      <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
+      <div id="rotina-avisos"></div>
+
+      <!-- criação rápida: título + responsável + prazo, Enter grava -->
+      <div class="rot-rapida">
+        <i class="ti ti-plus"></i>
+        <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
+        <select id="rr-resp" title="Responsável"></select>
+        <div class="rr-datas" id="rr-datas"></div>
+        <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
+        <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
+        <button class="btn-sec" onclick="abrirModalTarefa(null,null)" title="Abrir o formulário completo"><i class="ti ti-adjustments-horizontal"></i></button>
+      </div>
+
+      <div class="rot-toolbar">
+        <div class="seg rot-modo">
+          <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
+          <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
+        </div>
+        <div class="rot-pessoas" id="rot-pessoas"></div>
+        <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
+      </div>
+
+      <div class="rotina-chips rot-status-chips" id="rot-status-chips" style="display:none">
+        <button class="chip active" data-f="todos" onclick="filtroRotina('todos',this)">Todas</button>
+        <button class="chip" data-f="pendente" onclick="filtroRotina('pendente',this)">Pendentes</button>
+        <button class="chip" data-f="andamento" onclick="filtroRotina('andamento',this)">Em andamento</button>
+        <button class="chip" data-f="concluido" onclick="filtroRotina('concluido',this)">Concluídas</button>
+      </div>
+      <div id="rotina-agenda"></div>
+      <div class="rotina-board" id="rotina-board"></div>
+
+      <!-- cumprimento de prazos: o que foi concluído, quando, e com quantos dias de atraso -->
+      <div class="modulo-card" style="margin-top:20px">
+        <div class="card-head">
+          <h3>Cumprimento de prazos</h3>
+          <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
+        </div>
+        <div class="card-body">
+          <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
+            <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
+            <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
+            <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
+            <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+          </div>
+          <div id="rotina-desempenho"></div>
+        </div>
+      </div>
+
+      <!-- projetos em andamento: puxa automaticamente as rotinas de elaboração
+           em aberto, agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
+      <div class="proj-panel recolhida" id="proj-panel"></div>
+
+      <div class="chat-panel" style="margin-top:20px">
+        <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
+        <div class="chat-list" id="rotina-chat-list"></div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="rotina-chat-input" placeholder="Deixe um recado para o outro sócio…" onkeydown="if(event.key==='Enter')enviarChatGeral()">
+          <button class="chat-send-btn" onclick="enviarChatGeral()" title="Enviar"><i class="ti ti-send"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── VIEW: COMERCIAL ─── -->
+    <div class="view" id="view-comercial">
+      <div class="page-head">
+        <h1>Comercial</h1>
+        <p>Cronograma de conteúdo · artigos para o site e vídeos para redes sociais</p>
+      </div>
+      <div class="stats-row" id="comercial-stats"></div>
+
+      <div class="dash-grid g21">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Metas do mês</h3>
+            <button class="modulo-link" onclick="abrirModalMetas()">Editar metas →</button>
+          </div>
+          <div class="card-body" id="comercial-metas"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Próximas gravações</h3>
+            <span class="sub" style="font-size:12px;color:var(--t3)">gravação toda semana, aos sábados</span>
+          </div>
+          <div class="card-body" id="comercial-sabados"></div>
+        </div>
+      </div>
+
+      <div class="modulo-card" style="margin:4px 0 24px">
+        <div class="card-head"><h3>Rotina comercial</h3><span class="sub" style="font-size:12px;color:var(--t3)">pautas em aberto por responsável · atrasadas em vermelho</span></div>
+        <div class="card-body"><div class="rotina-board" id="comercial-rotina"></div></div>
+      </div>
+
+      <div class="rotina-chips">
+        <span style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin-right:auto">Todas as pautas</span>
+        <button class="chip active" data-f="todos" onclick="filtroComercial('todos',this)">Todos</button>
+        <button class="chip" data-f="artigo" onclick="filtroComercial('artigo',this)">Artigos</button>
+        <button class="chip" data-f="video" onclick="filtroComercial('video',this)">Vídeos</button>
+        <button class="btn-nova-tarefa" onclick="abrirModalConteudo(null,null)"><i class="ti ti-plus"></i>Nova pauta</button>
+      </div>
+      <div class="comercial-board" id="comercial-board"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: NOVO LEAD ═══════════════ -->
+<div class="overlay" id="overlay-novo">
+  <div class="modal">
+    <h3>Novo lead trabalhista</h3>
+    <div class="fg"><label>Nome completo</label><input type="text" id="nl-nome" placeholder="Maria da Silva"></div>
+    <div class="fg"><label>Telefone / WhatsApp</label><input type="text" id="nl-tel" placeholder="(62) 99999-9999"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharModalNovo()">Cancelar</button>
+      <button class="btn-confirm" onclick="criarLead()">Criar lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: LANÇAMENTO FINANCEIRO ═══════════════ -->
+<div class="overlay" id="overlay-fin">
+  <div class="modal">
+    <h3 id="mf-titulo">Novo lançamento</h3>
+    <div class="fg" id="mf-cli-wrap"><label>Cliente</label><select id="mf-cli" onchange="mfClienteMudou()"></select></div>
+    <div class="fg" id="mf-contrato-wrap" style="display:none"><label>Contrato</label><select id="mf-contrato"></select></div>
+    <div class="fg"><label>Descrição</label><input type="text" id="mf-desc" placeholder="Ex.: Parcela 4 de R$ 500, ou Custa judicial paga" oninput="mfDescMudou()"></div>
+    <div class="fg-row">
+      <div class="fg"><label id="mf-valor-lbl">Valor (R$)</label><input type="text" id="mf-valor" placeholder="500,00" inputmode="decimal" oninput="mfRecRecalcular()"></div>
+      <div class="fg"><label id="mf-data-lbl">Data</label><input type="date" id="mf-data" onchange="mfRecRecalcular()"></div>
+    </div>
+    <div class="fg"><label>Tipo</label>
+      <div class="seg" id="mf-seg">
+        <button type="button" id="mf-t-alc" onclick="mfTipo('alc')">Recebido</button>
+        <button type="button" id="mf-t-prev" onclick="mfTipo('prev')">Previsto</button>
+        <button type="button" id="mf-t-saida" onclick="mfTipo('saida')">Saída</button>
+      </div>
+    </div>
+    <div class="fg" id="mf-alvara-wrap">
+      <label>Alvará judicial?</label>
+      <div class="seg">
+        <button type="button" id="mf-alvara-nao" onclick="mfAlvara(false)">Não</button>
+        <button type="button" id="mf-alvara-sim" onclick="mfAlvara(true)">Sim, fica fora da meta de faturamento</button>
+      </div>
+    </div>
+    <div class="fg" id="mf-rec-wrap">
+      <label>Repetição</label>
+      <div class="seg">
+        <button type="button" id="mf-rec-nao" onclick="mfAlternarRecorrente(false)">Lançamento único</button>
+        <button type="button" id="mf-rec-sim" onclick="mfAlternarRecorrente(true)">Recorrente / parcelado</button>
+      </div>
+      <div id="mf-rec-campos" style="display:none;margin-top:12px">
+        <div class="fg-row">
+          <div class="fg" style="margin-bottom:0"><label>Nº de parcelas</label><input type="number" id="mf-rec-n" min="2" max="120" step="1" value="12" oninput="mfRecRecalcular()"></div>
+          <div class="fg" style="margin-bottom:0"><label>Periodicidade</label>
+            <select id="mf-rec-per" onchange="mfRecRecalcular()">
+              <option value="mensal">Mensal</option>
+              <option value="quinzenal">Quinzenal (15 dias)</option>
+              <option value="semanal">Semanal</option>
+            </select>
+          </div>
+        </div>
+        <div class="parc-lista" id="mf-rec-lista"></div>
+        <p id="mf-rec-total" style="font-size:12px;color:var(--t2);margin:8px 0 0;font-weight:600"></p>
+        <p style="font-size:11px;color:var(--t3);margin:4px 0 0">Datas e valores de cada parcela podem ser ajustados um a um. Mudar o valor, a 1ª data, o número de parcelas ou a periodicidade refaz a lista.</p>
+      </div>
+      <p id="mf-rec-info" style="display:none;font-size:12px;color:var(--t3);margin:8px 0 0"></p>
+    </div>
+    <div class="fg" id="mf-fundo-wrap" style="display:none">
+      <label>Fundo do Escritório</label>
+      <div id="mf-fundo-status"></div>
+    </div>
+    <div class="fg" id="mf-terceiro-wrap" style="display:none">
+      <label>Crédito de execução judicial / honorário condicionado a terceiro?</label>
+      <div class="seg">
+        <button type="button" id="mf-terceiro-sim" onclick="mfToggleTerceiro(true)">Sim</button>
+        <button type="button" id="mf-terceiro-nao" onclick="mfToggleTerceiro(false)">Não</button>
+      </div>
+      <div class="fg-row" id="mf-terceiro-data-wrap" style="display:none;margin-top:12px">
+        <div class="fg" style="margin-bottom:0"><label>Data prevista de recebimento</label><input type="date" id="mf-data-prevista"></div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Aceite verbal (ainda sem contrato assinado)?</label>
+          <div class="seg">
+            <button type="button" id="mf-aceite-sim" onclick="mfToggleAceiteVerbal(true)">Sim</button>
+            <button type="button" id="mf-aceite-nao" onclick="mfToggleAceiteVerbal(false)">Não</button>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--t3);margin:8px 0 0">Preencha quando o prazo da parte contrária começar a correr. Gera uma tarefa automática de conferência nessa data, e o crédito não entra como "esquecido" enquanto a data não vencer.</p>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mf-del" onclick="excluirFin()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-fin')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarFin()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: PROCESSO ═══════════════ -->
+<div class="overlay" id="overlay-proc">
+  <div class="modal">
+    <h3 id="mp-titulo">Novo processo</h3>
+    <div class="fg"><label>Cliente vinculado</label><select id="mp-cli" onchange="mpClienteMudou()"></select></div>
+    <div class="fg"><label>Número do processo</label><input type="text" id="mp-num" placeholder="5123456-78"></div>
+    <div class="fg"><label>Parte no polo ativo</label><input type="text" id="mp-ativo" placeholder="Nome da parte autora"></div>
+    <div class="fg"><label>Parte no polo passivo</label><input type="text" id="mp-passivo" placeholder="Nome da parte ré"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Área</label><select id="mp-area"></select></div>
+      <div class="fg"><label>Responsável</label>
+        <select id="mp-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Fase atual</label><select id="mp-fase"></select></div>
+      <div class="fg"><label>Tribunal / órgão</label><input type="text" id="mp-orgao" placeholder="Ex.: TRT18 — 3ª Vara do Trabalho de Goiânia"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Cliente está no polo</label>
+        <div class="seg">
+          <button type="button" id="mp-polo-a" onclick="mpPolo('a')">Ativo</button>
+          <button type="button" id="mp-polo-p" onclick="mpPolo('p')">Passivo</button>
+        </div>
+      </div>
+      <div class="fg"><label>Distribuição</label><input type="date" id="mp-dist"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Status do processo</label>
+        <div class="seg">
+          <button type="button" id="mp-st-a" onclick="mpStatus('Ativo')">Ativo</button>
+          <button type="button" id="mp-st-x" onclick="mpStatus('Arquivado')">Arquivado</button>
+        </div>
+      </div>
+      <div class="fg"><label>Probabilidade de êxito (%)</label><input type="number" id="mp-exito" min="0" max="100" step="5" placeholder="Ex.: 70 — deixe em branco se não avaliado"></div>
+    </div>
+    <p id="mp-polo-hint" style="display:none;font-size:11.5px;color:var(--t3);margin:-8px 0 14px">Como polo passivo (defesa), normalmente não há valor de êxito a receber — pode deixar em branco.</p>
+    <div class="fg"><label>Observações</label><textarea id="mp-obs" rows="2" placeholder="Pontos de atenção do processo, estratégia, pendências do cliente…"></textarea></div>
+    <details class="mp-tese">
+      <summary>Tese utilizada (opcional)</summary>
+      <div class="fg" style="margin-top:12px"><label>Nome da tese</label><input type="text" id="mp-tese-titulo" placeholder="Ex.: Responsabilidade objetiva do transportador"></div>
+      <div class="fg"><label>Fundamentação</label><textarea id="mp-tese-texto" rows="4" placeholder="Fundamentos, jurisprudência, artigos de lei…"></textarea></div>
+    </details>
+    <div class="modal-btns">
+      <button class="btn-del" id="mp-del" onclick="excluirProc()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-proc')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarProc()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CLIENTE ═══════════════ -->
+<div class="overlay" id="overlay-cli">
+  <div class="modal">
+    <h3 id="mc-titulo">Novo cliente</h3>
+    <div class="fg"><label>Nome completo</label><input type="text" id="mc-nome" placeholder="Nome do cliente"></div>
+    <div class="fg"><label>Nome curto (exibição)</label><input type="text" id="mc-curto" placeholder="Ex.: Maria"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Tipo</label>
+        <div class="seg">
+          <button type="button" id="mc-tp-e" onclick="mcTipo('externo')">Externo</button>
+          <button type="button" id="mc-tp-p" onclick="mcTipo('pessoal')">Sócio</button>
+        </div>
+      </div>
+      <div class="fg"><label>Status</label>
+        <div class="seg">
+          <button type="button" id="mc-st-a" onclick="mcStatus('Ativo')">Ativo</button>
+          <button type="button" id="mc-st-x" onclick="mcStatus('Arquivado')">Arquivado</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Demandas</label><textarea id="mc-demandas" placeholder="Ex.: Defesa em Ação de Guarda + Criminal"></textarea></div>
+      <div class="fg"><label>Data de entrada</label><input type="date" id="mc-entrada"><span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Usada no gráfico de desempenho. Se vazia, usamos a distribuição mais antiga.</span></div>
+    </div>
+    <div class="fg">
+      <label>Lead vinculado (CRM)</label>
+      <select id="mc-lead" onchange="mcLeadMudou()"><option value="">— nenhum: fica pendente de vincular —</option></select>
+      <div id="mc-lead-criar-wrap" style="margin-top:10px;display:none">
+        <p style="font-size:11px;color:var(--t3);margin-bottom:8px">Cliente sem lead correspondente no CRM (ex.: veio de antes do sistema)? Crie um lead retroativo — ele nasce já como "Ganho" e vinculado a este cliente.</p>
+        <div class="seg" style="margin-bottom:8px">
+          <button type="button" id="mc-lead-mod-trab" onclick="mcLeadModRetroativo('trab')">Trabalhista</button>
+          <button type="button" id="mc-lead-mod-civel" onclick="mcLeadModRetroativo('civel')">Cível</button>
+        </div>
+        <div class="fg" style="margin-bottom:8px">
+          <label>Data do primeiro contato</label>
+          <input type="date" id="mc-lead-data">
+          <span style="font-size:11px;color:var(--t3);display:block;margin-top:4px">Quando esse cliente procurou o escritório. Leads retroativos não entram na contagem de "leads no mês" nem nas métricas de conversão/ticket — servem só para vincular o contrato ao CRM.</span>
+        </div>
+        <button type="button" class="btn-novo-lead" onclick="criarLeadRetroativo()"><i class="ti ti-plus"></i>Criar lead retroativo e vincular</button>
+      </div>
+      <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Todo contrato fechado deveria estar ligado a um lead do funil de vendas. Sem vínculo, o cliente fica sinalizado como pendência para vincular no CRM.</span>
+    </div>
+    <div class="fg" id="mc-unir-wrap" style="display:none">
+      <label>Unir cadastro duplicado</label>
+      <select id="mc-unir"></select>
+      <button type="button" class="det-add" style="margin-top:8px" onclick="unirClientes()"><i class="ti ti-arrows-join"></i> Trazer para este cadastro</button>
+      <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Para o cliente que foi cadastrado de novo a cada contrato. Contratos, lançamentos, processos, pendências, recados, conversa e pastas do cadastro escolhido passam para este, e o duplicado é removido.</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mc-del" onclick="excluirCliente()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-cli')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONTRATO ═══════════════ -->
+<div class="overlay" id="overlay-contrato">
+  <div class="modal">
+    <h3 id="mct-titulo">Novo contrato</h3>
+    <div class="fg"><label>Objeto do contrato</label><input type="text" id="mct-objeto" placeholder="Ex.: Assessoria jurídica mensal, ou Reclamatória trabalhista"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Data de início</label><input type="date" id="mct-inicio"></div>
+      <div class="fg"><label>Status</label>
+        <div class="seg">
+          <button type="button" id="mct-st-a" onclick="mctStatus('Ativo')">Ativo</button>
+          <button type="button" id="mct-st-x" onclick="mctStatus('Encerrado')">Encerrado</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label>Valor total contratado (R$) · opcional</label><input type="text" id="mct-valor" placeholder="Ex.: 18.000,00" inputmode="decimal"><span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Entra nos honorários fechados da meta do mês. Se ficar em branco, vale a soma dos lançamentos do contrato.</span></div>
+    <div class="fg"><label>Observações</label><textarea id="mct-obs" rows="2" placeholder="Valor combinado, forma de pagamento, vigência, reajuste…"></textarea></div>
+    <p id="mct-resumo" style="font-size:12px;color:var(--t3);margin:-4px 0 14px;line-height:1.5"></p>
+    <div class="modal-btns">
+      <button class="btn-del" id="mct-del" onclick="excluirContrato()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-contrato')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarContrato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: TAREFA (ROTINA) ═══════════════ -->
+<div class="overlay" id="overlay-tarefa">
+  <div class="modal">
+    <h3 id="mt-titulo">Nova tarefa</h3>
+    <div class="fg"><label>Descrição da tarefa</label><input type="text" id="mt-titulo-in" placeholder="Ex.: Elaborar petição inicial" oninput="mtRecalcProjetoAuto()"></div>
+    <div class="fg" id="mt-desc-wrap" style="display:none">
+      <label>Detalhes / roteiro sugerido</label>
+      <textarea id="mt-desc" readonly style="background:var(--surface2);color:var(--t2);min-height:110px"></textarea>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Responsável</label>
+        <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+      </div>
+      <div class="fg"><label>Tipo</label>
+        <select id="mt-tipo" onchange="mtRecalcProjetoAuto();mtAtualizarHintFatal()"></select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Cliente (opcional)</label>
+        <select id="mt-cli"></select>
+      </div>
+      <div class="fg"><label>Processo (opcional)</label>
+        <select id="mt-proc" onchange="mtProcessoMudou()"></select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()"></div>
+      <div class="fg"><label>Hora</label><input type="time" id="mt-hora"></div>
+    </div>
+    <div class="fg" id="mt-fatal-wrap">
+      <label>Prazo fatal (processual)</label>
+      <input type="date" id="mt-fatal" onchange="mtAtualizarHintFatal()">
+      <div class="mt-conc-hint" id="mt-fatal-hint">Deixe em branco se não for prazo de processo. Quando preenchido, o prazo de entrega acima funciona como prazo interno, antes do fatal.</div>
+    </div>
+    <div class="mt-conferir" id="mt-conferir-wrap" style="display:none">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="checkbox" id="mt-conferido" style="width:auto;margin:3px 0 0">
+        <span><b>Conferi a contagem deste prazo.</b> <span id="mt-conferir-txt"></span></span>
+      </label>
+    </div>
+    <div class="mt-conc-hint" id="mt-hora-hint" style="margin:-10px 0 16px">Preencha a hora nas audiências e reuniões — é ela que aparece no calendário da visão geral.</div>
+    <div class="fg"><label>Status</label>
+      <div class="seg">
+        <button type="button" id="mt-st-p" onclick="mtStatus('pendente')">Pendente</button>
+        <button type="button" id="mt-st-a" onclick="mtStatus('andamento')">Em andamento</button>
+        <button type="button" id="mt-st-c" onclick="mtStatus('concluido')">Concluída</button>
+      </div>
+    </div>
+    <div class="fg" id="mt-conc-wrap" style="display:none">
+      <label>Concluída em</label>
+      <input type="date" id="mt-conc" onchange="mtAtualizarHintConclusao()">
+      <div class="mt-conc-hint" id="mt-conc-hint"></div>
+    </div>
+    <!-- acompanhamento em "Projetos em andamento" (painel do topo da Rotina) -->
+    <div class="fg">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="mt-proj" onchange="mtAlternarProjeto()" style="width:auto;margin:0">
+        Acompanhar em “Projetos em andamento”
+      </label>
+      <div class="mt-conc-hint" id="mt-proj-hint"></div>
+    </div>
+    <div class="fg" id="mt-status-wrap" style="display:none">
+      <label>Etapa atual da execução</label>
+      <input type="text" id="mt-status" placeholder="Ex.: COM THALLYS — elaboração dos tópicos de direito">
+      <div class="mt-conc-hint" id="mt-status-hint"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mt-del" onclick="excluirTarefa()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-tarefa')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarTarefa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: NOVO PRAZO PROCESSUAL ═══════════════
+     Calcula o prazo fatal em dias úteis a partir da disponibilização no DJEN
+     (Lei 11.419/2006, art. 4º, §§ 3º e 4º) e grava como tarefa da Rotina. -->
+<div class="overlay" id="overlay-prazo">
+  <div class="modal" style="width:520px">
+    <h3>Novo prazo</h3>
+    <p id="mpz-contexto" style="font-size:12.5px;color:var(--t3);margin:-10px 0 18px;line-height:1.5"></p>
+    <div class="fg"><label>Processo</label><select id="mpz-proc" onchange="mpzRecalcular()"></select></div>
+    <div class="fg"><label>Ato a praticar</label><input type="text" id="mpz-ato" placeholder="Ex.: Contestação, Recurso ordinário, Manifestação sobre laudo"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Disponibilizado no DJEN em</label><input type="date" id="mpz-disp" onchange="mpzRecalcular()"></div>
+      <div class="fg"><label>Prazo (dias)</label><input type="number" id="mpz-dias" min="1" max="365" onchange="mpzRecalcular()" oninput="mpzRecalcular()"></div>
+    </div>
+    <div class="fg"><label>Contagem</label>
+      <div class="seg">
+        <button type="button" id="mpz-uteis" onclick="mpzContagem('uteis')">Dias úteis</button>
+        <button type="button" id="mpz-corridos" onclick="mpzContagem('corridos')">Dias corridos</button>
+      </div>
+    </div>
+    <div class="mpz-calc" id="mpz-calc"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Prazo fatal</label><input type="date" id="mpz-fatal" onchange="mpzFatalManual()"></div>
+      <div class="fg"><label>Entregar até (interno)</label><input type="date" id="mpz-interno"></div>
+    </div>
+    <div class="fg"><label>Responsável</label>
+      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-prazo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarPrazo()">Criar prazo na Rotina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONFIGURAÇÃO DO DJEN ═══════════════ -->
+<div class="overlay" id="overlay-djen">
+  <div class="modal" style="width:600px">
+    <h3>Publicações do DJEN</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-10px 0 18px;line-height:1.55">O sistema consulta o Diário de Justiça Eletrônico Nacional pelas OABs abaixo, liga cada publicação ao processo pelo número CNJ (ou cadastra o processo) e calcula o prazo: pelo texto da publicação, pela lei do ato publicado ou, na falta de ambos, pelo prazo geral de 5 dias úteis. O prazo vai para a Rotina marcado <b>a conferir</b>. Informe em "Advogado(a)" o nome do sócio para que os prazos daquela OAB caiam com ele.</p>
+    <div class="det-sec-titulo"><span>OABs monitoradas</span></div>
+    <div id="djen-oabs"></div>
+    <div class="fg-row" style="grid-template-columns:1.2fr .6fr 1.6fr auto;align-items:end;margin-top:8px">
+      <div class="fg" style="margin-bottom:0"><label>Número OAB</label><input type="text" id="djen-oab-num" placeholder="12345"></div>
+      <div class="fg" style="margin-bottom:0"><label>UF</label><input type="text" id="djen-oab-uf" maxlength="2" placeholder="GO" style="text-transform:uppercase"></div>
+      <div class="fg" style="margin-bottom:0"><label>Advogado(a)</label><input type="text" id="djen-oab-nome" placeholder="Nome (opcional)"></div>
+      <button class="det-add" style="height:42px" onclick="adicionarOabDJEN()"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="fg-row" style="margin-top:18px">
+      <div class="fg"><label>Antecedência do prazo interno</label>
+        <input type="number" id="djen-antecedencia" min="0" max="10">
+        <div class="mt-conc-hint">dias úteis antes do prazo fatal para a entrega interna</div>
+      </div>
+      <div class="fg"><label>Busca automática</label>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--t2);font-weight:500;cursor:pointer">
+          <input type="checkbox" id="djen-auto" style="width:auto;margin:0"> Buscar ao entrar no sistema (no máximo a cada 4 horas)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--t2);font-weight:500;cursor:pointer;margin-top:8px">
+          <input type="checkbox" id="djen-autocad" style="width:auto;margin:0"> Cadastrar sozinho o processo que ainda não estiver no sistema
+        </label>
+      </div>
+    </div>
+    <div class="fg"><label>Feriados e suspensões locais</label>
+      <textarea id="djen-feriados" rows="3" placeholder="Um por linha, no formato dd/mm/aaaa. Ex.: 24/10/2026 (aniversário de Goiânia)"></textarea>
+      <div class="mt-conc-hint">Já são considerados: feriados nacionais, Carnaval, Sexta-feira Santa, Corpus Christi e o recesso de 20/12 a 20/01. Inclua aqui feriados municipais, estaduais e suspensões de expediente do tribunal.</div>
+    </div>
+    <details class="mp-tese" style="margin-bottom:16px">
+      <summary>Se a busca automática for bloqueada pelo navegador</summary>
+      <p style="font-size:12.5px;color:var(--t2);line-height:1.55;margin:10px 0">Abra o link abaixo em outra aba, selecione todo o conteúdo (Ctrl+A), copie (Ctrl+C) e cole no campo. O resultado é tratado exatamente como na busca automática.</p>
+      <div id="djen-links" style="font-size:12.5px;margin-bottom:10px;word-break:break-all"></div>
+      <textarea id="djen-colar" rows="4" placeholder='Cole aqui o conteúdo da página (começa com {"status":...)' style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px;border:1px solid var(--border-med);border-radius:var(--rs)"></textarea>
+      <button class="det-add" style="margin-top:8px" onclick="importarDJENColado()"><i class="ti ti-clipboard-check"></i> Importar conteúdo colado</button>
+    </details>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-djen')">Fechar</button>
+      <button class="btn-confirm" onclick="salvarConfigDJEN()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: ÁREAS E FASES DOS PROCESSOS ═══════════════ -->
+<div class="overlay" id="overlay-areas">
+  <div class="modal" style="width:520px">
+    <h3>Áreas e fases</h3>
+    <div class="det-sec-titulo"><span>Áreas</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">viram as abas da tela de Processos</span></div>
+    <div id="cfg-areas-list"></div>
+    <div class="cfgtipo-row" style="margin-top:8px">
+      <input type="color" class="cfgtipo-color" id="cfg-area-cor" value="#2f5d94">
+      <input type="text" class="cfgtipo-lbl" id="cfg-area-nome" placeholder="Nova área (ex.: Previdenciário)" onkeydown="if(event.key==='Enter')adicionarArea()">
+      <button class="btn-ico" onclick="adicionarArea()" title="Adicionar área"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="det-sec-titulo" style="margin-top:20px"><span>Fases</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">uma por linha, na ordem em que o processo anda</span></div>
+    <div class="fg"><textarea id="cfg-fases" rows="9"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-areas')">Fechar</button>
+      <button class="btn-confirm" onclick="salvarFases()">Salvar fases</button>
+    </div>
+  </div>
+</div>
+
+<!-- aviso rápido com "desfazer" (conclusão de tarefa em um clique) -->
+<div class="toast" id="toast"><span id="toast-txt"></span><button id="toast-btn" onclick="toastAcao()">Desfazer</button></div>
+
+<!-- ═══════════════ MODAL: PAUTA COMERCIAL (ARTIGO/VÍDEO) ═══════════════ -->
+<div class="overlay" id="overlay-conteudo">
+  <div class="modal">
+    <h3 id="mcc-titulo">Nova pauta</h3>
+    <div class="fg"><label>Tipo</label>
+      <div class="seg" id="mcc-seg">
+        <button type="button" id="mcc-t-artigo" onclick="mccTipo('artigo')">Artigo</button>
+        <button type="button" id="mcc-t-video" onclick="mccTipo('video')">Vídeo</button>
+      </div>
+    </div>
+    <div class="fg"><label>Título / tema</label><input type="text" id="mcc-titulo-in" placeholder="Ex.: Como funciona uma ação de guarda"></div>
+    <div class="fg"><label>Pauta / observações</label><textarea id="mcc-tema" rows="3" placeholder="Ideia, pontos a abordar, roteiro..."></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>Responsável</label>
+        <select id="mcc-resp"><option>Cecília</option><option>Thallys</option><option>Escritório</option></select>
+      </div>
+      <div class="fg"><label id="mcc-data-label">Data prevista</label><input type="date" id="mcc-data"></div>
+    </div>
+    <div class="fg"><label>Status</label>
+      <div class="seg" id="mcc-seg-status">
+        <button type="button" id="mcc-st-ideia" onclick="mccStatus('ideia')">Ideia</button>
+        <button type="button" id="mcc-st-roteiro" onclick="mccStatus('roteiro')">Roteiro</button>
+        <button type="button" id="mcc-st-producao" onclick="mccStatus('producao')">Produção</button>
+        <button type="button" id="mcc-st-publicado" onclick="mccStatus('publicado')">Publicado</button>
+      </div>
+    </div>
+    <div class="fg" id="mcc-link-wrap"><label>Link (quando publicado)</label><input type="text" id="mcc-link" placeholder="https://..."></div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mcc-del" onclick="excluirConteudo()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-conteudo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarConteudo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: METAS COMERCIAIS ═══════════════ -->
+<div class="overlay" id="overlay-metas">
+  <div class="modal">
+    <h3>Metas mensais de conteúdo</h3>
+    <div class="fg-row">
+      <div class="fg"><label>Artigos por mês</label><input type="number" id="mm-artigos" min="0"></div>
+      <div class="fg"><label>Vídeos por mês</label><input type="number" id="mm-videos" min="0"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-metas')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarMetas()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: DETALHE DO FATURAMENTO DE UM MÊS ═══════════════ -->
+<div class="overlay" id="overlay-mesdet">
+  <div class="modal" style="width:600px">
+    <h3 id="md-titulo">Faturamento do mês</h3>
+    <div id="md-resumo" style="margin-bottom:14px"></div>
+    <div class="det-sec-titulo"><span>Entradas de clientes</span></div>
+    <div id="md-entradas" style="margin-bottom:14px"></div>
+    <div class="det-sec-titulo"><span>Saídas</span></div>
+    <div id="md-saidas"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-mesdet')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONTRATOS FECHADOS DE UM MÊS ═══════════════ -->
+<div class="overlay" id="overlay-mescli">
+  <div class="modal" style="width:520px">
+    <h3 id="cm-titulo">Contratos fechados do mês</h3>
+    <div id="cm-lista"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-mescli')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONFIGURAÇÕES ═══════════════ -->
+<div class="overlay" id="overlay-config">
+  <div class="modal" style="width:500px">
+    <h3>Configurações</h3>
+    <div class="det-sec-titulo"><span>Tipos de tarefa</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">usados na Rotina e nas pendências</span></div>
+    <div id="config-tipos-list" style="margin-bottom:16px"></div>
+    <div class="fg-row" style="align-items:end">
+      <div class="fg" style="margin-bottom:0"><label>Novo tipo</label><input type="text" id="cfg-tipo-nome" placeholder="Ex.: Reunião"></div>
+      <div class="fg" style="margin-bottom:0;flex:0 0 60px"><label>Cor</label><input type="color" id="cfg-tipo-cor" value="#2f5d94" style="height:44px;padding:4px;width:100%"></div>
+    </div>
+    <button class="det-add" style="margin-top:12px" onclick="adicionarTipoTarefa()"><i class="ti ti-plus"></i> Adicionar tipo</button>
+
+    <div class="det-sec-titulo" style="margin-top:26px"><span>Sua senha</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400" id="cfg-senha-quem"></span></div>
+    <div class="bk-info">A senha vale para todos os dispositivos e é ela que destranca o token guardado neste computador. Use pelo menos 8 caracteres e não repita senha de outro serviço.</div>
+    <div class="fg"><label>Senha atual</label><input type="password" id="cfg-senha-atual" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="fg-row">
+      <div class="fg" style="margin-bottom:0"><label>Nova senha</label><input type="password" id="cfg-senha-nova" autocomplete="new-password" placeholder="mínimo 8 caracteres"></div>
+      <div class="fg" style="margin-bottom:0"><label>Repita a nova senha</label><input type="password" id="cfg-senha-nova2" autocomplete="new-password" placeholder="••••••••"></div>
+    </div>
+    <button class="det-add" style="margin-top:12px" id="cfg-senha-btn" onclick="trocarSenha()"><i class="ti ti-key"></i> Trocar minha senha</button>
+    <div id="cfg-senha-msg" style="display:none;font-size:12.5px;margin-top:10px;padding:10px 12px;border-radius:var(--rs)"></div>
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-config')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: BACKUP DOS DADOS ═══════════════ -->
+<div class="overlay" id="overlay-backup">
+  <div class="modal" style="width:640px">
+    <h3><i class="ti ti-database-export" style="color:var(--navy);margin-right:6px"></i>Backup dos dados</h3>
+
+    <div class="bk-aba">
+      <button id="bk-aba-baixar" class="active" onclick="mudarAbaBackup('baixar',this)">Baixar cópia</button>
+      <button id="bk-aba-restaurar" onclick="mudarAbaBackup('restaurar',this)">Restaurar</button>
+      <button id="bk-aba-seguranca" onclick="mudarAbaBackup('seguranca',this)">Segurança</button>
+    </div>
+
+    <!-- ─── BAIXAR ─── -->
+    <div class="bk-pane active" id="bk-pane-baixar">
+      <div class="bk-info" id="bk-resumo"></div>
+
+      <button class="bk-op" id="bk-btn-completo" onclick="baixarSistemaCompleto(this)">
+        <i class="ti ti-shield-check"></i>
+        <span>
+          <span class="bk-tit">Sistema completo (.html) — recomendado</span>
+          <span class="bk-sub">Um único arquivo com o sistema inteiro <b>e</b> todos os dados dentro. Se o site, o Gist ou a conta do GitHub sumirem, basta abrir esse arquivo no navegador para o sistema voltar a funcionar exatamente como está agora.</span>
+        </span>
+      </button>
+
+      <button class="bk-op" onclick="baixarBackupJSON()">
+        <i class="ti ti-file-code"></i>
+        <span>
+          <span class="bk-tit">Backup dos dados (.json)</span>
+          <span class="bk-sub">Todos os dados brutos — clientes, financeiro, processos, tarefas, leads, conversas, custos e lançamentos. É esse arquivo que a aba "Restaurar" usa para devolver tudo ao sistema.</span>
+        </span>
+      </button>
+
+      <button class="bk-op" onclick="baixarBackupJS()">
+        <i class="ti ti-brackets-contain"></i>
+        <span>
+          <span class="bk-tit">Dados prontos para colar em outro HTML (.js)</span>
+          <span class="bk-sub">Arquivo pronto para uso: inclua com <code>&lt;script src="bgl-dados.js"&gt;&lt;/script&gt;</code> em qualquer página e os dados ficam disponíveis em <code>window.BGL_DADOS</code> — nenhum ajuste necessário.</span>
+        </span>
+      </button>
+
+      <button class="bk-op" onclick="baixarRelatorio()">
+        <i class="ti ti-report"></i>
+        <span>
+          <span class="bk-tit">Relatório completo (.html para ler ou imprimir em PDF)</span>
+          <span class="bk-sub">Todos os dados organizados em texto e tabelas, para leitura humana: carteira de clientes, financeiro, processos, teses, rotina, funil de vendas e caixa. Abra e use "Imprimir → Salvar como PDF".</span>
+        </span>
+      </button>
+
+      <button class="bk-op" onclick="baixarPlanilhas()">
+        <i class="ti ti-table-export"></i>
+        <span>
+          <span class="bk-tit">Planilhas (.csv — abre no Excel)</span>
+          <span class="bk-sub">Baixa uma planilha por assunto (clientes, financeiro, processos, tarefas, leads, custos e lançamentos), para conferência ou reimportação em qualquer outro sistema.</span>
+        </span>
+      </button>
+
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="fecharOverlay('overlay-backup')">Fechar</button>
+        <button class="btn-confirm" id="bk-btn-tudo" onclick="baixarBackupCompletoTudo(this)"><i class="ti ti-download" style="margin-right:6px"></i>Baixar tudo de uma vez</button>
+      </div>
+    </div>
+
+    <!-- ─── RESTAURAR ─── -->
+    <div class="bk-pane" id="bk-pane-restaurar">
+      <div class="bk-info bk-alerta">
+        <b>Atenção:</b> restaurar substitui os dados atuais do sistema pelos dados do arquivo. Antes de gravar, o sistema baixa automaticamente um backup do estado atual, para nada ser perdido caso você restaure o arquivo errado.
+      </div>
+      <div class="fg">
+        <label>Arquivo de backup (.json ou .html gerado aqui)</label>
+        <input type="file" id="bk-arquivo" accept=".json,.html,.txt,application/json,text/html">
+      </div>
+      <button class="det-add" onclick="restaurarDeArquivo()"><i class="ti ti-upload"></i> Restaurar a partir deste arquivo</button>
+
+      <div class="det-sec-titulo" style="margin-top:22px"><span>Cópias automáticas neste navegador</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">guardadas a cada alteração</span></div>
+      <div class="bk-info" style="margin-bottom:10px">O sistema guarda sozinho as últimas versões dos dados neste computador. Servem para desfazer um erro recente — não substituem o backup baixado, porque somem se o navegador for limpo.</div>
+      <div id="bk-historico"></div>
+
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="fecharOverlay('overlay-backup')">Fechar</button>
+      </div>
+    </div>
+
+    <!-- ─── SEGURANÇA ─── -->
+    <div class="bk-pane" id="bk-pane-seguranca">
+      <div id="bk-seg-estado"></div>
+
+      <div class="det-sec-titulo" style="margin-top:4px"><span>Cópia automática no repositório</span></div>
+      <div class="bk-info bk-alerta">
+        Quando ligado, o sistema envia uma cópia de <b>todos os dados</b> para o repositório <code id="bk-seg-repo"></code> a cada alteração. <b>Só ligue se esse repositório for privado</b> — num repositório público, os dados dos clientes ficam visíveis para qualquer pessoa da internet.
+      </div>
+      <label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--t2);cursor:pointer;margin-bottom:6px">
+        <input type="checkbox" id="bk-seg-snapshot" onchange="alternarSnapshotRepo(this)" style="margin-top:2px">
+        <span>Enviar cópia automática para o repositório (confirmo que ele é privado)</span>
+      </label>
+
+      <div class="det-sec-titulo" style="margin-top:22px"><span>Este dispositivo</span></div>
+      <div class="bk-info" id="bk-seg-token"></div>
+      <button class="det-add" onclick="esquecerDispositivo()"><i class="ti ti-lock-off"></i> Esquecer token e sair deste dispositivo</button>
+
+      <div class="det-sec-titulo" style="margin-top:22px"><span>Lembrete de backup</span></div>
+      <div class="bk-info">O sino de alerta no botão de backup aparece quando passam mais de <b id="bk-seg-dias">7</b> dias sem uma cópia baixada. Baixe o "Sistema completo" pelo menos uma vez por semana e guarde em dois lugares diferentes (computador + nuvem pessoal ou pendrive).</div>
+
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="fecharOverlay('overlay-backup')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: IMPORTAR CONVERSA ═══════════════ -->
+<div class="overlay" id="overlay-conversa">
+  <div class="modal" style="width:560px">
+    <h3>Importar conversa exportada</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:16px;line-height:1.5">No WhatsApp: abra a conversa → ⋮ → Mais → Exportar conversa → Sem mídia. Envie o arquivo .txt gerado ou cole o texto abaixo.</p>
+    <div class="fg"><label>Arquivo exportado (.txt)</label><input type="file" id="conv-file" accept=".txt" onchange="carregarArquivoConversa(this)"></div>
+    <div class="fg"><label>Ou cole o texto aqui</label><textarea id="conv-texto" style="min-height:170px" placeholder="Cole aqui o conteúdo exportado da conversa…"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-del" id="conv-del" onclick="removerConversa()" style="display:none"><i class="ti ti-trash"></i> Remover conversa</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-conversa')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarConversa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CUSTO FIXO ═══════════════ -->
+<div class="overlay" id="overlay-custo">
+  <div class="modal">
+    <h3 id="mcu-titulo">Novo custo fixo</h3>
+    <div class="fg"><label>Nome do custo</label><input type="text" id="mcu-nome" placeholder="Ex.: Aluguel da sala"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Categoria</label><input type="text" id="mcu-categoria" placeholder="Ex.: Estrutura, Pessoal, Software…"></div>
+      <div class="fg"><label>Valor mensal (R$)</label><input type="text" id="mcu-valor" placeholder="2.500,00" inputmode="decimal"></div>
+    </div>
+    <div class="fg"><label>Dia de vencimento (opcional)</label><input type="number" id="mcu-venc" min="1" max="31" placeholder="Ex.: 10 — todo dia 10"></div>
+    <div class="fg"><label>Status</label>
+      <div class="seg">
+        <button type="button" id="mcu-st-a" onclick="mcuStatus(true)">Ativo</button>
+        <button type="button" id="mcu-st-x" onclick="mcuStatus(false)">Inativo</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mcu-del" onclick="excluirCusto()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-custo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarCusto()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: LANÇAMENTO DO CAIXA (geral) ═══════════════ -->
+<div class="overlay" id="overlay-lanc">
+  <div class="modal">
+    <h3 id="ml-titulo">Novo lançamento</h3>
+    <div class="fg"><label>Descrição</label><input type="text" id="ml-desc" placeholder="Ex.: Pagamento do aluguel — julho"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Valor (R$)</label><input type="text" id="ml-valor" placeholder="500,00" inputmode="decimal"></div>
+      <div class="fg"><label>Data</label><input type="date" id="ml-data"></div>
+    </div>
+    <div class="fg"><label>Categoria</label><input type="text" id="ml-categoria" placeholder="Ex.: Custo fixo, Material, Ajuste de caixa…"></div>
+    <div class="fg"><label>Tipo</label>
+      <div class="seg">
+        <button type="button" id="ml-t-entrada" onclick="mlTipo('entrada')">Entrada</button>
+        <button type="button" id="ml-t-saida" onclick="mlTipo('saida')">Saída</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="ml-del" onclick="excluirLancamento()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-lanc')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarLancamento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: AJUSTAR SALDO DO CAIXA ═══════════════ -->
+<div class="overlay" id="overlay-saldo">
+  <div class="modal">
+    <h3>Ajustar saldo do caixa</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:16px;line-height:1.6">Use isto para corrigir o valor exibido <b>sem criar uma movimentação de hoje</b>. Útil quando o dinheiro recebido no passado já foi usado ou distribuído, mas isso nunca foi registrado aqui — o sistema calcula o ajuste necessário automaticamente.</p>
+    <div class="fg"><label>Qual é o saldo real em caixa hoje?</label><input type="text" id="sld-valor" placeholder="0,00" inputmode="decimal"></div>
+    <div class="fg"><label>Observação (opcional)</label><input type="text" id="sld-obs" placeholder="Ex.: valores anteriores já usados em despesas não registradas"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-saldo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarAjusteSaldo()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ MODAL: GUARDA NO FUNDO DO ESCRITÓRIO ═══════════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-fundo">
+  <div class="modal">
+    <h3 id="mfe-titulo">Registrar guarda no fundo</h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5"><i class="ti ti-info-circle"></i> Esse valor é retirado do caixa disponível e passa a contar como reserva do escritório.</p>
+    <div class="fg"><label>Valor guardado (R$)</label><input type="text" id="mfe-valor" placeholder="500,00" inputmode="decimal"></div>
+    <div class="fg"><label>Data</label><input type="date" id="mfe-data"></div>
+    <div class="fg"><label>Observação (opcional)</label><input type="text" id="mfe-obs" placeholder="Ex.: transferência para poupança do escritório"></div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mfe-del" onclick="excluirAporte()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-fundo')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarAporte()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: RETIRADA DO FUNDO DO ESCRITÓRIO ═══════════════ -->
+<div class="overlay" id="overlay-fundoret">
+  <div class="modal">
+    <h3 id="mfr-titulo">Retirar do fundo</h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5"><i class="ti ti-info-circle"></i> Retire qualquer quantia do fundo, sem precisar desfazer uma guarda inteira. Saldo disponível no fundo: <b id="mfr-saldo" style="color:var(--navy)">R$ 0</b>.</p>
+    <div class="fg"><label>Valor a retirar (R$)</label><input type="text" id="mfr-valor" placeholder="500,00" inputmode="decimal"></div>
+    <div class="fg"><label>Destino do dinheiro</label>
+      <div class="seg">
+        <button type="button" id="mfr-dest-caixa" onclick="mfrDestino('caixa')">Volta para o caixa</button>
+        <button type="button" id="mfr-dest-saque" onclick="mfrDestino('saque')">Saque (sai do escritório)</button>
+      </div>
+      <div class="mt-conc-hint" id="mfr-dest-hint"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Data</label><input type="date" id="mfr-data"></div>
+      <div class="fg"><label>Motivo / observação</label><input type="text" id="mfr-obs" placeholder="Ex.: pagamento de custas"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="mfr-del" onclick="excluirRetiradaFundo()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-fundoret')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarRetiradaFundo()">Confirmar retirada</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: DETALHE DA META DE CONTRATOS DO MÊS ═══════════════ -->
+<div class="overlay" id="overlay-metadetalhe">
+  <div class="modal" style="width:620px">
+    <h3>Metas — <span id="mmd-mes"></span></h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5" id="mmd-sub"></p>
+    <div id="mmd-resumo"></div>
+    <div class="meta-explica" id="mmd-explica"></div>
+    <div style="font-family:var(--font-serif);font-size:16px;font-weight:600;color:var(--navy);margin-bottom:6px">Contratos contados neste mês</div>
+    <div id="mmd-lista"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-metadetalhe')">Fechar</button>
+      <button class="btn-confirm" onclick="fecharOverlay('overlay-metadetalhe');abrirModalMetaCRM()">Editar metas</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ MODAL: EXTRATO DO CAIXA ═══════════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-extrato">
+  <div class="modal" style="width:680px">
+    <h3>Extrato do caixa</h3>
+    <p style="font-size:12px;color:var(--t3);margin:-8px 0 14px;line-height:1.5"><i class="ti ti-info-circle"></i> Todas as movimentações que compõem o caixa atual, mais recentes primeiro, com o saldo acumulado logo abaixo de cada uma. Use o período para ver só um intervalo.</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+      <div class="fg" style="margin:0"><label>Do dia</label><input type="date" id="extrato-de" onchange="renderExtratoCaixa()"></div>
+      <div class="fg" style="margin:0"><label>Até o dia</label><input type="date" id="extrato-ate" onchange="renderExtratoCaixa()"></div>
+      <button class="btn-cancel" style="padding:8px 14px" onclick="document.getElementById('extrato-de').value='';document.getElementById('extrato-ate').value='';renderExtratoCaixa()">Limpar</button>
+      <span id="extrato-resumo" style="font-size:12px;color:var(--t3);margin-left:auto;text-align:right"></span>
+    </div>
+    <div id="extrato-lista" style="max-height:56vh;overflow-y:auto"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-extrato')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-notif">
+  <div class="modal" style="width:660px">
+    <h3>Tarefas atrasadas</h3>
+    <p id="notif-sub" style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5"></p>
+    <div id="notif-lista" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-notif')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-metacrm">
+  <div class="modal">
+    <h3>Metas do escritório</h3>
+    <p id="mcrm-mes" style="font-size:12px;color:var(--t3);margin:-8px 0 16px"></p>
+    <div class="fg-row">
+      <div class="fg"><label>Faturamento do mês (R$)</label><input type="number" id="mcrm-recebido" min="0" step="100"><span class="mcrm-ref" id="mcrm-ref-recebido"></span></div>
+      <div class="fg"><label>Honorários fechados no mês (R$)</label><input type="number" id="mcrm-faturamento" min="0" step="100"><span class="mcrm-ref" id="mcrm-ref-hon"></span></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label id="mcrm-tri-lbl">Honorários fechados no trimestre (R$)</label><input type="number" id="mcrm-trimestre" min="0" step="500"><span class="mcrm-ref" id="mcrm-ref-tri"></span></div>
+      <div class="fg"><label>Contratos fechados no mês</label><input type="number" id="mcrm-contratos" min="0"></div>
+    </div>
+    <p style="font-size:11px;color:var(--t3);margin:-4px 0 14px;line-height:1.5">Faturamento é o que foi recebido de clientes no mês, sem alvarás judiciais e sem demandas pessoais dos sócios. Honorários fechados é o valor dos contratos fechados, mesmo que entrem parcelados.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-metacrm')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarMetaCRM()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-followup">
+  <div class="modal" style="width:560px">
+    <h3><i class="ti ti-bell-ringing" style="color:var(--red-hi);margin-right:6px"></i>Follow-up pendente</h3>
+    <p id="followup-sub" style="font-size:12px;color:var(--t3);margin:-8px 0 16px"></p>
+    <div id="followup-lista" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-followup')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-motivoperda">
+  <div class="modal">
+    <h3>Motivo da perda</h3>
+    <p id="mvp-sub" style="font-size:12.5px;color:var(--t3);margin:-8px 0 16px"></p>
+    <div class="fg"><label>Motivo (obrigatório)</label><select id="mvp-motivo"></select></div>
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="confirmarMotivoPerda()">Confirmar e marcar como Perdido</button>
+    </div>
+  </div>
+</div>
+
+<!-- @js -->
+</body>
+</html>

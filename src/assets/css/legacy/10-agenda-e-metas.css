@@ -1,0 +1,116 @@
+/* ─── AGENDA DE AUDIÊNCIAS (visão geral) ───
+   Calendário do mês com as audiências marcadas na Rotina (tarefas do tipo
+   "audiência"). Substituiu o antigo resumo "Rotina de hoje", que misturava
+   audiência com qualquer outra pendência e não mostrava horário. */
+.agenda-destaque{border:1px solid var(--navy-soft);border-top:4px solid var(--navy);box-shadow:var(--shadow-hover)}
+.agenda-destaque .card-head h3{font-size:21px}
+.agenda-wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(240px,1fr);gap:22px;padding:18px 22px 20px}
+.agenda-nav{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.agenda-mes{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--navy);flex:1;min-width:0}
+.agenda-mes::first-letter{text-transform:uppercase}
+.agenda-btn{width:30px;height:30px;flex-shrink:0;border-radius:50%;border:1px solid var(--border-med);background:var(--surface);color:var(--navy);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.14s;font-size:15px}
+.agenda-btn:hover{background:var(--cream);border-color:var(--navy-soft)}
+.agenda-hoje{font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);color:var(--navy);cursor:pointer;transition:.14s;flex-shrink:0}
+.agenda-hoje:hover{background:var(--cream);border-color:var(--navy-soft)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);text-align:center;padding-bottom:3px}
+.cal-day{position:relative;min-height:76px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);padding:5px 6px;cursor:pointer;transition:.14s;display:flex;flex-direction:column;gap:3px;overflow:hidden;text-align:left;font-family:var(--font-sans)}
+.cal-day:hover{border-color:var(--navy-soft);background:var(--cream)}
+.cal-day.vazio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.cal-day.fds{background:rgba(22,36,61,.04)}
+.cal-num{font-size:12px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums;line-height:1}
+.cal-day.temev{background:var(--green-bg);border-color:rgba(47,125,63,.32)}
+.cal-day.atras{background:var(--red-bg);border-color:rgba(178,59,59,.32)}
+.cal-day.hoje{box-shadow:inset 0 0 0 2px var(--navy)}
+.cal-day.hoje .cal-num{color:var(--navy)}
+.cal-day.sel{background:var(--navy);border-color:var(--navy)}
+.cal-day.sel .cal-num{color:var(--cream)}
+.cal-day.sel .cal-ev{background:rgba(244,239,230,.15);color:var(--cream);border-color:rgba(244,239,230,.32)}
+.cal-day.sel .cal-mais{color:var(--silver-light)}
+.cal-ev{font-size:10.5px;font-weight:600;line-height:1.25;padding:2px 5px;border-radius:4px;background:var(--surface);border:1px solid var(--border-med);color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev.ok{opacity:.55;text-decoration:line-through}
+.cal-ev b{font-weight:700}
+.cal-mais{font-size:10px;color:var(--t3);font-weight:700}
+.cal-count{display:none;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:20px;font-size:11px;font-weight:700;background:var(--green);color:var(--cream);align-self:flex-start}
+.cal-day.atras .cal-count{background:var(--red)}
+.cal-day.sel .cal-count{background:var(--cream);color:var(--navy)}
+.agenda-side{border-left:1px solid var(--border);padding-left:20px;min-width:0}
+.agenda-side h4{font-family:var(--font-serif);font-size:16.5px;font-weight:600;color:var(--navy)}
+.agenda-side .sh{font-size:11.5px;color:var(--t3);margin:3px 0 12px}
+.agenda-side-lista{max-height:340px;overflow-y:auto}
+.aud-item{border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--rs);padding:10px 12px;margin-bottom:9px;background:var(--surface2);cursor:pointer;transition:.14s}
+.aud-item:hover{background:var(--cream);border-color:var(--border-med);border-left-color:var(--navy)}
+.aud-item.atras{border-left-color:var(--red)}
+.aud-item.ok{opacity:.62;border-left-color:var(--silver-dark)}
+.aud-top{display:flex;align-items:center;gap:9px}
+.aud-hora{font-size:13.5px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
+.aud-hora.sem{color:var(--t3);font-weight:600;font-size:12px}
+.aud-tit{font-size:13.5px;font-weight:600;color:var(--t);line-height:1.35;margin-top:4px}
+.aud-meta{font-size:11.5px;color:var(--t3);margin-top:5px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.agenda-legenda{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--t3);padding:12px 22px 16px;border-top:1px dashed var(--border)}
+.agenda-legenda span{display:inline-flex;align-items:center;gap:5px}
+.leg-dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid}
+
+/* ─── DETALHE DA META DE CONTRATOS ─── */
+.meta-mini{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--t2);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
+.meta-bloco{padding:12px 14px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)}
+.meta-bloco-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px}
+.meta-bloco-tit{font-size:14px;font-weight:600;color:var(--navy)}
+.meta-bloco-sub{font-size:11.5px;color:var(--t3)}
+.meta-bloco-val{font-size:12.5px;color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.meta-bloco-val b{font-size:15px;color:var(--t)}
+.meta-track{position:relative;height:20px}
+.meta-ritmo{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--t2);opacity:.55;transform:translateX(-1px)}
+.meta-bloco-pe{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--t3);margin-top:6px}
+.meta-qtd{display:grid;gap:6px;font-size:12.5px;color:var(--t2);margin:4px 0 16px}
+.meta-qtd b{color:var(--navy)}
+.mcrm-ref{display:block;font-size:11px;color:var(--t3);margin-top:5px;line-height:1.4}
+.meta-explica{font-size:12.5px;color:var(--t2);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--navy-soft);border-radius:var(--rs);padding:11px 13px;margin-bottom:16px}
+.meta-explica b{color:var(--navy)}
+.meta-contrato{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;transition:.12s}
+.meta-contrato:last-child{border-bottom:none}
+.meta-contrato:hover{background:var(--surface2)}
+.meta-contrato-info{flex:1;min-width:0}
+.meta-contrato-nome{font-size:14px;font-weight:600;color:var(--navy)}
+.meta-contrato-meta{font-size:11.5px;color:var(--t3);margin-top:3px;line-height:1.4}
+.meta-origem{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:var(--surface3);color:var(--t2);border:1px solid var(--border-med);white-space:nowrap}
+.meta-origem.est{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.28)}
+.meta-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.meta-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.24)}
+.meta-chip.vazio{background:var(--surface3);color:var(--t3);border-color:var(--border);font-weight:500}
+
+
+@media (max-width:1000px){
+  .agenda-wrap{grid-template-columns:1fr}
+  .agenda-side{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:16px}
+  .agenda-side-lista{max-height:none}
+}
+@media (max-width:640px){
+  .cal-day{min-height:52px;padding:4px;gap:4px}
+  .cal-ev,.cal-mais{display:none}
+  .cal-count{display:inline-flex}
+  .cal-dow{font-size:9px;letter-spacing:.04em}
+  .agenda-legenda{gap:10px}
+}
+/* ─── PAINÉIS RECOLHÍVEIS DO FINANCEIRO ───
+   Lançamentos do caixa e Honorários por cliente abrem sob demanda e, quando
+   abrem, mostram só o mês corrente. Antes as duas tabelas vinham inteiras já
+   na abertura da tela e a página ficava quilométrica. */
+.fin-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);overflow:hidden}
+.fin-panel-head{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;flex-wrap:wrap}
+.fin-panel-head:hover{background:var(--surface2)}
+.fin-panel-head h3{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin:0}
+.fin-panel-head .chev{font-size:16px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.fin-panel-head .ct{font-size:12px;color:var(--t3);background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.fin-panel-head .sub{font-size:12px;color:var(--t3);margin-left:auto;text-align:right}
+.fin-panel.recolhida .fin-panel-head{border-bottom:none}
+.fin-panel.recolhida .fin-panel-head .chev{transform:rotate(-90deg)}
+.fin-panel.recolhida .fin-panel-corpo{display:none}
+.fin-panel-corpo{padding:16px 20px 20px}
+.fin-panel-corpo .fin-table{box-shadow:none}
+@media (max-width:760px){
+  .fin-panel-head{padding:13px 14px}
+  .fin-panel-head .sub{margin-left:0;width:100%;text-align:left}
+  .fin-panel-corpo{padding:14px}
+}
+

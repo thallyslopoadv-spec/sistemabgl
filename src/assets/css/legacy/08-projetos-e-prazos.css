@@ -1,0 +1,131 @@
+/* ─── PAINEL: PROJETOS EM ANDAMENTO (ROTINA) ───
+   Painel fechado por padrão. Abre em grupos por tipo de tarefa (Iniciais,
+   Petições…) e, dentro de cada grupo, os cards de projeto com a barra de
+   carregamento — o percentual vem das etapas marcadas em cada projeto. */
+.proj-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-card);margin-top:20px;overflow:hidden}
+.proj-panel-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;flex-wrap:wrap}
+.proj-panel-head:hover{background:var(--surface2)}
+.proj-panel-head h3{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--navy);margin:0}
+.proj-panel-head .chev{font-size:16px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.proj-panel-head .ct{font-size:12px;color:var(--t3);background:var(--surface2);padding:3px 10px;border-radius:20px}
+.proj-panel-head .sub{font-size:12px;color:var(--t3);margin-left:auto}
+.proj-panel.recolhida .proj-panel-head{border-bottom:none}
+.proj-panel.recolhida .proj-panel-head .chev{transform:rotate(-90deg)}
+.proj-panel.recolhida .proj-panel-corpo{display:none}
+.proj-panel-corpo{padding:8px 0}
+
+/* grupo (tipo de tarefa) */
+.proj-grupo{border-bottom:1px solid var(--border)}
+.proj-grupo:last-child{border-bottom:none}
+.proj-grupo-head{display:flex;align-items:center;gap:10px;padding:12px 18px;cursor:pointer;user-select:none;flex-wrap:wrap}
+.proj-grupo-head:hover{background:var(--surface2)}
+.proj-grupo-head .chev{font-size:15px;color:var(--t3);transition:transform .16s;flex-shrink:0}
+.proj-grupo.recolhida .proj-grupo-head .chev{transform:rotate(-90deg)}
+.proj-grupo.recolhida .proj-grupo-corpo{display:none}
+.proj-grupo-nome{font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);padding-left:9px;border-left:3px solid var(--navy-soft)}
+.proj-grupo-head .ct{font-size:11.5px;color:var(--t3);background:var(--surface2);padding:3px 10px;border-radius:20px}
+.proj-grupo-media{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3)}
+.proj-grupo-mini{width:74px;height:6px;border-radius:6px;background:var(--surface3);overflow:hidden}
+.proj-grupo-mini i{display:block;height:100%;background:var(--navy-soft);border-radius:6px}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:4px 18px 18px;align-items:start}
+
+/* card do projeto */
+.proj-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;display:flex;flex-direction:column;transition:.14s}
+.proj-card:hover{border-color:var(--border-med)}
+.proj-card[data-atraso="1"]{border-color:rgba(178,59,59,.28)}
+.proj-body{padding:13px 14px;display:flex;flex-direction:column;gap:10px}
+.proj-titulo{font-size:14.5px;font-weight:600;color:var(--t);line-height:1.35}
+.proj-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.proj-resp{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--t2);min-width:0}
+.proj-resp .av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.proj-resp .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* barra de carregamento (blocos) — percentual real vindo das etapas */
+.proj-load{display:flex;align-items:center;gap:10px}
+.proj-load-track{flex:1;min-width:0;height:16px;border-radius:8px;background:var(--surface3);border:1px solid var(--border-med);padding:2px;display:flex;gap:2px}
+.proj-load-seg{flex:1;border-radius:2px;background:rgba(22,36,61,.07)}
+.proj-load-seg.on{background:linear-gradient(180deg,var(--navy-soft),var(--navy))}
+.proj-load-seg.frente{animation:projPulso 1.5s ease-in-out infinite}
+.proj-card[data-pct="100"] .proj-load-seg.on{background:linear-gradient(180deg,#3a9a4f,var(--green))}
+@keyframes projPulso{0%,100%{opacity:1}50%{opacity:.35}}
+.proj-pct{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--navy);min-width:52px;text-align:right;line-height:1}
+.proj-card[data-pct="100"] .proj-pct{color:var(--green-hi)}
+.proj-load-sub{font-size:11.5px;color:var(--t3);margin-top:-4px}
+.proj-load-sub.pronto{color:var(--green-hi);font-weight:600}
+
+/* etapa atual em texto livre */
+.proj-status{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--navy-soft);border-radius:var(--rs);padding:9px 11px}
+.proj-status.clicavel{cursor:pointer;transition:.14s}
+.proj-status.clicavel:hover{border-color:var(--border-med);border-left-color:var(--navy)}
+.proj-status-lbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.proj-status-lbl .ti{font-size:12px}
+.proj-status-txt{font-size:13.5px;font-weight:600;color:var(--t);line-height:1.4;word-break:break-word}
+.proj-status-txt.vazio{font-weight:500;font-style:italic;color:var(--t3)}
+.proj-input{width:100%;font-size:13px;padding:9px 10px;border-radius:8px;border:1px solid var(--border-hi);background:var(--surface);color:var(--t);font-family:inherit}
+.proj-input:focus{outline:none;border-color:var(--navy-soft)}
+.proj-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.proj-sug button{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;border:1px dashed var(--border-hi);background:transparent;color:var(--t3);cursor:pointer;transition:.14s;text-align:left}
+.proj-sug button:hover{color:var(--navy);border-color:var(--navy-soft)}
+.proj-edit-btns{display:flex;gap:8px;margin-top:9px}
+.proj-btn{font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1px solid transparent;background:var(--navy);color:var(--cream);cursor:pointer;transition:.15s}
+.proj-btn:hover{background:var(--navy-soft)}
+.proj-btn.sec{background:transparent;color:var(--t3);border-color:var(--border-hi)}
+.proj-btn.sec:hover{color:var(--navy);background:var(--surface3)}
+
+/* etapas do projeto (o que alimenta o percentual) */
+.proj-etapas{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px}
+.proj-etapas-lbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.proj-etapa{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.proj-etapa:last-of-type{border-bottom:none}
+.proj-etapa-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border-hi);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:11px;color:transparent;transition:.14s}
+.proj-etapa-check:hover{border-color:var(--navy-soft)}
+.proj-etapa.feita .proj-etapa-check{background:var(--green);border-color:var(--green);color:#fff}
+.proj-etapa-nome{flex:1;min-width:0;font-size:12.5px;color:var(--t2);line-height:1.35;cursor:pointer}
+.proj-etapa.feita .proj-etapa-nome{text-decoration:line-through;color:var(--t3)}
+.proj-etapa-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:6px;opacity:.55}
+.proj-etapa-del:hover{color:var(--red-hi);opacity:1;background:var(--red-bg)}
+.proj-etapa-nova{display:flex;gap:6px;margin-top:8px}
+.proj-etapa-nova .proj-input{font-size:12.5px;padding:7px 9px}
+.proj-etapa-add{flex-shrink:0;font-size:12px;font-weight:600;padding:0 12px;border-radius:8px;border:1px dashed var(--border-hi);background:transparent;color:var(--t3);cursor:pointer}
+.proj-etapa-add:hover{color:var(--navy);border-color:var(--navy-soft)}
+.proj-etapas-vazio{font-size:12px;color:var(--t3);font-style:italic;line-height:1.5}
+.proj-modelo{margin-top:7px;font-size:11.5px;font-weight:600;color:var(--navy);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
+
+.proj-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--border);padding-top:9px}
+.proj-atualizado{font-size:11.5px;color:var(--t3);display:inline-flex;align-items:center;gap:5px;min-width:0}
+.proj-acoes{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.proj-vazio{padding:26px 18px;text-align:center;font-size:13px;color:var(--t3);line-height:1.6}
+.proj-card.destaque{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,50,82,.14)}
+/* selo nas tarefas da Rotina: avisa que aquela rotina é um projeto acompanhado */
+.task-proj{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  padding:2px 9px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:.14s;
+  background:var(--blue-bg);color:var(--blue-hi);border:1px solid rgba(47,93,148,.28)}
+.task-proj:hover{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.task-proj .ti{font-size:12px}
+.task-proj[data-alerta="1"]{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.34)}
+.task-proj[data-alerta="1"]:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+.task-proj[data-pronto="1"]{background:var(--green-bg);color:var(--green-hi);border-color:rgba(47,125,63,.28)}
+.task-proj[data-pronto="1"]:hover{background:var(--green);color:#fff;border-color:var(--green)}
+@media (prefers-reduced-motion:reduce){.proj-load-seg.frente{animation:none}}
+
+/* ─── PAINEL: CUMPRIMENTO DE PRAZOS (ROTINA) ─── */
+.desemp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.desemp-box{padding:14px 16px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2)}
+.desemp-box[data-c="green"]{background:var(--green-bg);border-color:rgba(47,125,63,.2)}
+.desemp-box[data-c="red"]{background:var(--red-bg);border-color:rgba(178,59,59,.2)}
+.desemp-lbl{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.desemp-val{font-family:var(--font-serif);font-size:26px;font-weight:600;color:var(--navy);line-height:1}
+.desemp-box[data-c="green"] .desemp-val{color:var(--green-hi)}
+.desemp-box[data-c="red"] .desemp-val{color:var(--red-hi)}
+.desemp-sub{font-size:11.5px;color:var(--t3);margin-top:5px}
+.desemp-tab-wrap{overflow-x:auto}
+.desemp-tab{width:100%;border-collapse:collapse;font-size:13px}
+.desemp-tab th{text-align:right;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:0 8px 9px;border-bottom:1px solid var(--border)}
+.desemp-tab th:first-child,.desemp-tab td:first-child{text-align:left}
+.desemp-tab td{text-align:right;padding:10px 8px;border-bottom:1px dashed var(--border);color:var(--t2)}
+.desemp-tab tr:last-child td{border-bottom:none}
+.desemp-tab td.nome{font-weight:600;color:var(--navy)}
+.desemp-tab td.atraso{color:var(--red-hi);font-weight:600}
+.desemp-tab td.ok{color:var(--green-hi);font-weight:600}
+.desemp-vazio{font-size:13px;color:var(--t3);padding:8px 0}
+
