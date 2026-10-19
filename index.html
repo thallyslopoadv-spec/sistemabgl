@@ -1500,7 +1500,7 @@ button:active{transform:scale(.985)}
         <div class="modulo-card">
           <div class="card-head">
             <h3>Desempenho</h3>
-            <span class="sub">novos clientes por mês</span>
+            <span class="sub">contratos fechados por mês</span>
           </div>
           <div class="card-body" id="dash-desempenho"></div>
         </div>
@@ -2463,6 +2463,7 @@ button:active{transform:scale(.985)}
         </div>
       </div>
     </div>
+    <div class="fg"><label>Valor total contratado (R$) · opcional</label><input type="text" id="mct-valor" placeholder="Ex.: 18.000,00" inputmode="decimal"><span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Entra nos honorários fechados da meta do mês. Se ficar em branco, vale a soma dos lançamentos do contrato.</span></div>
     <div class="fg"><label>Observações</label><textarea id="mct-obs" rows="2" placeholder="Valor combinado, forma de pagamento, vigência, reajuste…"></textarea></div>
     <p id="mct-resumo" style="font-size:12px;color:var(--t3);margin:-4px 0 14px;line-height:1.5"></p>
     <div class="modal-btns">
@@ -2714,10 +2715,10 @@ button:active{transform:scale(.985)}
   </div>
 </div>
 
-<!-- ═══════════════ MODAL: CLIENTES NOVOS DE UM MÊS ═══════════════ -->
+<!-- ═══════════════ MODAL: CONTRATOS FECHADOS DE UM MÊS ═══════════════ -->
 <div class="overlay" id="overlay-mescli">
   <div class="modal" style="width:520px">
-    <h3 id="cm-titulo">Novos clientes do mês</h3>
+    <h3 id="cm-titulo">Contratos fechados do mês</h3>
     <div id="cm-lista"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-mescli')">Fechar</button>
@@ -3862,6 +3863,8 @@ function parseValor(s){
   s=String(s).trim().replace(/^R\$\s*/,'');
   if(!s)return NaN;
   if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  // "18.000" ou "1.500.000" sem vírgula: os pontos são de milhar, não decimal
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
   return parseFloat(s);
 }
 function iniciais(n){return n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase()}
@@ -4650,42 +4653,43 @@ function renderDashPend(leadsResp){
     </div>`).join('');
 }
 
-// gráfico de desempenho (novos clientes por mês, últimos 12)
+// gráfico de desempenho (contratos fechados por mês, últimos 12)
 function renderDesempenho(){
   const meses=[];const now=new Date();
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);meses.push({y:d.getFullYear(),m:d.getMonth(),n:0});}
-  DB.clientes.forEach(c=>{
-    const e=getEntrada(c);if(!e)return;
-    const[ay,am]=e.split('-').map(Number);
-    const alvo=meses.find(x=>x.y===ay&&x.m===(am-1));if(alvo)alvo.n++;
+  contratosFechadosTodos().forEach(x=>{
+    const[ay,am]=x.data.split('-').map(Number);
+    const alvo=meses.find(m=>m.y===ay&&m.m===(am-1));if(alvo)alvo.n++;
   });
   const max=Math.max(1,...meses.map(x=>x.n));
   const total=meses.reduce((a,x)=>a+x.n,0);
   const nomesM=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   document.getElementById('dash-desempenho').innerHTML=`
     <div class="vchart">
-      ${meses.map(x=>`<div class="vcol" style="cursor:pointer" onclick="abrirClientesDoMes(${x.y},${x.m})" title="${x.n} cliente(s) em ${nomesM[x.m]}/${x.y} — clique para ver quais">
+      ${meses.map(x=>`<div class="vcol" style="cursor:pointer" onclick="abrirClientesDoMes(${x.y},${x.m})" title="${x.n} contrato(s) em ${nomesM[x.m]}/${x.y} — clique para ver quais">
         <div class="vcol-num">${x.n||''}</div>
         <div class="vcol-bar" style="height:${x.n/max*100}%"></div>
         <div class="vcol-lbl">${nomesM[x.m]}</div>
       </div>`).join('')}
     </div>
-    <div class="vchart-foot"><span>Últimos 12 meses</span><span><b style="color:var(--navy)">${total}</b> novos clientes</span></div>`;
+    <div class="vchart-foot"><span>Últimos 12 meses</span><span><b style="color:var(--navy)">${total}</b> contratos fechados</span></div>`;
 }
 // abre a lista de clientes que entraram num mês específico (clique no gráfico de desempenho)
 function abrirClientesDoMes(y,m){
   const nomesM=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const prefixo=y+'-'+String(m+1).padStart(2,'0');
-  const doMes=ordenarPorNome(DB.clientes.filter(c=>{const e=getEntrada(c);return e&&e.slice(0,7)===prefixo;}));
-  document.getElementById('cm-titulo').textContent='Novos clientes em '+nomesM[m]+'/'+y;
-  document.getElementById('cm-lista').innerHTML=doMes.length?doMes.map(c=>{
-    const cr=corDe(c.id);
-    return `<div class="cli-row" onclick="fecharOverlay('overlay-mescli');irParaCliente('${c.id}')">
-      <div class="cli-av" style="background:${cr[0]};color:${cr[1]};border-color:transparent">${iniciais(c.nome)}</div>
-      <div class="cli-info"><div class="cli-nome">${esc(c.curto)}</div><div class="cli-area">${esc(c.demandas)}</div></div>
-      ${pillCliente(c)}
+  const doMes=contratosFechadosTodos().filter(x=>x.data.slice(0,7)===prefixo).sort((a,b)=>cmpNome(a.nome,b.nome));
+  document.getElementById('cm-titulo').textContent='Contratos fechados em '+nomesM[m]+'/'+y;
+  document.getElementById('cm-lista').innerHTML=doMes.length?doMes.map(x=>{
+    const id=x.tipo==='contrato'?x.c.id:x.l.id;
+    const cr=corDe(id);
+    const abrir=x.tipo==='contrato'?`irParaCliente('${x.c.id}')`:`abrirLeadDeTarefa('${x.l.id}','${x.l._mod}')`;
+    return `<div class="cli-row" onclick="fecharOverlay('overlay-mescli');${abrir}">
+      <div class="cli-av" style="background:${cr[0]};color:${cr[1]};border-color:transparent">${iniciais(x.nome)}</div>
+      <div class="cli-info"><div class="cli-nome">${esc(x.nome)}</div><div class="cli-area">${esc(x.titulo)} · ${fmtData(x.data)}</div></div>
+      <span class="fin-item-val">${money(x.valor)}</span>
     </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:10px 0">Nenhum cliente novo neste mês.</p>';
+  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:10px 0">Nenhum contrato fechado neste mês.</p>';
   abrirOverlay('overlay-mescli');
 }
 
@@ -8455,6 +8459,7 @@ function contratosHTML(c){
     const st=ct.status==='Encerrado'?'<span class="proc-st s-arq">Encerrado</span>':'<span class="proc-st s-ativo">Ativo</span>';
     const meta=[
       ct.inicio?'desde '+fmtData(ct.inicio):'sem data de início',
+      ct.valor>0?'valor '+money(ct.valor):'',
       'recebido '+money(rec),
       prevs.length?'a receber '+money(aRec)+' ('+prevs.length+' lançamento'+(prevs.length>1?'s':'')+')':'nada a receber',
       prox?'próxima em '+fmtData(prox):'',
@@ -9322,6 +9327,7 @@ function abrirModalContrato(cid,ctId){
   document.getElementById('mct-objeto').value=ct?ct.titulo:'';
   document.getElementById('mct-inicio').value=ct?(ct.inicio||''):hojeISO();
   document.getElementById('mct-obs').value=ct?(ct.obs||''):'';
+  document.getElementById('mct-valor').value=ct&&ct.valor>0?ct.valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
   mctStatus(mctCtx.status);
   const n=ct?finDoContrato(c,ct.id).length:0;
   document.getElementById('mct-resumo').textContent=ct
@@ -9336,7 +9342,10 @@ function salvarContrato(){
   if(!c)return;
   const titulo=document.getElementById('mct-objeto').value.trim();
   if(!titulo){alert('Informe o objeto do contrato (ex.: Assessoria jurídica mensal).');return;}
-  const dados={titulo,inicio:document.getElementById('mct-inicio').value,status:mctCtx.status,obs:document.getElementById('mct-obs').value.trim()};
+  const valorTxt=document.getElementById('mct-valor').value.trim();
+  const valor=valorTxt?parseValor(valorTxt):0;
+  if(valorTxt&&!(valor>0)){alert('Valor do contrato inválido (ex.: 18.000,00). Deixe em branco se não quiser informar.');return;}
+  const dados={titulo,inicio:document.getElementById('mct-inicio').value,status:mctCtx.status,obs:document.getElementById('mct-obs').value.trim(),valor};
   if(mctCtx.ctId){
     Object.assign(contratoDe(c,mctCtx.ctId),dados);
   }else{
@@ -9827,9 +9836,9 @@ function calcularKPIsCRM(){
   const taxaConversao=todos.length?fechados.length/todos.length:0;
   const ticketMedio=fechados.length?fechados.reduce((a,l)=>a+(l.valorHonorarioEstimado||0),0)/fechados.length:0;
   const parados=todos.filter(leadFollowupAtrasado);
-  // conta pelo mês em que o contrato foi fechado (ganhoEm); sem essa data, cai no criadoEm
-  const fechadosMes=fechados.filter(l=>mesChaveDe(l.ganhoEm||l.criadoEm)===mesAtual);
-  const faturamentoFechadoMes=fechadosMes.reduce((a,l)=>a+(l.valorHonorarioEstimado||0),0);
+  // meta do mês: todo contrato fechado no mês, venha ou não do funil
+  const fechadosMes=contratosFechadosDoMes(mesAtual);
+  const faturamentoFechadoMes=fechadosMes.reduce((a,x)=>a+x.valor,0);
   const pipelineAberto=todos.filter(l=>l.statusCRM!=='Ganho'&&l.statusCRM!=='Perdido');
   const previsaoPipeline=pipelineAberto.reduce((a,l)=>a+(l.valorHonorarioEstimado||0)*(l.probabilidadeFechamento||0),0);
   const meta=metaCRMDoMes(mesAtual);
@@ -9947,17 +9956,7 @@ function nomeMesChave(chave){
 }
 function contratosFechadosDoMes(chave){
   const mes=chave||mesChaveDe(Date.now());
-  return leadsCRMFunil()
-    .filter(leadFechado)
-    .filter(l=>mesChaveDe(l.ganhoEm||l.criadoEm)===mes)
-    .map(l=>{
-      const motivos=[];
-      if(l.statusCRM==='Ganho')motivos.push('etapa “Ganho” no funil');
-      if(l.convertido===true)motivos.push('convertido em cliente');
-      if(l.fechouCRM==='Sim'&&l.statusCRM!=='Ganho')motivos.push('campo “fechou o contrato” = Sim');
-      return {l,quando:l.ganhoEm||l.criadoEm,temDataFechamento:!!l.ganhoEm,motivos};
-    })
-    .sort((a,b)=>b.quando-a.quando);
+  return contratosFechadosTodos().filter(x=>x.data.slice(0,7)===mes);
 }
 // card de meta de contratos na página inicial (visão geral)
 function renderDashMetaContratos(){
@@ -9970,7 +9969,7 @@ function renderDashMetaContratos(){
   const sub=document.getElementById('dash-meta-sub');
   if(sub)sub.textContent=k.contratosFechadosMes+' de '+k.metaContratos+' em '+nomeMesChave(k.mesAtual);
   const chips=itens.length
-    ? itens.map(x=>`<span class="meta-chip">${esc(x.l.nome)}</span>`).join('')
+    ? itens.map(x=>`<span class="meta-chip" title="${esc(x.titulo)}">${esc(x.nome)}</span>`).join('')
     : '<span class="meta-chip vazio">nenhum contrato fechado ainda neste mês</span>';
   body.innerHTML=`<div class="hbar-row" style="cursor:default">
     <div class="hbar-label" style="width:auto;margin-right:10px;font-weight:700;color:var(--navy)">${pct}%</div>
@@ -9978,7 +9977,7 @@ function renderDashMetaContratos(){
   </div>
   <div class="meta-chips">${chips}</div>
   <div style="font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5">
-    Conta os leads do funil marcados como fechados (etapa “Ganho”, conversão em cliente ou campo “fechou”), pela data de fechamento.
+    Conta todo contrato fechado no mês, pela data de início: os que vieram do funil, os cadastrados direto na ficha do cliente e os novos contratos de clientes antigos.
     <b style="color:var(--navy)">Clique no card para ver contrato por contrato.</b>
   </div>`;
 }
@@ -9988,7 +9987,7 @@ function abrirDetalheMetaContratos(){
   const itens=contratosFechadosDoMes(k.mesAtual);
   const pct=k.metaContratos>0?Math.min(100,Math.round(k.contratosFechadosMes/k.metaContratos*100)):0;
   const cor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--navy)';
-  const semData=itens.filter(x=>!x.temDataFechamento).length;
+  const semData=itens.filter(x=>x.estimada).length;
 
   document.getElementById('mmd-mes').textContent=nomeMesChave(k.mesAtual);
   document.getElementById('mmd-sub').textContent='Meta de '+k.metaContratos+' contrato'+(k.metaContratos!==1?'s':'')+' e de '+money(k.metaFaturamento)+' de honorários no mês.';
@@ -10003,29 +10002,30 @@ function abrirDetalheMetaContratos(){
       <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
     </div>`;
   document.getElementById('mmd-explica').innerHTML=
-    'Como a contagem é feita: entra no mês todo lead do funil comercial (trabalhista ou cível) que esteja marcado como fechado — '+
-    '<b>etapa “Ganho”</b>, <b>convertido em cliente</b> pelo botão “fechar contrato”, ou com o <b>campo “fechou o contrato” em Sim</b>. '+
-    'O mês considerado é o do <b>fechamento</b>; quando o lead foi fechado antes de o sistema passar a carimbar essa data, vale a data de entrada do lead. '+
-    'Leads retroativos — criados só para ligar clientes antigos ao CRM — ficam de fora.'+
-    (semData?'<br><span style="color:var(--amber-hi)"><i class="ti ti-alert-circle"></i> '+semData+' contrato'+(semData>1?'s':'')+' sem data de fechamento registrada: contado'+(semData>1?'s':'')+' pela data de entrada do lead.</span>':'');
+    'Como a contagem é feita: entra no mês <b>todo contrato fechado</b>, venha de onde vier — fechado pelo funil do CRM, '+
+    'cadastrado direto na ficha do cliente ou um novo contrato de cliente que já estava na carteira. Vale a <b>data de início do contrato</b>. '+
+    'Lead marcado como ganho que ainda não virou contrato de nenhum cliente também entra, uma vez só. '+
+    'Os honorários usam o valor informado no contrato; sem ele, o total lançado no contrato; sem lançamentos, o estimado no lead. '+
+    'Demandas pessoais dos sócios ficam de fora.'+
+    (semData?'<br><span style="color:var(--amber-hi)"><i class="ti ti-alert-circle"></i> '+semData+' contrato'+(semData>1?'s':'')+' sem data de início: contado'+(semData>1?'s':'')+' pela data de fechamento do lead ou de entrada do cliente.</span>':'');
 
   document.getElementById('mmd-lista').innerHTML=itens.length?itens.map(x=>{
-    const l=x.l;
-    const mod=l._mod==='civel'?'Cível':'Trabalhista';
-    const area=(l.area||'').trim();
-    const areaTxt=(area&&area.toLowerCase()!==mod.toLowerCase())?' · '+esc(area):'';
-    const dataTxt=x.temDataFechamento
-      ? 'fechado em '+fmtDataHora(x.quando)
-      : 'sem data de fechamento · lead entrou em '+fmtDataHora(x.quando);
-    return `<div class="meta-contrato" onclick="fecharOverlay('overlay-metadetalhe');abrirLeadDeTarefa('${l.id}','${l._mod}')" title="Abrir a jornada deste lead">
+    const abrir=x.tipo==='contrato'
+      ?`fecharOverlay('overlay-metadetalhe');irParaCliente('${x.c.id}')`
+      :`fecharOverlay('overlay-metadetalhe');abrirLeadDeTarefa('${x.l.id}','${x.l._mod}')`;
+    let origem;
+    if(x.tipo==='lead')origem='lead do funil';
+    else if(x.ct.leadId)origem='contrato · veio do funil';
+    else origem='contrato · cadastrado na ficha';
+    return `<div class="meta-contrato" onclick="${abrir}" title="${x.tipo==='contrato'?'Abrir a ficha do cliente':'Abrir a jornada deste lead'}">
       <div class="meta-contrato-info">
-        <div class="meta-contrato-nome">${esc(l.nome)}</div>
-        <div class="meta-contrato-meta">${mod}${areaTxt}${l.responsavel?' · '+esc(l.responsavel):''}<br>${dataTxt} · contado por ${esc(x.motivos.join(' + ')||'marcação de fechamento')}</div>
+        <div class="meta-contrato-nome">${esc(x.nome)}</div>
+        <div class="meta-contrato-meta">${esc(x.titulo)}<br>${x.estimada?'sem data de início · contado em ':'início em '}${fmtData(x.data)} · ${origem}</div>
       </div>
-      <span class="meta-origem ${x.temDataFechamento?'':'est'}">${x.temDataFechamento?'data confirmada':'data estimada'}</span>
-      <span class="fin-item-val">${money(l.valorHonorarioEstimado||0)}</span>
+      <span class="meta-origem ${x.estimada?'est':''}">${x.estimada?'data estimada':'data confirmada'}</span>
+      <span class="fin-item-val">${money(x.valor)}</span>
     </div>`;
-  }).join(''):'<p style="font-size:13px;color:var(--t3);padding:12px 0;line-height:1.55">Nenhum contrato contado neste mês. Um lead só entra aqui quando é movido para a etapa “Ganho” no funil ou convertido em cliente pelo botão “fechar contrato”, na Jornada Comercial.</p>';
+  }).join(''):'<p style="font-size:13px;color:var(--t3);padding:12px 0;line-height:1.55">Nenhum contrato fechado neste mês. Contratos entram aqui pela data de início, seja o fechamento feito no funil do CRM, seja o contrato cadastrado na ficha do cliente.</p>';
 
   abrirOverlay('overlay-metadetalhe');
 }
@@ -10437,6 +10437,55 @@ function aplicarJornadaUI(l){_aplicarJornadaCore(l,'')}
 function aplicarJornadaUICivel(l){_aplicarJornadaCore(l,'-civel')}
 
 // ─── CONVERSÃO: LEAD → CLIENTE ────────────────────────────
+// ─── CONTRATOS FECHADOS (meta do mês e gráfico de desempenho) ───
+// Regra: todo contrato fechado conta, venha de onde vier — do funil do CRM, do
+// cadastro manual na ficha do cliente ou de um cliente antigo que voltou. A
+// fonte é a lista de contratos dos clientes. Lead marcado como ganho que ainda
+// não virou contrato de nenhum cliente também conta, para o fechamento não se
+// perder enquanto a conversão não é feita; lead já ligado a um contrato não
+// conta de novo. Demandas pessoais dos sócios não são contratos de honorários.
+function isoDeTs(ts){const d=new Date(ts);return isoDe(d.getFullYear(),d.getMonth(),d.getDate())}
+function leadPorId(id,mod){
+  const lista=mod==='civel'?leadsCivel:mod==='trab'?leads:[...leads,...leadsCivel];
+  return id?lista.find(l=>l.id===id)||null:null;
+}
+// data do contrato: a de início; sem ela, a do fechamento do lead; sem nenhuma,
+// para o primeiro contrato do cliente, a entrada do cliente (ou o processo mais antigo)
+function dataDoContrato(c,ct){
+  if(ct.inicio)return {data:ct.inicio,estimada:false};
+  const l=leadPorId(ct.leadId,ct.leadMod);
+  if(l&&(l.ganhoEm||l.criadoEm))return {data:isoDeTs(l.ganhoEm||l.criadoEm),estimada:true};
+  if(contratosDe(c)[0]===ct){const e=getEntrada(c);if(e)return {data:e,estimada:true};}
+  return {data:'',estimada:true};
+}
+// valor do contrato: o informado no próprio contrato; sem ele, o total lançado
+// nele (recebido + previsto); sem lançamentos, o honorário estimado no lead
+function valorDoContrato(c,ct){
+  if(ct.valor>0)return ct.valor;
+  const lancado=finDoContrato(c,ct.id).filter(f=>f.t!=='saida').reduce((a,f)=>a+f.v,0);
+  if(lancado>0)return lancado;
+  const l=leadPorId(ct.leadId,ct.leadMod);
+  return (l&&l.valorHonorarioEstimado)||0;
+}
+function contratosFechadosTodos(){
+  const itens=[], leadsComContrato=new Set();
+  (DB.clientes||[]).forEach(c=>{
+    contratosDe(c).forEach(ct=>{
+      if(ct.leadId)leadsComContrato.add(ct.leadId);
+      if(c.tipo==='pessoal')return;
+      const {data,estimada}=dataDoContrato(c,ct);
+      if(!data)return;
+      itens.push({tipo:'contrato',c,ct,data,estimada,valor:valorDoContrato(c,ct),nome:c.nome,titulo:ct.titulo});
+    });
+  });
+  leadsCRMFunil().filter(leadFechado).forEach(l=>{
+    if(leadsComContrato.has(l.id))return;
+    if(l.clienteId&&clientePorId(l.clienteId))return;   // já é cliente: conta pelo contrato dele
+    itens.push({tipo:'lead',l,data:isoDeTs(l.ganhoEm||l.criadoEm),estimada:!l.ganhoEm,valor:l.valorHonorarioEstimado||0,nome:l.nome,titulo:'Lead ganho no funil (ainda sem contrato no cliente)'});
+  });
+  return itens.sort((a,b)=>b.data.localeCompare(a.data));
+}
+
 // ─── FECHAMENTO DE CONTRATO COM CLIENTE QUE JÁ ESTÁ NA CARTEIRA ───
 // Antes, todo "fechar contrato" criava um cadastro de cliente novo — um cliente
 // que volta para o 2º ou 3º contrato aparecia duplicado. Agora, se já existe um
