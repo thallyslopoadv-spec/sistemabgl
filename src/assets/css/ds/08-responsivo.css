@@ -9,7 +9,7 @@
   .sidebar{position:fixed;left:0;top:0;bottom:0;height:100%;width:min(300px,86vw)!important;transform:translateX(-102%);
     transition:transform .24s var(--ease);box-shadow:var(--shadow-pop)}
   .app.sb-aberta .sidebar{transform:none}
-  .app.sb-mini .sb-rot,.app.sb-mini .sb-marca-txt,.app.sb-mini .sb-u-txt,.app.sb-mini .sb-sair,.app.sb-mini .sb-grupo span{display:revert}
+  .app.sb-mini .sb-rot,.app.sb-mini .sb-u-txt,.app.sb-mini .sb-sair,.app.sb-mini .sb-grupo span{display:revert}
   .app.sb-mini .sb-item,.app.sb-mini .sb-busca{justify-content:flex-start;padding:0 10px}
   .app.sb-mini .sb-marca{flex-direction:row;padding:4px 6px 18px}
   .sb-recolher{display:none}
