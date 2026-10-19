@@ -410,6 +410,16 @@ button:active{transform:scale(.985)}
 .det-fin-item:last-child{border:none}
 .det-fin-desc{font-size:14px;color:var(--t2);flex:1;min-width:0}
 .det-fin-data{font-size:12px;color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ct-card{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:7px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)}
+.ct-info{flex:1;min-width:0}
+.ct-card .row-act{opacity:1}
+.ct-titulo{font-size:14.5px;font-weight:600;color:var(--navy)}
+.ct-meta{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.5}
+.ct-chip{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 8px;margin-left:7px;border-radius:20px;background:var(--blue-bg);color:var(--blue-hi);vertical-align:1px}
+.ct-chip.vazio{background:var(--surface3);color:var(--t3)}
+.parc-lista{display:grid;gap:6px;max-height:230px;overflow-y:auto;margin-top:8px;padding-right:2px}
+.parc-row{display:grid;grid-template-columns:34px 1fr 1fr;gap:8px;align-items:center}
+.parc-row span{font-size:12px;color:var(--t3);font-variant-numeric:tabular-nums}
 .det-fin-val{font-size:14px;font-weight:600;color:var(--t);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* processos */
@@ -1264,6 +1274,8 @@ button:active{transform:scale(.985)}
    Calendário do mês com as audiências marcadas na Rotina (tarefas do tipo
    "audiência"). Substituiu o antigo resumo "Rotina de hoje", que misturava
    audiência com qualquer outra pendência e não mostrava horário. */
+.agenda-destaque{border:1px solid var(--navy-soft);border-top:4px solid var(--navy);box-shadow:var(--shadow-hover)}
+.agenda-destaque .card-head h3{font-size:21px}
 .agenda-wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(240px,1fr);gap:22px;padding:18px 22px 20px}
 .agenda-nav{display:flex;align-items:center;gap:9px;margin-bottom:13px}
 .agenda-mes{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--navy);flex:1;min-width:0}
@@ -1431,70 +1443,7 @@ button:active{transform:scale(.985)}
         <p class="greeting-verse" id="greeting-verse"></p>
       </div>
 
-      <div class="stats-row" id="dash-stats"></div>
-      <div class="alerts-row" id="alerts-row"></div>
-
-      <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="abrirDetalheMetaContratos()" title="Clique para ver quais contratos foram contados e editar a meta">
-        <div class="card-head">
-          <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Meta de contratos do mês</h3>
-          <span class="sub" id="dash-meta-sub"></span>
-        </div>
-        <div class="card-body" id="dash-meta-body"></div>
-      </div>
-
-      <div class="dash-grid g21">
-        <div class="modulo-card">
-          <div class="card-head">
-            <h3>Pendências do escritório</h3>
-            <button class="modulo-link" onclick="navegarPara('rotina')">Ver rotina →</button>
-          </div>
-          <div class="card-body" id="dash-pend"></div>
-        </div>
-        <div class="atend-card" onclick="navegarPara('trab')">
-          <div>
-            <div class="atend-ico"><i class="ti ti-headset" aria-hidden="true"></i></div>
-            <h3>Atendimento</h3>
-            <p>Triagem de leads, checklist de viabilidade e script de atendimento — tudo o que se relaciona aos atendimentos em um só lugar.</p>
-          </div>
-          <div class="atend-foot">
-            <span class="atend-badge"><b id="atend-badge-n">0</b> leads a responder</span>
-            <span class="atend-go">Abrir <i class="ti ti-arrow-right"></i></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-grid g11">
-        <div class="modulo-card">
-          <div class="card-head">
-            <h3>Desempenho</h3>
-            <span class="sub">novos clientes por mês</span>
-          </div>
-          <div class="card-body" id="dash-desempenho"></div>
-        </div>
-        <div class="modulo-card">
-          <div class="card-head">
-            <h3>Faturamento mensal</h3>
-            <span class="sub">recebido por mês</span>
-          </div>
-          <div class="card-body" id="dash-faturamento"></div>
-        </div>
-      </div>
-
-      <div class="dash-grid g11">
-        <div class="caixa-card caixa-card--dash">
-          <button class="btn-ico" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.22)" onclick="abrirModalLancamento(null)" title="Novo lançamento (entrada ou saída)"><i class="ti ti-plus"></i></button>
-          <div class="caixa-label">Caixa atual</div>
-          <div class="caixa-val" id="caixa-val-dash">R$ 0</div>
-          <div class="caixa-sub" id="caixa-sub-dash"></div>
-          <div class="caixa-trend" id="caixa-trend-dash"></div>
-        </div>
-        <div class="modulo-card">
-          <div class="modulo-head"><span class="modulo-titulo">Financeiro</span><button class="modulo-link" onclick="navegarPara('fin')">Detalhar →</button></div>
-          <div class="fin-body" id="dash-fin"></div>
-        </div>
-      </div>
-
-      <div class="modulo-card" style="margin-bottom:20px">
+      <div class="modulo-card agenda-destaque" style="margin-bottom:20px">
         <div class="card-head">
           <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências e prazos</h3>
           <span class="sub" id="agenda-sub"></span>
@@ -1526,13 +1475,58 @@ button:active{transform:scale(.985)}
         </div>
       </div>
 
-      <div class="modulo-card">
-        <div class="modulo-head">
-          <span class="modulo-titulo">Clientes ativos</span>
-          <button class="modulo-link" onclick="navegarPara('crm')">Ver todos →</button>
+      <div class="stats-row" id="dash-stats"></div>
+      <div class="alerts-row" id="alerts-row"></div>
+
+      <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="abrirDetalheMetaContratos()" title="Clique para ver quais contratos foram contados e editar a meta">
+        <div class="card-head">
+          <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Meta de contratos do mês</h3>
+          <span class="sub" id="dash-meta-sub"></span>
         </div>
-        <div id="dash-cli-list"></div>
+        <div class="card-body" id="dash-meta-body"></div>
       </div>
+
+      <div class="dash-grid">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Pendências do escritório</h3>
+            <button class="modulo-link" onclick="navegarPara('rotina')">Ver rotina →</button>
+          </div>
+          <div class="card-body" id="dash-pend"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid g11">
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Desempenho</h3>
+            <span class="sub">contratos fechados por mês</span>
+          </div>
+          <div class="card-body" id="dash-desempenho"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="card-head">
+            <h3>Faturamento mensal</h3>
+            <span class="sub">recebido por mês</span>
+          </div>
+          <div class="card-body" id="dash-faturamento"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid g11">
+        <div class="caixa-card caixa-card--dash">
+          <button class="btn-ico" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.22)" onclick="abrirModalLancamento(null)" title="Novo lançamento (entrada ou saída)"><i class="ti ti-plus"></i></button>
+          <div class="caixa-label">Caixa atual</div>
+          <div class="caixa-val" id="caixa-val-dash">R$ 0</div>
+          <div class="caixa-sub" id="caixa-sub-dash"></div>
+          <div class="caixa-trend" id="caixa-trend-dash"></div>
+        </div>
+        <div class="modulo-card">
+          <div class="modulo-head"><span class="modulo-titulo">Financeiro</span><button class="modulo-link" onclick="navegarPara('fin')">Detalhar →</button></div>
+          <div class="fin-body" id="dash-fin"></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ─── VIEW: ATENDIMENTO (TRIAGEM) ─── -->
@@ -2281,11 +2275,12 @@ button:active{transform:scale(.985)}
 <div class="overlay" id="overlay-fin">
   <div class="modal">
     <h3 id="mf-titulo">Novo lançamento</h3>
-    <div class="fg" id="mf-cli-wrap"><label>Cliente</label><select id="mf-cli"></select></div>
+    <div class="fg" id="mf-cli-wrap"><label>Cliente</label><select id="mf-cli" onchange="mfClienteMudou()"></select></div>
+    <div class="fg" id="mf-contrato-wrap" style="display:none"><label>Contrato</label><select id="mf-contrato"></select></div>
     <div class="fg"><label>Descrição</label><input type="text" id="mf-desc" placeholder="Ex.: Parcela 4 de R$ 500, ou Custa judicial paga"></div>
     <div class="fg-row">
-      <div class="fg"><label>Valor (R$)</label><input type="text" id="mf-valor" placeholder="500,00" inputmode="decimal"></div>
-      <div class="fg"><label>Data</label><input type="date" id="mf-data"></div>
+      <div class="fg"><label id="mf-valor-lbl">Valor (R$)</label><input type="text" id="mf-valor" placeholder="500,00" inputmode="decimal" oninput="mfRecRecalcular()"></div>
+      <div class="fg"><label id="mf-data-lbl">Data</label><input type="date" id="mf-data" onchange="mfRecRecalcular()"></div>
     </div>
     <div class="fg"><label>Tipo</label>
       <div class="seg" id="mf-seg">
@@ -2293,6 +2288,29 @@ button:active{transform:scale(.985)}
         <button type="button" id="mf-t-prev" onclick="mfTipo('prev')">Previsto</button>
         <button type="button" id="mf-t-saida" onclick="mfTipo('saida')">Saída</button>
       </div>
+    </div>
+    <div class="fg" id="mf-rec-wrap">
+      <label>Repetição</label>
+      <div class="seg">
+        <button type="button" id="mf-rec-nao" onclick="mfAlternarRecorrente(false)">Lançamento único</button>
+        <button type="button" id="mf-rec-sim" onclick="mfAlternarRecorrente(true)">Recorrente / parcelado</button>
+      </div>
+      <div id="mf-rec-campos" style="display:none;margin-top:12px">
+        <div class="fg-row">
+          <div class="fg" style="margin-bottom:0"><label>Nº de parcelas</label><input type="number" id="mf-rec-n" min="2" max="120" step="1" value="12" oninput="mfRecRecalcular()"></div>
+          <div class="fg" style="margin-bottom:0"><label>Periodicidade</label>
+            <select id="mf-rec-per" onchange="mfRecRecalcular()">
+              <option value="mensal">Mensal</option>
+              <option value="quinzenal">Quinzenal (15 dias)</option>
+              <option value="semanal">Semanal</option>
+            </select>
+          </div>
+        </div>
+        <div class="parc-lista" id="mf-rec-lista"></div>
+        <p id="mf-rec-total" style="font-size:12px;color:var(--t2);margin:8px 0 0;font-weight:600"></p>
+        <p style="font-size:11px;color:var(--t3);margin:4px 0 0">Datas e valores de cada parcela podem ser ajustados um a um. Mudar o valor, a 1ª data, o número de parcelas ou a periodicidade refaz a lista.</p>
+      </div>
+      <p id="mf-rec-info" style="display:none;font-size:12px;color:var(--t3);margin:8px 0 0"></p>
     </div>
     <div class="fg" id="mf-fundo-wrap" style="display:none">
       <label>Fundo do Escritório</label>
@@ -2417,10 +2435,41 @@ button:active{transform:scale(.985)}
       </div>
       <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Todo contrato fechado deveria estar ligado a um lead do funil de vendas. Sem vínculo, o cliente fica sinalizado como pendência para vincular no CRM.</span>
     </div>
+    <div class="fg" id="mc-unir-wrap" style="display:none">
+      <label>Unir cadastro duplicado</label>
+      <select id="mc-unir"></select>
+      <button type="button" class="det-add" style="margin-top:8px" onclick="unirClientes()"><i class="ti ti-arrows-join"></i> Trazer para este cadastro</button>
+      <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Para o cliente que foi cadastrado de novo a cada contrato. Contratos, lançamentos, processos, pendências, recados, conversa e pastas do cadastro escolhido passam para este, e o duplicado é removido.</span>
+    </div>
     <div class="modal-btns">
       <button class="btn-del" id="mc-del" onclick="excluirCliente()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn-cancel" onclick="fecharOverlay('overlay-cli')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONTRATO ═══════════════ -->
+<div class="overlay" id="overlay-contrato">
+  <div class="modal">
+    <h3 id="mct-titulo">Novo contrato</h3>
+    <div class="fg"><label>Objeto do contrato</label><input type="text" id="mct-objeto" placeholder="Ex.: Assessoria jurídica mensal, ou Reclamatória trabalhista"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Data de início</label><input type="date" id="mct-inicio"></div>
+      <div class="fg"><label>Status</label>
+        <div class="seg">
+          <button type="button" id="mct-st-a" onclick="mctStatus('Ativo')">Ativo</button>
+          <button type="button" id="mct-st-x" onclick="mctStatus('Encerrado')">Encerrado</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label>Valor total contratado (R$) · opcional</label><input type="text" id="mct-valor" placeholder="Ex.: 18.000,00" inputmode="decimal"><span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Entra nos honorários fechados da meta do mês. Se ficar em branco, vale a soma dos lançamentos do contrato.</span></div>
+    <div class="fg"><label>Observações</label><textarea id="mct-obs" rows="2" placeholder="Valor combinado, forma de pagamento, vigência, reajuste…"></textarea></div>
+    <p id="mct-resumo" style="font-size:12px;color:var(--t3);margin:-4px 0 14px;line-height:1.5"></p>
+    <div class="modal-btns">
+      <button class="btn-del" id="mct-del" onclick="excluirContrato()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-contrato')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarContrato()">Salvar</button>
     </div>
   </div>
 </div>
@@ -2666,10 +2715,10 @@ button:active{transform:scale(.985)}
   </div>
 </div>
 
-<!-- ═══════════════ MODAL: CLIENTES NOVOS DE UM MÊS ═══════════════ -->
+<!-- ═══════════════ MODAL: CONTRATOS FECHADOS DE UM MÊS ═══════════════ -->
 <div class="overlay" id="overlay-mescli">
   <div class="modal" style="width:520px">
-    <h3 id="cm-titulo">Novos clientes do mês</h3>
+    <h3 id="cm-titulo">Contratos fechados do mês</h3>
     <div id="cm-lista"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-mescli')">Fechar</button>
@@ -3627,6 +3676,7 @@ async function carregarDBRemoto(){
   });
   // processos: áreas, fases, publicações do DJEN e o tipo de tarefa "prazo"
   if(garantirEstruturaProcessos())precisaSalvar=true;
+  if(garantirContratos())precisaSalvar=true;
   if(precisaSalvar)await gravarDB();
 }
 
@@ -3813,6 +3863,8 @@ function parseValor(s){
   s=String(s).trim().replace(/^R\$\s*/,'');
   if(!s)return NaN;
   if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  // "18.000" ou "1.500.000" sem vírgula: os pontos são de milhar, não decimal
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
   return parseFloat(s);
 }
 function iniciais(n){return n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase()}
@@ -3862,6 +3914,38 @@ function clienteAlc(c){return c.fin.filter(x=>x.t==='alc').reduce((a,x)=>a+x.v,0
 function clientePrev(c){return c.fin.filter(x=>x.t==='prev').reduce((a,x)=>a+x.v,0)}
 function clienteSaida(c){return c.fin.filter(x=>x.t==='saida').reduce((a,x)=>a+x.v,0)}
 function procsDe(cid){return DB.processos.filter(p=>p.cid===cid)}
+
+// ─── CONTRATOS DO CLIENTE ─────────────────────────────────
+// Um mesmo cliente pode fechar vários contratos ao longo do tempo (ex.: uma ação,
+// depois outra, depois uma assessoria mensal). Antes, cada contrato novo virava
+// um cadastro de cliente separado. Agora o cliente tem uma lista de contratos e
+// cada lançamento financeiro pode apontar para o contrato a que pertence.
+function contratosDe(c){return (c&&Array.isArray(c.contratos))?c.contratos:[]}
+function contratoDe(c,ctId){return ctId?contratosDe(c).find(k=>k.id===ctId)||null:null}
+function finDoContrato(c,ctId){return (c.fin||[]).filter(f=>(f.contratoId||null)===(ctId||null))}
+function novoContrato(dados){
+  return {id:uid(),titulo:'',inicio:'',status:'Ativo',obs:'',leadId:null,leadMod:null,criadoEm:Date.now(),...dados};
+}
+// migração: todo cliente ganha a lista de contratos. Quem já existia recebe um
+// contrato inicial com os dados que estavam no próprio cadastro (demandas, data
+// de entrada, lead vinculado), e os lançamentos dele passam a apontar para esse
+// contrato. Nada é apagado; roda uma vez por cliente.
+function garantirContratos(){
+  let mudou=false;
+  (DB&&DB.clientes||[]).forEach(c=>{
+    if(Array.isArray(c.contratos))return;
+    const ct=novoContrato({
+      titulo:(c.demandas||'').trim()||'Contrato inicial',
+      inicio:c.entrada||'',
+      status:c.status==='Arquivado'?'Encerrado':'Ativo',
+      leadId:c.leadVinculadoId||null,leadMod:c.leadVinculadoMod||null,
+    });
+    c.contratos=[ct];
+    (c.fin||[]).forEach(f=>{if(!f.contratoId)f.contratoId=ct.id;});
+    mudou=true;
+  });
+  return mudou;
+}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 // ─── ORDEM ALFABÉTICA PADRÃO DO SISTEMA ────────────────────
@@ -4377,6 +4461,7 @@ function entrarApp(){
   carregarLeads();
   carregarLeadsCivel();
   garantirEstruturaProcessos();
+  garantirContratos();   // cópia offline / backup restaurado não passam pela migração do Gist
   if(reprocessarPublicacoesPendentes())salvarDB();
   aplicarIconeOlho();
   refreshUITudo();
@@ -4523,7 +4608,6 @@ function renderDashboard(){
   // leads realmente a responder (categoria derivada: exclui os que já avançaram no funil)
   const leadsResp=leads.filter(l=>leadCategoria(l)==='responder').length+leadsCivel.filter(l=>leadCategoria(l)==='responder').length;
   const tarefasAbertas=DB.tarefas.filter(t=>t.status!=='concluido').length;
-  document.getElementById('atend-badge-n').textContent=leadsResp;
   document.getElementById('alerts-row').innerHTML=
     (leadsResp?`<div class="alert-pill amber"><div class="alert-dot"></div>${leadsResp} lead${leadsResp>1?'s':''} a responder</div>`:'')+
     `<div class="alert-pill green"><div class="alert-dot"></div>${ativosExt.length+socios.length} clientes ativos · ${procAtivos} processos ativos</div>`+
@@ -4535,15 +4619,6 @@ function renderDashboard(){
   renderDesempenho();
   renderFaturamentoChart('dash-faturamento');
   renderCaixa('-dash');
-
-  document.getElementById('dash-cli-list').innerHTML=ordenarPorNome(ativosExt).slice(0,6).map(c=>{
-    const cr=corDe(c.id);
-    return `<div class="cli-row" onclick="irParaCliente('${c.id}')">
-      <div class="cli-av" style="background:${cr[0]};color:${cr[1]};border-color:transparent">${iniciais(c.nome)}</div>
-      <div class="cli-info"><div class="cli-nome">${esc(c.curto)}</div><div class="cli-area">${esc(c.demandas)}</div></div>
-      <div class="cli-status s-ativo">Ativo</div>
-    </div>`;
-  }).join('');
 
   renderAgendaAudiencias();
 
@@ -4578,42 +4653,43 @@ function renderDashPend(leadsResp){
     </div>`).join('');
 }
 
-// gráfico de desempenho (novos clientes por mês, últimos 12)
+// gráfico de desempenho (contratos fechados por mês, últimos 12)
 function renderDesempenho(){
   const meses=[];const now=new Date();
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);meses.push({y:d.getFullYear(),m:d.getMonth(),n:0});}
-  DB.clientes.forEach(c=>{
-    const e=getEntrada(c);if(!e)return;
-    const[ay,am]=e.split('-').map(Number);
-    const alvo=meses.find(x=>x.y===ay&&x.m===(am-1));if(alvo)alvo.n++;
+  contratosFechadosTodos().forEach(x=>{
+    const[ay,am]=x.data.split('-').map(Number);
+    const alvo=meses.find(m=>m.y===ay&&m.m===(am-1));if(alvo)alvo.n++;
   });
   const max=Math.max(1,...meses.map(x=>x.n));
   const total=meses.reduce((a,x)=>a+x.n,0);
   const nomesM=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   document.getElementById('dash-desempenho').innerHTML=`
     <div class="vchart">
-      ${meses.map(x=>`<div class="vcol" style="cursor:pointer" onclick="abrirClientesDoMes(${x.y},${x.m})" title="${x.n} cliente(s) em ${nomesM[x.m]}/${x.y} — clique para ver quais">
+      ${meses.map(x=>`<div class="vcol" style="cursor:pointer" onclick="abrirClientesDoMes(${x.y},${x.m})" title="${x.n} contrato(s) em ${nomesM[x.m]}/${x.y} — clique para ver quais">
         <div class="vcol-num">${x.n||''}</div>
         <div class="vcol-bar" style="height:${x.n/max*100}%"></div>
         <div class="vcol-lbl">${nomesM[x.m]}</div>
       </div>`).join('')}
     </div>
-    <div class="vchart-foot"><span>Últimos 12 meses</span><span><b style="color:var(--navy)">${total}</b> novos clientes</span></div>`;
+    <div class="vchart-foot"><span>Últimos 12 meses</span><span><b style="color:var(--navy)">${total}</b> contratos fechados</span></div>`;
 }
 // abre a lista de clientes que entraram num mês específico (clique no gráfico de desempenho)
 function abrirClientesDoMes(y,m){
   const nomesM=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const prefixo=y+'-'+String(m+1).padStart(2,'0');
-  const doMes=ordenarPorNome(DB.clientes.filter(c=>{const e=getEntrada(c);return e&&e.slice(0,7)===prefixo;}));
-  document.getElementById('cm-titulo').textContent='Novos clientes em '+nomesM[m]+'/'+y;
-  document.getElementById('cm-lista').innerHTML=doMes.length?doMes.map(c=>{
-    const cr=corDe(c.id);
-    return `<div class="cli-row" onclick="fecharOverlay('overlay-mescli');irParaCliente('${c.id}')">
-      <div class="cli-av" style="background:${cr[0]};color:${cr[1]};border-color:transparent">${iniciais(c.nome)}</div>
-      <div class="cli-info"><div class="cli-nome">${esc(c.curto)}</div><div class="cli-area">${esc(c.demandas)}</div></div>
-      ${pillCliente(c)}
+  const doMes=contratosFechadosTodos().filter(x=>x.data.slice(0,7)===prefixo).sort((a,b)=>cmpNome(a.nome,b.nome));
+  document.getElementById('cm-titulo').textContent='Contratos fechados em '+nomesM[m]+'/'+y;
+  document.getElementById('cm-lista').innerHTML=doMes.length?doMes.map(x=>{
+    const id=x.tipo==='contrato'?x.c.id:x.l.id;
+    const cr=corDe(id);
+    const abrir=x.tipo==='contrato'?`irParaCliente('${x.c.id}')`:`abrirLeadDeTarefa('${x.l.id}','${x.l._mod}')`;
+    return `<div class="cli-row" onclick="fecharOverlay('overlay-mescli');${abrir}">
+      <div class="cli-av" style="background:${cr[0]};color:${cr[1]};border-color:transparent">${iniciais(x.nome)}</div>
+      <div class="cli-info"><div class="cli-nome">${esc(x.nome)}</div><div class="cli-area">${esc(x.titulo)} · ${fmtData(x.data)}</div></div>
+      <span class="fin-item-val">${money(x.valor)}</span>
     </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:10px 0">Nenhum cliente novo neste mês.</p>';
+  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:10px 0">Nenhum contrato fechado neste mês.</p>';
   abrirOverlay('overlay-mescli');
 }
 
@@ -6085,6 +6161,9 @@ function finPrevistoEsquecido(f){
   if(f.dependeTerceiro&&f.dataPrevistaRecebimento){
     return f.dataPrevistaRecebimento<hojeISO(); // só "esquecido" se a própria data prevista já venceu
   }
+  // parcela com vencimento ainda por vir (ex.: série recorrente de 12 meses) não
+  // está esquecida: só passa a contar depois que a própria data passar
+  if(f.dt&&f.dt>=hojeISO())return false;
   const criado=f.criadoEm||0;
   return (Date.now()-criado)/86400000>CREDITO_ESQUECIDO_DIAS;
 }
@@ -8366,17 +8445,55 @@ function destacarClienteNaLista(id){
   if(antigo)antigo.classList.remove('selected');
   alvo.classList.add('selected');
 }
+// cartões dos contratos na ficha: cada um com o que já entrou, o que falta
+// receber e a próxima parcela prevista
+function contratosHTML(c){
+  const lista=[...contratosDe(c)].sort((a,b)=>(a.status==='Encerrado')-(b.status==='Encerrado')||(b.inicio||'').localeCompare(a.inicio||''));
+  if(!lista.length)return '<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nenhum contrato registrado. Use “Novo contrato” para separar cada contratação deste cliente.</p>';
+  return lista.map(ct=>{
+    const fins=finDoContrato(c,ct.id);
+    const rec=fins.filter(f=>f.t==='alc').reduce((a,f)=>a+f.v,0);
+    const prevs=fins.filter(f=>f.t==='prev');
+    const aRec=prevs.reduce((a,f)=>a+f.v,0);
+    const prox=prevs.map(f=>f.dt).filter(Boolean).sort()[0];
+    const st=ct.status==='Encerrado'?'<span class="proc-st s-arq">Encerrado</span>':'<span class="proc-st s-ativo">Ativo</span>';
+    const meta=[
+      ct.inicio?'desde '+fmtData(ct.inicio):'sem data de início',
+      ct.valor>0?'valor '+money(ct.valor):'',
+      'recebido '+money(rec),
+      prevs.length?'a receber '+money(aRec)+' ('+prevs.length+' lançamento'+(prevs.length>1?'s':'')+')':'nada a receber',
+      prox?'próxima em '+fmtData(prox):'',
+    ].filter(Boolean).join(' · ');
+    return `<div class="ct-card hoverable">
+      <div class="ct-info">
+        <div class="ct-titulo">${esc(ct.titulo||'Contrato')}${ct.leadId?' <i class="ti ti-link" style="font-size:12px;color:var(--t3)" title="Ligado a um lead do CRM"></i>':''}</div>
+        <div class="ct-meta">${meta}</div>
+        ${ct.obs?`<div class="ct-meta" style="margin-top:3px">${esc(ct.obs)}</div>`:''}
+      </div>
+      ${st}
+      <span class="row-act">
+        <button class="btn-ico ok" onclick="abrirModalFin('${c.id}',null,'${ct.id}')" title="Lançar pagamento neste contrato"><i class="ti ti-cash-banknote"></i></button>
+        <button class="btn-ico" onclick="abrirModalContrato('${c.id}','${ct.id}')" title="Editar contrato"><i class="ti ti-pencil"></i></button>
+      </span>
+    </div>`;
+  }).join('');
+}
 function detalheClienteHTML(c){
   const alc=clienteAlc(c),prev=clientePrev(c),saida=clienteSaida(c);
   const procs=procsDe(c.id).sort((a,b)=>(a.status==='Arquivado')-(b.status==='Arquivado'));
   const rootUrl=driveGet(c.id,'root');
 
-  const finLinhas=c.fin.length?c.fin.map(f=>{
+  const variosContratos=contratosDe(c).length>1;
+  // parcelas em ordem de data (sem data vão para o fim), para a série recorrente ler em sequência
+  const finOrdenado=[...c.fin].sort((a,b)=>(a.dt||'9999').localeCompare(b.dt||'9999'));
+  const finLinhas=c.fin.length?finOrdenado.map(f=>{
     const tipoCls=f.t==='alc'?'ft-e':f.t==='saida'?'ft-saida':'ft-a';
     const tipoLbl=f.t==='alc'?'recebido':f.t==='saida'?'saída':'previsto';
+    const ct=contratoDe(c,f.contratoId);
+    const chipCt=variosContratos?`<span class="ct-chip${ct?'':' vazio'}">${ct?esc(ct.titulo):'sem contrato'}</span>`:'';
     return `
     <div class="det-fin-item hoverable">
-      <span class="det-fin-desc">${esc(f.d)}</span>
+      <span class="det-fin-desc">${esc(f.d)}${chipCt}</span>
       ${f.dt?`<span class="det-fin-data"><i class="ti ti-calendar" style="font-size:11px"></i> ${fmtData(f.dt)}</span>`:''}
       <span class="det-fin-val" style="color:${f.t==='saida'?'var(--red-hi)':'inherit'}">${f.t==='saida'?'− ':''}${money(f.v)}</span>
       <span class="fin-tipo ${tipoCls}">${tipoLbl}</span>
@@ -8462,6 +8579,12 @@ function detalheClienteHTML(c){
         <div class="det-sec-titulo">Demandas</div>
         <p class="det-demandas">${esc(c.demandas)}</p>
         ${c.obs?`<div class="det-obs"><i class="ti ti-info-circle"></i> ${esc(c.obs)}</div>`:''}
+      </div>
+      <div class="det-sec">
+        <div class="det-sec-titulo"><span>Contratos</span>
+          <button class="det-add" onclick="abrirModalContrato('${c.id}',null)"><i class="ti ti-plus"></i> Novo contrato</button>
+        </div>
+        ${contratosHTML(c)}
       </div>
       <div class="det-sec">
         <div class="det-sec-titulo"><span>Financeiro</span>
@@ -8570,7 +8693,7 @@ function configurarComprovanteLanc(id){
 // ═══════════════════════════════════════════════════════════
 //  MODAL: LANÇAMENTO FINANCEIRO
 // ═══════════════════════════════════════════════════════════
-let mfCtx={cid:null,fid:null,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false};
+let mfCtx={cid:null,fid:null,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,rec:false};
 function mfTipo(t){
   mfCtx.t=t;
   document.getElementById('mf-t-alc').classList.toggle('on',t==='alc');
@@ -8584,7 +8707,7 @@ function mfTipo(t){
 function atualizarTerceiroNoModalFin(){
   const wrap=document.getElementById('mf-terceiro-wrap');
   if(!wrap)return;
-  wrap.style.display=mfCtx.t==='prev'?'block':'none';
+  wrap.style.display=mfCtx.t==='prev'&&!mfCtx.rec?'block':'none';
   document.getElementById('mf-terceiro-sim').classList.toggle('on',mfCtx.dependeTerceiro);
   document.getElementById('mf-terceiro-nao').classList.toggle('on',!mfCtx.dependeTerceiro);
   document.getElementById('mf-terceiro-data-wrap').style.display=mfCtx.dependeTerceiro?'grid':'none';
@@ -8655,8 +8778,22 @@ function desfazerDesignacaoFundo(){
   if(!f||!f.fundoAporteId)return;
   transferirFundoParaCaixa(f.fundoAporteId);
 }
-function abrirModalFin(cid,fid){
-  mfCtx={cid,fid,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false};
+// select de contratos do cliente escolhido no modal (some quando ele não tem nenhum)
+function mfPopularContratos(cid,selecionado){
+  const c=DB.clientes.find(x=>x.id===cid);
+  const lista=contratosDe(c);
+  const wrap=document.getElementById('mf-contrato-wrap'), sel=document.getElementById('mf-contrato');
+  wrap.style.display=lista.length?'block':'none';
+  const ord=[...lista].sort((a,b)=>(a.status==='Encerrado')-(b.status==='Encerrado')||(b.inicio||'').localeCompare(a.inicio||''));
+  sel.innerHTML='<option value="">— sem contrato específico —</option>'+ord.map(k=>
+    `<option value="${k.id}">${esc(k.titulo||'Contrato')}${k.inicio?' · desde '+fmtData(k.inicio):''}${k.status==='Encerrado'?' (encerrado)':''}</option>`).join('');
+  // sem escolha explícita, um contrato ativo único já vem marcado
+  const ativos=lista.filter(k=>k.status!=='Encerrado');
+  sel.value=selecionado!==undefined?(selecionado||''):(ativos.length===1?ativos[0].id:'');
+}
+function mfClienteMudou(){mfPopularContratos(document.getElementById('mf-cli').value);}
+function abrirModalFin(cid,fid,ctId){
+  mfCtx={cid,fid,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,rec:false};
   const cliWrap=document.getElementById('mf-cli-wrap');
   const sel=document.getElementById('mf-cli');
   if(!cid){ // aberto pela tela Financeiro: escolher o cliente
@@ -8665,6 +8802,8 @@ function abrirModalFin(cid,fid){
   }else{
     cliWrap.style.display='none';
   }
+  const info=document.getElementById('mf-rec-info');
+  info.style.display='none';
   if(fid){
     const c=DB.clientes.find(x=>x.id===cid);
     const f=c.fin.find(x=>x.id===fid);
@@ -8675,6 +8814,15 @@ function abrirModalFin(cid,fid){
     mfCtx.dependeTerceiro=!!f.dependeTerceiro;
     mfCtx.dataPrevistaRecebimento=f.dataPrevistaRecebimento||'';
     mfCtx.aceiteVerbal=!!f.aceiteVerbal;
+    mfPopularContratos(cid,f.contratoId||'');
+    // a repetição só se escolhe ao criar; numa parcela existente, mostra de qual série ela é
+    document.getElementById('mf-rec-wrap').style.display=f.serieId?'block':'none';
+    if(f.serieId){
+      document.querySelector('#mf-rec-wrap .seg').style.display='none';
+      info.style.display='block';
+      info.textContent='Parcela '+f.parcela+' de '+f.parcelas+' de um lançamento recorrente. A alteração vale só para esta parcela, exceto o contrato, que muda na série inteira.';
+    }
+    mfAlternarRecorrente(false);
     mfTipo(f.t);
     document.getElementById('mf-del').style.display='inline-flex';
   }else{
@@ -8682,11 +8830,72 @@ function abrirModalFin(cid,fid){
     document.getElementById('mf-desc').value='';
     document.getElementById('mf-valor').value='';
     document.getElementById('mf-data').value='';
+    document.getElementById('mf-rec-wrap').style.display='block';
+    document.querySelector('#mf-rec-wrap .seg').style.display='flex';
+    document.getElementById('mf-rec-n').value=12;
+    document.getElementById('mf-rec-per').value='mensal';
+    mfPopularContratos(cid||sel.value,ctId);
+    mfAlternarRecorrente(false);
     mfTipo('alc');
     document.getElementById('mf-del').style.display='none';
   }
   abrirOverlay('overlay-fin');
   setTimeout(()=>document.getElementById('mf-desc').focus(),100);
+}
+// ─── LANÇAMENTO RECORRENTE ────────────────────────────────
+// Gera N parcelas de uma vez (ex.: assessoria mensal). Cada parcela vira um
+// lançamento próprio, com data e valor que podem ser ajustados, e todas ficam
+// ligadas pelo mesmo serieId — assim entram uma a uma no "a receber" e podem
+// ser baixadas separadamente conforme o cliente paga.
+function mfAlternarRecorrente(v){
+  mfCtx.rec=v;
+  document.getElementById('mf-rec-sim').classList.toggle('on',v);
+  document.getElementById('mf-rec-nao').classList.toggle('on',!v);
+  document.getElementById('mf-rec-campos').style.display=v?'block':'none';
+  document.getElementById('mf-valor-lbl').textContent=v?'Valor de cada parcela (R$)':'Valor (R$)';
+  document.getElementById('mf-data-lbl').textContent=v?'Data da 1ª parcela':'Data';
+  // parcelas futuras são, por natureza, previstas
+  if(v&&mfCtx.t==='alc')mfTipo('prev');
+  atualizarTerceiroNoModalFin();
+  if(v)mfRecRecalcular();
+}
+// soma meses mantendo o dia; dia 31 em mês curto cai no último dia do mês
+function isoAddMeses(iso,n){
+  const[y,m,d]=iso.split('-').map(Number);
+  const ultimo=new Date(Date.UTC(y,m-1+n+1,0)).getUTCDate();
+  return new Date(Date.UTC(y,m-1+n,Math.min(d,ultimo))).toISOString().slice(0,10);
+}
+function dataDaParcela(primeira,i,per){
+  if(per==='semanal')return isoAdd(primeira,7*i);
+  if(per==='quinzenal')return isoAdd(primeira,15*i);
+  return isoAddMeses(primeira,i);
+}
+function mfRecRecalcular(){
+  if(!mfCtx.rec)return;
+  const n=Math.min(120,Math.max(2,parseInt(document.getElementById('mf-rec-n').value,10)||0));
+  const per=document.getElementById('mf-rec-per').value;
+  const primeira=document.getElementById('mf-data').value||hojeISO();
+  const v=parseValor(document.getElementById('mf-valor').value);
+  const vTxt=v>0?v.toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+  let html='';
+  for(let i=0;i<n;i++){
+    html+=`<div class="parc-row"><span>${i+1}/${n}</span>
+      <input type="date" class="parc-dt" value="${dataDaParcela(primeira,i,per)}">
+      <input type="text" class="parc-v" value="${vTxt}" placeholder="0,00" inputmode="decimal" oninput="mfRecTotal()"></div>`;
+  }
+  document.getElementById('mf-rec-lista').innerHTML=html;
+  mfRecTotal();
+}
+function mfRecParcelas(){
+  return [...document.querySelectorAll('#mf-rec-lista .parc-row')].map(r=>({
+    dt:r.querySelector('.parc-dt').value,
+    v:parseValor(r.querySelector('.parc-v').value),
+  }));
+}
+function mfRecTotal(){
+  const ps=mfRecParcelas();
+  const tot=ps.reduce((a,p)=>a+(p.v>0?p.v:0),0);
+  document.getElementById('mf-rec-total').textContent=ps.length+' parcelas · total '+money(tot);
 }
 function salvarFin(){
   const cid=mfCtx.cid||document.getElementById('mf-cli').value;
@@ -8696,6 +8905,8 @@ function salvarFin(){
   const v=parseValor(document.getElementById('mf-valor').value);
   const dt=document.getElementById('mf-data').value;
   if(!d){alert('Informe a descrição do lançamento.');return;}
+  const contratoId=document.getElementById('mf-contrato-wrap').style.display==='none'?null:(document.getElementById('mf-contrato').value||null);
+  if(mfCtx.rec&&!mfCtx.fid){salvarFinRecorrente(c,d,contratoId);return;}
   if(!(v>0)){alert('Informe um valor válido (ex.: 500,00).');return;}
   mfCtx.dataPrevistaRecebimento=mfCtx.t==='prev'&&mfCtx.dependeTerceiro?document.getElementById('mf-data-prevista').value:'';
   let novoRecebido=false, f;
@@ -8708,6 +8919,9 @@ function salvarFin(){
     c.fin.push(f);
     novoRecebido=mfCtx.t==='alc';
   }
+  f.contratoId=contratoId;
+  // o contrato é da série inteira: mudar numa parcela muda em todas
+  if(f.serieId)c.fin.forEach(x=>{if(x.serieId===f.serieId)x.contratoId=contratoId;});
   f.dependeTerceiro=mfCtx.t==='prev'&&mfCtx.dependeTerceiro;
   f.dataPrevistaRecebimento=f.dependeTerceiro?mfCtx.dataPrevistaRecebimento:'';
   f.aceiteVerbal=mfCtx.t==='prev'&&mfCtx.aceiteVerbal;
@@ -8720,6 +8934,26 @@ function salvarFin(){
   if(!periodoMatch(f.dt))finPeriodo='tudo';
   refreshUI();
   if(novoRecebido)avisarFundoEscritorio(v);
+}
+function salvarFinRecorrente(c,d,contratoId){
+  const ps=mfRecParcelas();
+  if(ps.length<2){alert('Informe pelo menos 2 parcelas.');return;}
+  const semData=ps.findIndex(p=>!p.dt), semValor=ps.findIndex(p=>!(p.v>0));
+  if(semData>=0){alert('A parcela '+(semData+1)+' está sem data.');return;}
+  if(semValor>=0){alert('A parcela '+(semValor+1)+' está sem valor válido (ex.: 500,00).');return;}
+  const serieId=uid(), n=ps.length, total=ps.reduce((a,p)=>a+p.v,0);
+  ps.forEach((p,i)=>c.fin.push({
+    id:uid(),d:d+' — parcela '+(i+1)+'/'+n,v:p.v,t:mfCtx.t,dt:p.dt,criadoEm:Date.now(),
+    contratoId,serieId,parcela:i+1,parcelas:n,
+    dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,
+  }));
+  salvarDB();
+  fecharOverlay('overlay-fin');
+  if(finFiltro!=='todos'&&finFiltro!==mfCtx.t)finFiltro=mfCtx.t;
+  if(!ps.every(p=>periodoMatch(p.dt)))finPeriodo='tudo';
+  refreshUI();
+  mostrarToast(n+' parcelas lançadas · '+money(total)+(mfCtx.t==='prev'?' a receber':''));
+  if(mfCtx.t==='alc')avisarFundoEscritorio(total);
 }
 // tarefa automática de conferência na data prevista de recebimento (créditos dependentes
 // de terceiro) — criada/atualizada/removida junto com o lançamento, sem duplicar
@@ -8749,6 +8983,14 @@ function excluirFin(){
   if(f.fundoAporteId)DB.fundoAportes=(DB.fundoAportes||[]).filter(a=>a.id!==f.fundoAporteId);
   if(f.tarefaConferenciaId)DB.tarefas=DB.tarefas.filter(t=>t.id!==f.tarefaConferenciaId);
   c.fin=c.fin.filter(x=>x.id!==mfCtx.fid);
+  if(f.serieId){
+    const seguintes=c.fin.filter(x=>x.serieId===f.serieId&&x.t==='prev'&&(x.dt||'')>=(f.dt||''));
+    if(seguintes.length&&confirm('Este lançamento faz parte de uma série recorrente.\n\nExcluir também as '+seguintes.length+' parcela(s) PREVISTA(S) seguintes ('+money(seguintes.reduce((a,x)=>a+x.v,0))+')? Use isto quando o contrato for encerrado.\n\nParcelas já recebidas não são tocadas.')){
+      const ids=new Set(seguintes.map(x=>x.id));
+      c.fin.filter(x=>ids.has(x.id)&&x.tarefaConferenciaId).forEach(x=>{DB.tarefas=DB.tarefas.filter(t=>t.id!==x.tarefaConferenciaId);});
+      c.fin=c.fin.filter(x=>!ids.has(x.id));
+    }
+  }
   salvarDB();
   fecharOverlay('overlay-fin');
   refreshUI();
@@ -8976,6 +9218,7 @@ function abrirModalCliente(cid){
     document.getElementById('mc-entrada').value=c.entrada||'';
     popularSelectLeadCliente(c.leadVinculadoMod,c.leadVinculadoId);
     mcTipo(c.tipo);mcStatus(c.status);
+    popularSelectUnir(c);
     document.getElementById('mc-del').style.display='inline-flex';
   }else{
     document.getElementById('mc-titulo').textContent='Novo cliente';
@@ -8985,6 +9228,7 @@ function abrirModalCliente(cid){
     document.getElementById('mc-entrada').value='';
     popularSelectLeadCliente(null,null);
     mcTipo('externo');mcStatus('Ativo');
+    document.getElementById('mc-unir-wrap').style.display='none';
     document.getElementById('mc-del').style.display='none';
   }
   abrirOverlay('overlay-cli');
@@ -9005,7 +9249,8 @@ function salvarCliente(){
     c.leadVinculadoId=leadId||null;c.leadVinculadoMod=leadId?leadMod:null;
     delete c.obs; // dados conferidos manualmente
   }else{
-    const novo={id:uid(),nome,curto,tipo:mcCtx.tipo,status:mcCtx.status,demandas,entrada,fin:[],leadVinculadoId:leadId||null,leadVinculadoMod:leadId?leadMod:null};
+    const novo={id:uid(),nome,curto,tipo:mcCtx.tipo,status:mcCtx.status,demandas,entrada,fin:[],leadVinculadoId:leadId||null,leadVinculadoMod:leadId?leadMod:null,
+      contratos:[novoContrato({titulo:demandas||'Contrato inicial',inicio:entrada,leadId:leadId||null,leadMod:leadId?leadMod:null})]};
     DB.clientes.push(novo);
     clienteAtual=novo;
   }
@@ -9014,6 +9259,119 @@ function salvarCliente(){
   refreshUI();
   if(novoCliente&&clienteAtual)abrirCliente(clienteAtual.id);
 }
+// ─── UNIR CADASTROS DUPLICADOS ────────────────────────────
+// nomes parecidos aparecem primeiro, o resto da carteira depois
+function popularSelectUnir(c){
+  const parecidos=clientesComMesmoNome(c.nome).filter(x=>x.id!==c.id);
+  const ids=new Set(parecidos.map(x=>x.id));
+  const outros=ordenarPorNome(DB.clientes.filter(x=>x.id!==c.id&&!ids.has(x.id)));
+  const op=x=>`<option value="${x.id}">${esc(x.nome)}</option>`;
+  document.getElementById('mc-unir').innerHTML='<option value="">— escolha o cadastro duplicado —</option>'+
+    (parecidos.length?`<optgroup label="Nome parecido">${parecidos.map(op).join('')}</optgroup>`:'')+
+    `<optgroup label="Demais clientes">${outros.map(op).join('')}</optgroup>`;
+  document.getElementById('mc-unir-wrap').style.display='block';
+}
+function unirClientes(){
+  const alvo=DB.clientes.find(x=>x.id===mcCtx.cid);
+  const outro=DB.clientes.find(x=>x.id===document.getElementById('mc-unir').value);
+  if(!alvo||!outro){alert('Escolha o cadastro duplicado que deve ser trazido para este.');return;}
+  garantirContratos();
+  const nProc=procsDe(outro.id).length, nTar=tarefasDe(outro.id).length;
+  if(!confirm('Unir "'+outro.nome+'" a "'+alvo.nome+'"?\n\n'+
+    'Passam para "'+alvo.nome+'":\n'+
+    '  · '+contratosDe(outro).length+' contrato(s)\n'+
+    '  · '+outro.fin.length+' lançamento(s) financeiro(s)\n'+
+    '  · '+nProc+' processo(s)\n'+
+    '  · '+nTar+' pendência(s)\n\n'+
+    'O cadastro "'+outro.nome+'" deixa de existir. Esta operação não tem desfazer automático (o backup local continua valendo).'))return;
+  alvo.contratos=[...contratosDe(alvo),...contratosDe(outro)];
+  alvo.fin=[...alvo.fin,...(outro.fin||[])];
+  DB.processos.forEach(p=>{if(p.cid===outro.id)p.cid=alvo.id;});
+  DB.tarefas.forEach(t=>{if(t.cid===outro.id)t.cid=alvo.id;});
+  (DB.fundoAportes||[]).forEach(a=>{if(a.origem&&a.origem.cid===outro.id){a.origem.cid=alvo.id;a.origem.cnome=alvo.nome;}});
+  [...(DB.leads||[]),...(DB.leadsCivel||[])].forEach(l=>{if(l.clienteId===outro.id)l.clienteId=alvo.id;});
+  alvo.chat=[...(alvo.chat||[]),...(outro.chat||[])].sort((a,b)=>(a.criadoEm||0)-(b.criadoEm||0));
+  alvo.drive={...(outro.drive||{}),...(alvo.drive||{})};   // o link deste cadastro prevalece
+  if(!(alvo.conversa&&alvo.conversa.texto)&&outro.conversa)alvo.conversa=outro.conversa;
+  const datas=[alvo.entrada,outro.entrada].filter(Boolean).sort();
+  alvo.entrada=datas[0]||'';
+  if(!alvo.leadVinculadoId&&outro.leadVinculadoId){alvo.leadVinculadoId=outro.leadVinculadoId;alvo.leadVinculadoMod=outro.leadVinculadoMod;}
+  if(outro.demandas&&!semAcento(alvo.demandas).includes(semAcento(outro.demandas)))
+    alvo.demandas=[alvo.demandas,outro.demandas].filter(Boolean).join(' + ');
+  if(outro.status==='Ativo')alvo.status='Ativo';
+  DB.clientes=DB.clientes.filter(x=>x.id!==outro.id);
+  clienteAtual=alvo;
+  salvarDB();
+  fecharOverlay('overlay-cli');
+  refreshUI();
+  abrirCliente(alvo.id);
+  mostrarToast('"'+outro.nome+'" unido a "'+alvo.nome+'"');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL: CONTRATO
+// ═══════════════════════════════════════════════════════════
+let mctCtx={cid:null,ctId:null,status:'Ativo'};
+function mctStatus(st){
+  mctCtx.status=st;
+  document.getElementById('mct-st-a').classList.toggle('on',st==='Ativo');
+  document.getElementById('mct-st-x').classList.toggle('on',st==='Encerrado');
+}
+function abrirModalContrato(cid,ctId){
+  const c=DB.clientes.find(x=>x.id===cid);
+  if(!c)return;
+  if(!Array.isArray(c.contratos))c.contratos=[];
+  const ct=contratoDe(c,ctId);
+  mctCtx={cid,ctId:ct?ct.id:null,status:ct?ct.status:'Ativo'};
+  document.getElementById('mct-titulo').textContent=(ct?'Editar contrato':'Novo contrato')+' — '+c.curto;
+  document.getElementById('mct-objeto').value=ct?ct.titulo:'';
+  document.getElementById('mct-inicio').value=ct?(ct.inicio||''):hojeISO();
+  document.getElementById('mct-obs').value=ct?(ct.obs||''):'';
+  document.getElementById('mct-valor').value=ct&&ct.valor>0?ct.valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+  mctStatus(mctCtx.status);
+  const n=ct?finDoContrato(c,ct.id).length:0;
+  document.getElementById('mct-resumo').textContent=ct
+    ?(n?n+' lançamento'+(n>1?'s':'')+' financeiro'+(n>1?'s':'')+' vinculado'+(n>1?'s':'')+' a este contrato.':'Nenhum lançamento financeiro vinculado ainda.')
+    :'Depois de salvar, use o botão de pagamento no cartão do contrato para lançar as parcelas (inclusive recorrentes).';
+  document.getElementById('mct-del').style.display=ct?'inline-flex':'none';
+  abrirOverlay('overlay-contrato');
+  setTimeout(()=>document.getElementById('mct-objeto').focus(),100);
+}
+function salvarContrato(){
+  const c=DB.clientes.find(x=>x.id===mctCtx.cid);
+  if(!c)return;
+  const titulo=document.getElementById('mct-objeto').value.trim();
+  if(!titulo){alert('Informe o objeto do contrato (ex.: Assessoria jurídica mensal).');return;}
+  const valorTxt=document.getElementById('mct-valor').value.trim();
+  const valor=valorTxt?parseValor(valorTxt):0;
+  if(valorTxt&&!(valor>0)){alert('Valor do contrato inválido (ex.: 18.000,00). Deixe em branco se não quiser informar.');return;}
+  const dados={titulo,inicio:document.getElementById('mct-inicio').value,status:mctCtx.status,obs:document.getElementById('mct-obs').value.trim(),valor};
+  if(mctCtx.ctId){
+    Object.assign(contratoDe(c,mctCtx.ctId),dados);
+  }else{
+    c.contratos.push(novoContrato(dados));
+    // contrato novo ativo reabre um cliente que estava arquivado
+    if(dados.status==='Ativo'&&c.status==='Arquivado')c.status='Ativo';
+  }
+  salvarDB();
+  fecharOverlay('overlay-contrato');
+  refreshUI();
+}
+// o contrato sai, mas os lançamentos ficam no cliente (sem contrato): dinheiro
+// recebido não pode sumir do caixa porque alguém apagou o cadastro do contrato
+function excluirContrato(){
+  const c=DB.clientes.find(x=>x.id===mctCtx.cid);
+  const ct=c&&contratoDe(c,mctCtx.ctId);
+  if(!ct)return;
+  const fins=finDoContrato(c,ct.id);
+  if(!confirm('Excluir o contrato "'+ct.titulo+'"?'+(fins.length?'\n\nOs '+fins.length+' lançamento(s) financeiro(s) dele continuam no cliente, apenas sem contrato vinculado.':'')))return;
+  fins.forEach(f=>{f.contratoId=null;});
+  c.contratos=c.contratos.filter(k=>k.id!==ct.id);
+  salvarDB();
+  fecharOverlay('overlay-contrato');
+  refreshUI();
+}
+
 function excluirCliente(){
   const c=DB.clientes.find(x=>x.id===mcCtx.cid);
   if(!c)return;
@@ -9153,7 +9511,7 @@ function renderFin(){
         <div class="lead-av" style="width:32px;height:32px;font-size:11px;background:${cr[0]};color:${cr[1]}">${iniciais(c.nome)}</div>
         <span class="nm">${esc(c.nome)}</span>
       </div>
-      <div class="fin-c-desc">${esc(f.d)}</div>
+      <div class="fin-c-desc">${esc(f.d)}${contratosDe(c).length>1&&contratoDe(c,f.contratoId)?`<span class="ct-chip">${esc(contratoDe(c,f.contratoId).titulo)}</span>`:''}</div>
       <div class="fin-c-data">${f.dt?fmtData(f.dt):'—'}</div>
       <div class="fin-c-tipo"><span class="fin-tipo ${f.t==='alc'?'ft-e':f.t==='saida'?'ft-saida':'ft-a'}">${f.t==='alc'?'recebido':f.t==='saida'?'saída':'previsto'}</span></div>
       <div class="fin-c-val" style="color:${f.t==='saida'?'var(--red-hi)':'inherit'}">${f.t==='saida'?'− ':''}${money(f.v)}</div>
@@ -9478,9 +9836,9 @@ function calcularKPIsCRM(){
   const taxaConversao=todos.length?fechados.length/todos.length:0;
   const ticketMedio=fechados.length?fechados.reduce((a,l)=>a+(l.valorHonorarioEstimado||0),0)/fechados.length:0;
   const parados=todos.filter(leadFollowupAtrasado);
-  // conta pelo mês em que o contrato foi fechado (ganhoEm); sem essa data, cai no criadoEm
-  const fechadosMes=fechados.filter(l=>mesChaveDe(l.ganhoEm||l.criadoEm)===mesAtual);
-  const faturamentoFechadoMes=fechadosMes.reduce((a,l)=>a+(l.valorHonorarioEstimado||0),0);
+  // meta do mês: todo contrato fechado no mês, venha ou não do funil
+  const fechadosMes=contratosFechadosDoMes(mesAtual);
+  const faturamentoFechadoMes=fechadosMes.reduce((a,x)=>a+x.valor,0);
   const pipelineAberto=todos.filter(l=>l.statusCRM!=='Ganho'&&l.statusCRM!=='Perdido');
   const previsaoPipeline=pipelineAberto.reduce((a,l)=>a+(l.valorHonorarioEstimado||0)*(l.probabilidadeFechamento||0),0);
   const meta=metaCRMDoMes(mesAtual);
@@ -9598,17 +9956,7 @@ function nomeMesChave(chave){
 }
 function contratosFechadosDoMes(chave){
   const mes=chave||mesChaveDe(Date.now());
-  return leadsCRMFunil()
-    .filter(leadFechado)
-    .filter(l=>mesChaveDe(l.ganhoEm||l.criadoEm)===mes)
-    .map(l=>{
-      const motivos=[];
-      if(l.statusCRM==='Ganho')motivos.push('etapa “Ganho” no funil');
-      if(l.convertido===true)motivos.push('convertido em cliente');
-      if(l.fechouCRM==='Sim'&&l.statusCRM!=='Ganho')motivos.push('campo “fechou o contrato” = Sim');
-      return {l,quando:l.ganhoEm||l.criadoEm,temDataFechamento:!!l.ganhoEm,motivos};
-    })
-    .sort((a,b)=>b.quando-a.quando);
+  return contratosFechadosTodos().filter(x=>x.data.slice(0,7)===mes);
 }
 // card de meta de contratos na página inicial (visão geral)
 function renderDashMetaContratos(){
@@ -9621,7 +9969,7 @@ function renderDashMetaContratos(){
   const sub=document.getElementById('dash-meta-sub');
   if(sub)sub.textContent=k.contratosFechadosMes+' de '+k.metaContratos+' em '+nomeMesChave(k.mesAtual);
   const chips=itens.length
-    ? itens.map(x=>`<span class="meta-chip">${esc(x.l.nome)}</span>`).join('')
+    ? itens.map(x=>`<span class="meta-chip" title="${esc(x.titulo)}">${esc(x.nome)}</span>`).join('')
     : '<span class="meta-chip vazio">nenhum contrato fechado ainda neste mês</span>';
   body.innerHTML=`<div class="hbar-row" style="cursor:default">
     <div class="hbar-label" style="width:auto;margin-right:10px;font-weight:700;color:var(--navy)">${pct}%</div>
@@ -9629,7 +9977,7 @@ function renderDashMetaContratos(){
   </div>
   <div class="meta-chips">${chips}</div>
   <div style="font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5">
-    Conta os leads do funil marcados como fechados (etapa “Ganho”, conversão em cliente ou campo “fechou”), pela data de fechamento.
+    Conta todo contrato fechado no mês, pela data de início: os que vieram do funil, os cadastrados direto na ficha do cliente e os novos contratos de clientes antigos.
     <b style="color:var(--navy)">Clique no card para ver contrato por contrato.</b>
   </div>`;
 }
@@ -9639,7 +9987,7 @@ function abrirDetalheMetaContratos(){
   const itens=contratosFechadosDoMes(k.mesAtual);
   const pct=k.metaContratos>0?Math.min(100,Math.round(k.contratosFechadosMes/k.metaContratos*100)):0;
   const cor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--navy)';
-  const semData=itens.filter(x=>!x.temDataFechamento).length;
+  const semData=itens.filter(x=>x.estimada).length;
 
   document.getElementById('mmd-mes').textContent=nomeMesChave(k.mesAtual);
   document.getElementById('mmd-sub').textContent='Meta de '+k.metaContratos+' contrato'+(k.metaContratos!==1?'s':'')+' e de '+money(k.metaFaturamento)+' de honorários no mês.';
@@ -9654,29 +10002,30 @@ function abrirDetalheMetaContratos(){
       <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
     </div>`;
   document.getElementById('mmd-explica').innerHTML=
-    'Como a contagem é feita: entra no mês todo lead do funil comercial (trabalhista ou cível) que esteja marcado como fechado — '+
-    '<b>etapa “Ganho”</b>, <b>convertido em cliente</b> pelo botão “fechar contrato”, ou com o <b>campo “fechou o contrato” em Sim</b>. '+
-    'O mês considerado é o do <b>fechamento</b>; quando o lead foi fechado antes de o sistema passar a carimbar essa data, vale a data de entrada do lead. '+
-    'Leads retroativos — criados só para ligar clientes antigos ao CRM — ficam de fora.'+
-    (semData?'<br><span style="color:var(--amber-hi)"><i class="ti ti-alert-circle"></i> '+semData+' contrato'+(semData>1?'s':'')+' sem data de fechamento registrada: contado'+(semData>1?'s':'')+' pela data de entrada do lead.</span>':'');
+    'Como a contagem é feita: entra no mês <b>todo contrato fechado</b>, venha de onde vier — fechado pelo funil do CRM, '+
+    'cadastrado direto na ficha do cliente ou um novo contrato de cliente que já estava na carteira. Vale a <b>data de início do contrato</b>. '+
+    'Lead marcado como ganho que ainda não virou contrato de nenhum cliente também entra, uma vez só. '+
+    'Os honorários usam o valor informado no contrato; sem ele, o total lançado no contrato; sem lançamentos, o estimado no lead. '+
+    'Demandas pessoais dos sócios ficam de fora.'+
+    (semData?'<br><span style="color:var(--amber-hi)"><i class="ti ti-alert-circle"></i> '+semData+' contrato'+(semData>1?'s':'')+' sem data de início: contado'+(semData>1?'s':'')+' pela data de fechamento do lead ou de entrada do cliente.</span>':'');
 
   document.getElementById('mmd-lista').innerHTML=itens.length?itens.map(x=>{
-    const l=x.l;
-    const mod=l._mod==='civel'?'Cível':'Trabalhista';
-    const area=(l.area||'').trim();
-    const areaTxt=(area&&area.toLowerCase()!==mod.toLowerCase())?' · '+esc(area):'';
-    const dataTxt=x.temDataFechamento
-      ? 'fechado em '+fmtDataHora(x.quando)
-      : 'sem data de fechamento · lead entrou em '+fmtDataHora(x.quando);
-    return `<div class="meta-contrato" onclick="fecharOverlay('overlay-metadetalhe');abrirLeadDeTarefa('${l.id}','${l._mod}')" title="Abrir a jornada deste lead">
+    const abrir=x.tipo==='contrato'
+      ?`fecharOverlay('overlay-metadetalhe');irParaCliente('${x.c.id}')`
+      :`fecharOverlay('overlay-metadetalhe');abrirLeadDeTarefa('${x.l.id}','${x.l._mod}')`;
+    let origem;
+    if(x.tipo==='lead')origem='lead do funil';
+    else if(x.ct.leadId)origem='contrato · veio do funil';
+    else origem='contrato · cadastrado na ficha';
+    return `<div class="meta-contrato" onclick="${abrir}" title="${x.tipo==='contrato'?'Abrir a ficha do cliente':'Abrir a jornada deste lead'}">
       <div class="meta-contrato-info">
-        <div class="meta-contrato-nome">${esc(l.nome)}</div>
-        <div class="meta-contrato-meta">${mod}${areaTxt}${l.responsavel?' · '+esc(l.responsavel):''}<br>${dataTxt} · contado por ${esc(x.motivos.join(' + ')||'marcação de fechamento')}</div>
+        <div class="meta-contrato-nome">${esc(x.nome)}</div>
+        <div class="meta-contrato-meta">${esc(x.titulo)}<br>${x.estimada?'sem data de início · contado em ':'início em '}${fmtData(x.data)} · ${origem}</div>
       </div>
-      <span class="meta-origem ${x.temDataFechamento?'':'est'}">${x.temDataFechamento?'data confirmada':'data estimada'}</span>
-      <span class="fin-item-val">${money(l.valorHonorarioEstimado||0)}</span>
+      <span class="meta-origem ${x.estimada?'est':''}">${x.estimada?'data estimada':'data confirmada'}</span>
+      <span class="fin-item-val">${money(x.valor)}</span>
     </div>`;
-  }).join(''):'<p style="font-size:13px;color:var(--t3);padding:12px 0;line-height:1.55">Nenhum contrato contado neste mês. Um lead só entra aqui quando é movido para a etapa “Ganho” no funil ou convertido em cliente pelo botão “fechar contrato”, na Jornada Comercial.</p>';
+  }).join(''):'<p style="font-size:13px;color:var(--t3);padding:12px 0;line-height:1.55">Nenhum contrato fechado neste mês. Contratos entram aqui pela data de início, seja o fechamento feito no funil do CRM, seja o contrato cadastrado na ficha do cliente.</p>';
 
   abrirOverlay('overlay-metadetalhe');
 }
@@ -10088,25 +10437,112 @@ function aplicarJornadaUI(l){_aplicarJornadaCore(l,'')}
 function aplicarJornadaUICivel(l){_aplicarJornadaCore(l,'-civel')}
 
 // ─── CONVERSÃO: LEAD → CLIENTE ────────────────────────────
+// ─── CONTRATOS FECHADOS (meta do mês e gráfico de desempenho) ───
+// Regra: todo contrato fechado conta, venha de onde vier — do funil do CRM, do
+// cadastro manual na ficha do cliente ou de um cliente antigo que voltou. A
+// fonte é a lista de contratos dos clientes. Lead marcado como ganho que ainda
+// não virou contrato de nenhum cliente também conta, para o fechamento não se
+// perder enquanto a conversão não é feita; lead já ligado a um contrato não
+// conta de novo. Demandas pessoais dos sócios não são contratos de honorários.
+function isoDeTs(ts){const d=new Date(ts);return isoDe(d.getFullYear(),d.getMonth(),d.getDate())}
+function leadPorId(id,mod){
+  const lista=mod==='civel'?leadsCivel:mod==='trab'?leads:[...leads,...leadsCivel];
+  return id?lista.find(l=>l.id===id)||null:null;
+}
+// data do contrato: a de início; sem ela, a do fechamento do lead; sem nenhuma,
+// para o primeiro contrato do cliente, a entrada do cliente (ou o processo mais antigo)
+function dataDoContrato(c,ct){
+  if(ct.inicio)return {data:ct.inicio,estimada:false};
+  const l=leadPorId(ct.leadId,ct.leadMod);
+  if(l&&(l.ganhoEm||l.criadoEm))return {data:isoDeTs(l.ganhoEm||l.criadoEm),estimada:true};
+  if(contratosDe(c)[0]===ct){const e=getEntrada(c);if(e)return {data:e,estimada:true};}
+  return {data:'',estimada:true};
+}
+// valor do contrato: o informado no próprio contrato; sem ele, o total lançado
+// nele (recebido + previsto); sem lançamentos, o honorário estimado no lead
+function valorDoContrato(c,ct){
+  if(ct.valor>0)return ct.valor;
+  const lancado=finDoContrato(c,ct.id).filter(f=>f.t!=='saida').reduce((a,f)=>a+f.v,0);
+  if(lancado>0)return lancado;
+  const l=leadPorId(ct.leadId,ct.leadMod);
+  return (l&&l.valorHonorarioEstimado)||0;
+}
+function contratosFechadosTodos(){
+  const itens=[], leadsComContrato=new Set();
+  (DB.clientes||[]).forEach(c=>{
+    contratosDe(c).forEach(ct=>{
+      if(ct.leadId)leadsComContrato.add(ct.leadId);
+      if(c.tipo==='pessoal')return;
+      const {data,estimada}=dataDoContrato(c,ct);
+      if(!data)return;
+      itens.push({tipo:'contrato',c,ct,data,estimada,valor:valorDoContrato(c,ct),nome:c.nome,titulo:ct.titulo});
+    });
+  });
+  leadsCRMFunil().filter(leadFechado).forEach(l=>{
+    if(leadsComContrato.has(l.id))return;
+    if(l.clienteId&&clientePorId(l.clienteId))return;   // já é cliente: conta pelo contrato dele
+    itens.push({tipo:'lead',l,data:isoDeTs(l.ganhoEm||l.criadoEm),estimada:!l.ganhoEm,valor:l.valorHonorarioEstimado||0,nome:l.nome,titulo:'Lead ganho no funil (ainda sem contrato no cliente)'});
+  });
+  return itens.sort((a,b)=>b.data.localeCompare(a.data));
+}
+
+// ─── FECHAMENTO DE CONTRATO COM CLIENTE QUE JÁ ESTÁ NA CARTEIRA ───
+// Antes, todo "fechar contrato" criava um cadastro de cliente novo — um cliente
+// que volta para o 2º ou 3º contrato aparecia duplicado. Agora, se já existe um
+// cliente com o mesmo nome (ou nome que começa igual, ex.: "Bello Pane" e
+// "Bello Pane Ltda"), o sistema pergunta se o fechamento é um novo contrato dele.
+function nomeComparavel(s){return semAcento(s).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function clientesComMesmoNome(nome){
+  const n=nomeComparavel(nome);
+  if(n.length<3)return [];
+  return ordenarPorNome(DB.clientes.filter(c=>{
+    const k=nomeComparavel(c.nome);
+    return k===n||k.startsWith(n+' ')||n.startsWith(k+' ');
+  }));
+}
+function clienteParaNovoContrato(nome){
+  const cands=clientesComMesmoNome(nome);
+  if(!cands.length)return null;
+  if(cands.length===1){
+    const c=cands[0];
+    return confirm('Já existe na carteira o cliente "'+c.nome+'" ('+contratosDe(c).length+' contrato(s) registrado(s)).\n\n'+
+      'OK: registrar este fechamento como um NOVO CONTRATO desse cliente.\n'+
+      'Cancelar: criar um cadastro de cliente separado.')?c:null;
+  }
+  const r=prompt('Há '+cands.length+' clientes com nome parecido na carteira:\n\n'+
+    cands.map((c,i)=>(i+1)+'. '+c.nome+' ('+contratosDe(c).length+' contrato(s))').join('\n')+
+    '\n\nDigite o número do cliente para registrar este fechamento como um novo contrato dele, ou deixe em branco para criar um cadastro separado.','');
+  const i=parseInt(r,10);
+  return (i>=1&&i<=cands.length)?cands[i-1]:null;
+}
+// converte o lead: novo contrato num cliente existente ou um cliente novo
+function registrarContratoDoLead(lead,mod,objeto){
+  const existente=clienteParaNovoContrato(lead.nome);
+  const ct=novoContrato({titulo:objeto,inicio:hojeISO(),leadId:lead.id,leadMod:mod});
+  let c;
+  if(existente){
+    c=existente;
+    if(!Array.isArray(c.contratos))c.contratos=[];
+    c.contratos.push(ct);
+    c.status='Ativo';
+    if(!c.leadVinculadoId){c.leadVinculadoId=lead.id;c.leadVinculadoMod=mod;}
+  }else{
+    c={
+      id:uid(),nome:lead.nome,curto:lead.nome.trim().split(/\s+/)[0],tel:lead.tel||'',
+      tipo:'externo',status:'Ativo',demandas:objeto,entrada:hojeISO(),fin:[],
+      leadVinculadoId:lead.id,leadVinculadoMod:mod, // vínculo lead-contrato: já nasce vinculado, sem pendência
+      contratos:[ct],
+    };
+    DB.clientes.push(c);
+  }
+  DB.tarefas.push({id:uid(),cid:c.id,titulo:existente?'Elaborar contrato — '+objeto:'Elaborar contrato e petição inicial',tipo:'inicial',resp:'Escritório',status:'pendente',prazo:''});
+  return {c,existente:!!existente};
+}
 function fecharContrato(){
   if(!leadAtual||leadAtual.convertido)return;
   if(!confirm('Marcar contrato FECHADO com "'+leadAtual.nome+'"?\n\nO lead será transferido para a carteira de clientes (ativo).'))return;
-  const primeiro=leadAtual.nome.trim().split(/\s+/)[0];
-  const novo={
-    id:uid(),
-    nome:leadAtual.nome,
-    curto:primeiro,
-    tel:leadAtual.tel||'',
-    tipo:'externo',
-    status:'Ativo',
-    demandas:'Reclamatória Trabalhista'+(leadAtual.statusLabel&&leadAtual.statusLabel!=='Pendente'?' (triagem: '+leadAtual.statusLabel+')':''),
-    entrada:hojeISO(),
-    fin:[],
-    leadVinculadoId:leadAtual.id, leadVinculadoMod:'trab', // vínculo lead-contrato: já nasce vinculado, sem pendência
-  };
-  DB.clientes.push(novo);
-  // cria uma pendência inicial para o novo cliente
-  DB.tarefas.push({id:uid(),cid:novo.id,titulo:'Elaborar contrato e petição inicial',tipo:'inicial',resp:'Escritório',status:'pendente',prazo:''});
+  const {c:novo,existente}=registrarContratoDoLead(leadAtual,'trab',
+    'Reclamatória Trabalhista'+(leadAtual.statusLabel&&leadAtual.statusLabel!=='Pendente'?' (triagem: '+leadAtual.statusLabel+')':''));
   salvarDB();
   // marca o lead como convertido e fechado (conta como contrato do mês)
   leadAtual.convertido=true;
@@ -10119,7 +10555,7 @@ function fecharContrato(){
   renderLeads(document.getElementById('trab-search').value);
   abrirLead(leadAtual.id);
   refreshUI();
-  if(confirm('Contrato fechado! "'+novo.nome+'" já está na carteira de clientes.\n\nDeseja abrir a ficha do novo cliente agora?'))irParaCliente(novo.id);
+  if(confirm('Contrato fechado! '+(existente?'Registrado como novo contrato de "'+novo.nome+'".':'"'+novo.nome+'" já está na carteira de clientes.')+'\n\nDeseja abrir a ficha do cliente agora?'))irParaCliente(novo.id);
 }
 
 function aplicarChecklist(){
@@ -10359,21 +10795,8 @@ function mudarStatusLeadCivel(s){
 function fecharContratoCivel(){
   if(!leadCivelAtual||leadCivelAtual.convertido)return;
   if(!confirm('Marcar contrato FECHADO com "'+leadCivelAtual.nome+'"?\n\nO lead será transferido para a carteira de clientes (ativo).'))return;
-  const primeiro=leadCivelAtual.nome.trim().split(/\s+/)[0];
-  const novo={
-    id:uid(),
-    nome:leadCivelAtual.nome,
-    curto:primeiro,
-    tel:leadCivelAtual.tel||'',
-    tipo:'externo',
-    status:'Ativo',
-    demandas:'Consulta Cível'+(leadCivelAtual.statusLabel&&leadCivelAtual.statusLabel!=='Pendente'?' (triagem: '+leadCivelAtual.statusLabel+')':''),
-    entrada:hojeISO(),
-    fin:[],
-    leadVinculadoId:leadCivelAtual.id, leadVinculadoMod:'civel', // vínculo lead-contrato: já nasce vinculado, sem pendência
-  };
-  DB.clientes.push(novo);
-  DB.tarefas.push({id:uid(),cid:novo.id,titulo:'Elaborar contrato e petição inicial',tipo:'inicial',resp:'Escritório',status:'pendente',prazo:''});
+  const {c:novo,existente}=registrarContratoDoLead(leadCivelAtual,'civel',
+    'Consulta Cível'+(leadCivelAtual.statusLabel&&leadCivelAtual.statusLabel!=='Pendente'?' (triagem: '+leadCivelAtual.statusLabel+')':''));
   salvarDB();
   leadCivelAtual.convertido=true;
   leadCivelAtual.clienteId=novo.id;
@@ -10385,7 +10808,7 @@ function fecharContratoCivel(){
   renderLeadsCivel(document.getElementById('civel-search').value);
   abrirLeadCivel(leadCivelAtual.id);
   refreshUI();
-  if(confirm('Contrato fechado! "'+novo.nome+'" já está na carteira de clientes.\n\nDeseja abrir a ficha do novo cliente agora?'))irParaCliente(novo.id);
+  if(confirm('Contrato fechado! '+(existente?'Registrado como novo contrato de "'+novo.nome+'".':'"'+novo.nome+'" já está na carteira de clientes.')+'\n\nDeseja abrir a ficha do cliente agora?'))irParaCliente(novo.id);
 }
 
 function aplicarChecklistCivel(){
@@ -11068,6 +11491,7 @@ async function aplicarRestauracao(dados,descricao){
   }catch(e){console.warn(e);}
   await new Promise(r=>setTimeout(r,600));
   DB=dados;
+  garantirContratos();   // backup anterior aos contratos: converte antes de gravar
   try{
     await gravarDB();
   }catch(e){
