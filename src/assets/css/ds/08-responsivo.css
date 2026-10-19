@@ -29,8 +29,10 @@
   .agenda-side{padding-left:0}
   /* login no celular: o painel vira uma faixa com a foto da sala e o nome */
   #screen-login{grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow-y:auto}
-  .login-arte{height:230px}
-  .la-quadro{display:none}
+  .login-arte{height:240px}
+  .la-diptico{grid-template-columns:1.6fr 1fr}
+  .la-foto--sala img{object-position:30% 58%}
+  .la-foto--pantera img{object-position:36% 76%}
   .la-conteudo{padding:0 22px 22px}
   .la-titulo{font-size:26px;margin-top:10px}
   .la-eyebrow{font-size:10.5px}
