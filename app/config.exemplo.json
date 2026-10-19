@@ -1,0 +1,5 @@
+{
+  "_leia": "Copie este arquivo para config.local.json e preencha. config.local.json não vai para o Git. A chave é a publishable key (ou anon key) do projeto: ela é feita para ficar dentro do aplicativo; quem protege os dados são as regras do banco (supabase/schema.sql). Nunca coloque aqui a secret key nem a service_role key.",
+  "supabaseUrl": "https://SEU-PROJETO.supabase.co",
+  "supabaseChave": "sb_publishable_..."
+}

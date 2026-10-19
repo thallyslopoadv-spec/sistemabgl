@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico do aplicativo · Sistema BGL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{--navy:#14213d;--creme:#f7f5f0;--borda:#e4e0d6;--texto:#1f2430;--sutil:#6b7080;
+  --verde:#1f7a4d;--ambar:#a5670b;--vermelho:#b42318;--branco:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);color:var(--texto);font:15px/1.5 'DM Sans',system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 64px}
+h1{font:600 28px/1.2 'Playfair Display',Georgia,serif;margin:0 0 4px;color:var(--navy)}
+.sub{color:var(--sutil);margin:0 0 24px}
+.card{background:var(--branco);border:1px solid var(--borda);border-radius:8px;padding:16px 20px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.card p{margin:4px 0;color:var(--sutil);font-size:14px}
+.res{font-size:14px;margin-top:8px}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;margin-left:auto}
+.ok{background:#e3f3ea;color:var(--verde)}.falha{background:#fbe6e4;color:var(--vermelho)}
+.pend{background:#f6eedd;color:var(--ambar)}
+button,.btn{font:inherit;font-size:14px;border-radius:8px;border:1px solid var(--borda);background:var(--branco);
+  color:var(--texto);padding:6px 12px;cursor:pointer;text-decoration:none;display:inline-block;margin:6px 6px 0 0}
+.prim{background:var(--navy);color:#fff;border-color:var(--navy)}
+label.conf{display:block;font-size:14px;margin-top:8px}
+.topo{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+pre{white-space:pre-wrap;font-size:12px;background:#faf9f6;border:1px solid var(--borda);border-radius:8px;padding:12px}
+.aviso{border-left:3px solid var(--ambar)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Diagnóstico do aplicativo</h1>
+  <p class="sub">Protótipo do Sistema BGL. Os testes abaixo não leem nem gravam dados do escritório.</p>
+
+  <div class="topo">
+    <button class="prim" onclick="location.href='index.html'"><i class="ti ti-arrow-right"></i> Abrir o sistema BGL</button>
+    <button onclick="rodarAutomaticos()"><i class="ti ti-refresh"></i> Repetir testes automáticos</button>
+    <button onclick="copiarRelatorio(this)"><i class="ti ti-copy"></i> Copiar relatório</button>
+  </div>
+
+  <div class="card aviso">
+    <h2><i class="ti ti-info-circle"></i> Sobre esta página</h2>
+    <p>Ela confere se o aplicativo funciona neste computador. O sistema do aplicativo grava no banco do escritório (Supabase),
+       não no Gist do site.</p>
+  </div>
+
+  <div class="card"><h2><i class="ti ti-device-desktop"></i> Ambiente <span class="pill" id="p-amb"></span></h2>
+    <div class="res" id="r-amb"></div></div>
+
+  <div class="card"><h2><i class="ti ti-database"></i> Armazenamento local entre aberturas <span class="pill" id="p-ls"></span></h2>
+    <p>Feche e abra o aplicativo: o número de aberturas deve aumentar.</p>
+    <div class="res" id="r-ls"></div></div>
+
+  <div class="card"><h2><i class="ti ti-gavel"></i> DJEN consultado pela página <span class="pill" id="p-djen"></span></h2>
+    <p>É assim que o sistema consulta as publicações hoje.</p>
+    <div class="res" id="r-djen"></div></div>
+
+  <div class="card"><h2><i class="ti ti-gavel"></i> DJEN consultado pelo aplicativo <span class="pill" id="p-djen2"></span></h2>
+    <p>Plano B, caso a consulta pela página seja recusada.</p>
+    <div class="res" id="r-djen2"></div></div>
+
+  <div class="card"><h2><i class="ti ti-brand-github"></i> Acesso à API do GitHub (Gist) <span class="pill" id="p-gh"></span></h2>
+    <div class="res" id="r-gh"></div></div>
+
+  <div class="card"><h2><i class="ti ti-typography"></i> Fontes e ícones <span class="pill" id="p-fontes"></span></h2>
+    <div class="res" id="r-fontes"></div></div>
+
+  <div class="card"><h2><i class="ti ti-file-code"></i> Backup "sistema completo" (cópia da própria página) <span class="pill" id="p-auto"></span></h2>
+    <div class="res" id="r-auto"></div></div>
+
+  <div class="card"><h2><i class="ti ti-external-link"></i> Links externos <span class="pill" id="p-links"></span></h2>
+    <p>Cada botão deve abrir o Google no seu navegador padrão, e o aplicativo deve continuar nesta tela.</p>
+    <a class="btn" href="https://www.google.com/search?q=teste+link+bgl+1" target="_blank" rel="noopener noreferrer">1. Link em nova aba</a>
+    <button onclick="window.open('https://www.google.com/search?q=teste+link+bgl+2','_blank','noopener,noreferrer')">2. Pasta do Drive (window.open)</button>
+    <a class="btn" href="https://www.google.com/search?q=teste+link+bgl+3">3. Link na mesma janela</a>
+    <label class="conf"><input type="checkbox" id="c-links" onchange="confirmar('links',this.checked)"> Os três abriram no navegador e o app continuou aqui</label>
+  </div>
+
+  <div class="card"><h2><i class="ti ti-download"></i> Download de arquivo <span class="pill" id="p-down"></span></h2>
+    <p>Mesmo mecanismo do backup em JSON. Deve aparecer a janela para escolher onde salvar.</p>
+    <button onclick="testarDownload()">Baixar arquivo de teste</button>
+    <label class="conf"><input type="checkbox" id="c-down" onchange="confirmar('down',this.checked)"> Apareceu a janela de salvar e o arquivo foi gravado</label>
+  </div>
+
+  <div class="card"><h2><i class="ti ti-cloud-upload"></i> Fechar com gravação pendente <span class="pill" id="p-fech"></span></h2>
+    <p>Clique no botão e feche o aplicativo imediatamente (pelo X ou pelo atalho de sair). A gravação simulada leva 3 segundos.
+       O aplicativo deve esperar e fechar sozinho. Ao abrir de novo, o resultado aparece aqui.</p>
+    <button onclick="simularPendente()">Simular alteração pendente</button>
+    <div class="res" id="r-fech"></div></div>
+
+  <h2 style="font-size:15px;margin-top:24px">Relatório</h2>
+  <pre id="relatorio"></pre>
+</main>
+<script>
+const DJEN_API='https://comunicaapi.pje.jus.br/api/v1/comunicacao';
+const R={};
+function ler(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function gravar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function marcar(id,estado,texto){
+  R[id]={estado,texto};
+  const p=document.getElementById('p-'+id);
+  if(p){p.className='pill '+(estado==='ok'?'ok':estado==='falha'?'falha':'pend');
+    p.textContent=estado==='ok'?'funcionou':estado==='falha'?'falhou':'aguardando';}
+  const r=document.getElementById('r-'+id);
+  if(r&&texto!==undefined)r.textContent=texto;
+  montarRelatorio();
+}
+function hojeISO(d){return (d||new Date()).toISOString().slice(0,10)}
+function urlDJEN(){
+  const fim=hojeISO(),ini=hojeISO(new Date(Date.now()-86400000));
+  return DJEN_API+'?'+new URLSearchParams({numeroOab:'1',ufOab:'GO',dataDisponibilizacaoInicio:ini,
+    dataDisponibilizacaoFim:fim,pagina:'1',itensPorPagina:'5'});
+}
+
+async function testarAmbiente(){
+  try{
+    const i=window.bglApp?await window.bglApp.info():null;
+    if(!i){marcar('amb','falha','A ponte com o aplicativo não respondeu.');return;}
+    marcar('amb','ok','Aplicativo '+i.app+' · Electron '+i.electron+' · Chromium '+i.chrome+
+      ' · '+i.plataforma+'/'+i.arquitetura+' · origem '+location.origin);
+  }catch(e){marcar('amb','falha',String(e))}
+}
+function testarArmazenamento(){
+  const n=Number(ler('diag_aberturas')||0)+1;
+  gravar('diag_aberturas',String(n));
+  const lido=Number(ler('diag_aberturas')||0);
+  if(lido!==n){marcar('ls','falha','Não foi possível gravar no armazenamento local.');return;}
+  marcar('ls',n>1?'ok':'pend',n>1?('Aberturas registradas: '+n+'. Os dados sobrevivem ao fechamento.')
+    :'Primeira abertura registrada. Feche e abra o aplicativo para confirmar.');
+}
+async function testarDJEN(){
+  marcar('djen','pend','Consultando…');
+  try{
+    const r=await fetch(urlDJEN(),{headers:{'Accept':'application/json'},referrerPolicy:'no-referrer',cache:'no-store'});
+    marcar('djen',r.ok?'ok':'falha','Resposta HTTP '+r.status+(r.ok?' (a API aceitou a chamada vinda do aplicativo).':''));
+  }catch(e){marcar('djen','falha','Recusada ou sem conexão: '+e.message+'. Se o teste seguinte funcionar, a causa é a política de origem da API.')}
+}
+async function testarDJENApp(){
+  marcar('djen2','pend','Consultando…');
+  try{
+    const r=await window.bglApp.djenPeloApp(urlDJEN());
+    if(r.erro)marcar('djen2','falha','Erro: '+r.erro);
+    else marcar('djen2',r.ok?'ok':'falha','Resposta HTTP '+r.status);
+  }catch(e){marcar('djen2','falha',String(e))}
+}
+async function testarGitHub(){
+  try{
+    const r=await fetch('https://api.github.com/zen',{cache:'no-store'});
+    marcar('gh',r.ok?'ok':'falha','Resposta HTTP '+r.status+(r.status===403?' (limite de consultas sem login; não indica bloqueio)':''));
+  }catch(e){marcar('gh','falha','Recusada ou sem conexão: '+e.message)}
+}
+async function testarFontes(){
+  try{
+    await document.fonts.ready;
+    await Promise.all([document.fonts.load('16px "DM Sans"'),document.fonts.load('16px "Playfair Display"'),document.fonts.load('16px tabler-icons')]);
+    const dm=document.fonts.check('16px "DM Sans"'),pf=document.fonts.check('16px "Playfair Display"'),ic=document.fonts.check('16px tabler-icons');
+    const tudo=dm&&pf&&ic;
+    marcar('fontes',tudo?'ok':'falha','DM Sans: '+(dm?'sim':'não')+' · Playfair: '+(pf?'sim':'não')+' · ícones: '+(ic?'sim':'não'));
+  }catch(e){marcar('fontes','falha',String(e))}
+}
+async function testarAutocopia(){
+  try{
+    const r=await fetch(location.origin+'/index.html',{cache:'no-store'});
+    const t=r.ok?await r.text():'';
+    const ok=/<\/html>/i.test(t)&&/id="screen-login"/.test(t);
+    marcar('auto',ok?'ok':'falha',ok?('A página do sistema pode ler o próprio código ('+Math.round(t.length/1024)+' KB).')
+      :('Não foi possível ler a página (HTTP '+r.status+').'));
+  }catch(e){marcar('auto','falha',String(e))}
+}
+function confirmar(id,v){gravar('diag_conf_'+id,v?'1':'');marcar(id,v?'ok':'pend',v?'Confirmado por você.':'Aguardando sua confirmação.')}
+function testarDownload(){
+  const blob=new Blob(['Arquivo de teste do protótipo do Sistema BGL. Pode apagar.\n'],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='teste-download-bgl.txt';a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+}
+
+// ─── simulação da fila de gravação do sistema ─────────────
+// mesmos nomes que o sistema usa; é isso que o aplicativo procura ao fechar
+let __gravarPendente=false,__gravarTimer=null;
+function descarregarGravacao(){
+  if(!__gravarPendente)return Promise.resolve();
+  return new Promise(res=>setTimeout(()=>{
+    gravar('diag_fech_concluido',String(Date.now()));
+    __gravarPendente=false;res();
+  },3000));
+}
+function simularPendente(){
+  __gravarPendente=true;
+  gravar('diag_fech_pedido',String(Date.now()));
+  gravar('diag_fech_concluido','');
+  marcar('fech','pend','Alteração pendente simulada. Feche o aplicativo agora.');
+}
+// o sistema registra este mesmo aviso; o teste confirma que ele não prende a janela
+window.addEventListener('beforeunload',e=>{if(!__gravarPendente)return;descarregarGravacao();e.preventDefault();e.returnValue='';});
+function resultadoFechamento(){
+  const pedido=Number(ler('diag_fech_pedido')||0),feito=Number(ler('diag_fech_concluido')||0);
+  if(!pedido){marcar('fech','pend','Ainda não testado.');return;}
+  if(feito&&feito>=pedido+2900)marcar('fech','ok','A gravação simulada terminou antes de o aplicativo fechar ('+
+    new Date(feito).toLocaleTimeString('pt-BR')+').');
+  else marcar('fech','falha','O aplicativo fechou sem concluir a gravação simulada.');
+}
+
+function montarRelatorio(){
+  const nomes={amb:'Ambiente',ls:'Armazenamento local',djen:'DJEN pela página',djen2:'DJEN pelo aplicativo',
+    gh:'API do GitHub',fontes:'Fontes e ícones',auto:'Backup sistema completo',links:'Links externos',
+    down:'Download',fech:'Fechar com gravação pendente'};
+  const linhas=Object.keys(nomes).map(k=>{
+    const x=R[k];if(!x)return nomes[k]+': não executado';
+    return nomes[k]+': '+(x.estado==='ok'?'OK':x.estado==='falha'?'FALHOU':'pendente')+(x.texto?' · '+x.texto:'');
+  });
+  document.getElementById('relatorio').textContent='Diagnóstico do protótipo, '+new Date().toLocaleString('pt-BR')+'\n'+linhas.join('\n');
+}
+async function copiarRelatorio(btn){
+  const t=document.getElementById('relatorio').textContent;
+  try{await navigator.clipboard.writeText(t);btn.textContent='Relatório copiado';}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');ta.remove();btn.textContent='Relatório copiado';
+  }
+  setTimeout(()=>{btn.innerHTML='<i class="ti ti-copy"></i> Copiar relatório'},2500);
+}
+async function rodarAutomaticos(){
+  await testarAmbiente();
+  await Promise.all([testarDJEN(),testarDJENApp(),testarGitHub(),testarFontes(),testarAutocopia()]);
+}
+testarArmazenamento();
+['links','down'].forEach(id=>{const v=ler('diag_conf_'+id)==='1';document.getElementById('c-'+id).checked=v;
+  marcar(id,v?'ok':'pend',v?'Confirmado por você.':'Aguardando sua confirmação.');});
+resultadoFechamento();
+rodarAutomaticos();
+</script>
+</body>
+</html>

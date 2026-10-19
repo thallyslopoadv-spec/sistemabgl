@@ -1,0 +1,62 @@
+{
+  "name": "sistema-bgl",
+  "productName": "Sistema BGL",
+  "version": "0.2.0",
+  "description": "Aplicativo de computador do Sistema BGL",
+  "main": "main.js",
+  "private": true,
+  "author": "BGL Advogados",
+  "scripts": {
+    "montar": "node scripts/montar.mjs",
+    "start": "node scripts/montar.mjs && electron .",
+    "testar": "node --test testes/aplicativo.test.mjs",
+    "dist:win": "node scripts/montar.mjs && electron-builder --win",
+    "dist:mac": "node scripts/montar.mjs && electron-builder --mac"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.117.2",
+    "electron": "44.5.1",
+    "electron-builder": "26.16.1",
+    "playwright-core": "1.63.0"
+  },
+  "build": {
+    "appId": "br.adv.bgl.sistema",
+    "productName": "Sistema BGL",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "sistema/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "Sistema-BGL-${version}-windows.zip"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "identity": null,
+      "category": "public.app-category.business",
+      "artifactName": "Sistema-BGL-${version}-mac-${arch}.zip"
+    }
+  }
+}

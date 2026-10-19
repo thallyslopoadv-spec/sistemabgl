@@ -1,0 +1,8 @@
+/* ─── Diferenças visuais do aplicativo ───────────────────── */
+/* Gist e token não existem no aplicativo: o campo e o link de troca somem.
+   Os elementos continuam na página porque o código herdado do site ainda
+   escreve neles (ex.: limpar o campo do token ao sair). */
+#token-wrap,.login-foot{display:none!important}
+#app-importacao{margin-top:var(--s4,16px)}
+#app-importacao .btn-login{margin-top:var(--s2,8px)}
+#bk-seg-drive .det-add{margin-right:8px}
