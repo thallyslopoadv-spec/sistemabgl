@@ -1324,6 +1324,19 @@ button:active{transform:scale(.985)}
 .leg-dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid}
 
 /* ─── DETALHE DA META DE CONTRATOS ─── */
+.meta-mini{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--t2);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
+.meta-bloco{padding:12px 14px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)}
+.meta-bloco-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px}
+.meta-bloco-tit{font-size:14px;font-weight:600;color:var(--navy)}
+.meta-bloco-sub{font-size:11.5px;color:var(--t3)}
+.meta-bloco-val{font-size:12.5px;color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.meta-bloco-val b{font-size:15px;color:var(--t)}
+.meta-track{position:relative;height:20px}
+.meta-ritmo{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--t2);opacity:.55;transform:translateX(-1px)}
+.meta-bloco-pe{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--t3);margin-top:6px}
+.meta-qtd{display:grid;gap:6px;font-size:12.5px;color:var(--t2);margin:4px 0 16px}
+.meta-qtd b{color:var(--navy)}
+.mcrm-ref{display:block;font-size:11px;color:var(--t3);margin-top:5px;line-height:1.4}
 .meta-explica{font-size:12.5px;color:var(--t2);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--navy-soft);border-radius:var(--rs);padding:11px 13px;margin-bottom:16px}
 .meta-explica b{color:var(--navy)}
 .meta-contrato{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;transition:.12s}
@@ -1480,7 +1493,7 @@ button:active{transform:scale(.985)}
 
       <div class="modulo-card" id="dash-meta-card" style="margin-bottom:20px;cursor:pointer" onclick="abrirDetalheMetaContratos()" title="Clique para ver quais contratos foram contados e editar a meta">
         <div class="card-head">
-          <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Meta de contratos do mês</h3>
+          <h3><i class="ti ti-target-arrow" style="margin-right:7px"></i>Metas do mês</h3>
           <span class="sub" id="dash-meta-sub"></span>
         </div>
         <div class="card-body" id="dash-meta-body"></div>
@@ -2277,7 +2290,7 @@ button:active{transform:scale(.985)}
     <h3 id="mf-titulo">Novo lançamento</h3>
     <div class="fg" id="mf-cli-wrap"><label>Cliente</label><select id="mf-cli" onchange="mfClienteMudou()"></select></div>
     <div class="fg" id="mf-contrato-wrap" style="display:none"><label>Contrato</label><select id="mf-contrato"></select></div>
-    <div class="fg"><label>Descrição</label><input type="text" id="mf-desc" placeholder="Ex.: Parcela 4 de R$ 500, ou Custa judicial paga"></div>
+    <div class="fg"><label>Descrição</label><input type="text" id="mf-desc" placeholder="Ex.: Parcela 4 de R$ 500, ou Custa judicial paga" oninput="mfDescMudou()"></div>
     <div class="fg-row">
       <div class="fg"><label id="mf-valor-lbl">Valor (R$)</label><input type="text" id="mf-valor" placeholder="500,00" inputmode="decimal" oninput="mfRecRecalcular()"></div>
       <div class="fg"><label id="mf-data-lbl">Data</label><input type="date" id="mf-data" onchange="mfRecRecalcular()"></div>
@@ -2287,6 +2300,13 @@ button:active{transform:scale(.985)}
         <button type="button" id="mf-t-alc" onclick="mfTipo('alc')">Recebido</button>
         <button type="button" id="mf-t-prev" onclick="mfTipo('prev')">Previsto</button>
         <button type="button" id="mf-t-saida" onclick="mfTipo('saida')">Saída</button>
+      </div>
+    </div>
+    <div class="fg" id="mf-alvara-wrap">
+      <label>Alvará judicial?</label>
+      <div class="seg">
+        <button type="button" id="mf-alvara-nao" onclick="mfAlvara(false)">Não</button>
+        <button type="button" id="mf-alvara-sim" onclick="mfAlvara(true)">Sim, fica fora da meta de faturamento</button>
       </div>
     </div>
     <div class="fg" id="mf-rec-wrap">
@@ -2983,7 +3003,7 @@ button:active{transform:scale(.985)}
 <!-- ═══════════════ MODAL: DETALHE DA META DE CONTRATOS DO MÊS ═══════════════ -->
 <div class="overlay" id="overlay-metadetalhe">
   <div class="modal" style="width:620px">
-    <h3>Meta de contratos — <span id="mmd-mes"></span></h3>
+    <h3>Metas — <span id="mmd-mes"></span></h3>
     <p style="font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.5" id="mmd-sub"></p>
     <div id="mmd-resumo"></div>
     <div class="meta-explica" id="mmd-explica"></div>
@@ -2991,7 +3011,7 @@ button:active{transform:scale(.985)}
     <div id="mmd-lista"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-metadetalhe')">Fechar</button>
-      <button class="btn-confirm" onclick="fecharOverlay('overlay-metadetalhe');navegarPara('trab');abrirModalMetaCRM()">Editar meta do mês</button>
+      <button class="btn-confirm" onclick="fecharOverlay('overlay-metadetalhe');abrirModalMetaCRM()">Editar metas</button>
     </div>
   </div>
 </div>
@@ -3027,12 +3047,17 @@ button:active{transform:scale(.985)}
 
 <div class="overlay" id="overlay-metacrm">
   <div class="modal">
-    <h3>Meta comercial do mês</h3>
+    <h3>Metas do escritório</h3>
     <p id="mcrm-mes" style="font-size:12px;color:var(--t3);margin:-8px 0 16px"></p>
     <div class="fg-row">
-      <div class="fg"><label>Meta de contratos fechados</label><input type="number" id="mcrm-contratos" min="0"></div>
-      <div class="fg"><label>Meta de faturamento (R$)</label><input type="number" id="mcrm-faturamento" min="0" step="100"></div>
+      <div class="fg"><label>Faturamento do mês (R$)</label><input type="number" id="mcrm-recebido" min="0" step="100"><span class="mcrm-ref" id="mcrm-ref-recebido"></span></div>
+      <div class="fg"><label>Honorários fechados no mês (R$)</label><input type="number" id="mcrm-faturamento" min="0" step="100"><span class="mcrm-ref" id="mcrm-ref-hon"></span></div>
     </div>
+    <div class="fg-row">
+      <div class="fg"><label id="mcrm-tri-lbl">Honorários fechados no trimestre (R$)</label><input type="number" id="mcrm-trimestre" min="0" step="500"><span class="mcrm-ref" id="mcrm-ref-tri"></span></div>
+      <div class="fg"><label>Contratos fechados no mês</label><input type="number" id="mcrm-contratos" min="0"></div>
+    </div>
+    <p style="font-size:11px;color:var(--t3);margin:-4px 0 14px;line-height:1.5">Faturamento é o que foi recebido de clientes no mês, sem alvarás judiciais e sem demandas pessoais dos sócios. Honorários fechados é o valor dos contratos fechados, mesmo que entrem parcelados.</p>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-metacrm')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarMetaCRM()">Salvar</button>
@@ -8490,7 +8515,8 @@ function detalheClienteHTML(c){
     const tipoCls=f.t==='alc'?'ft-e':f.t==='saida'?'ft-saida':'ft-a';
     const tipoLbl=f.t==='alc'?'recebido':f.t==='saida'?'saída':'previsto';
     const ct=contratoDe(c,f.contratoId);
-    const chipCt=variosContratos?`<span class="ct-chip${ct?'':' vazio'}">${ct?esc(ct.titulo):'sem contrato'}</span>`:'';
+    const chipCt=(variosContratos?`<span class="ct-chip${ct?'':' vazio'}">${ct?esc(ct.titulo):'sem contrato'}</span>`:'')
+      +(f.t!=='saida'&&ehAlvara(f)?'<span class="ct-chip vazio" title="Fora da meta de faturamento">alvará</span>':'');
     return `
     <div class="det-fin-item hoverable">
       <span class="det-fin-desc">${esc(f.d)}${chipCt}</span>
@@ -8701,6 +8727,23 @@ function mfTipo(t){
   document.getElementById('mf-t-saida').classList.toggle('on',t==='saida');
   atualizarFundoNoModalFin();
   atualizarTerceiroNoModalFin();
+  atualizarAlvaraNoModalFin();
+}
+// alvará judicial entra no caixa, mas não na meta de faturamento (que mede os
+// honorários pagos pelos clientes). Saída nunca é alvará.
+function atualizarAlvaraNoModalFin(){
+  const wrap=document.getElementById('mf-alvara-wrap');
+  if(!wrap)return;
+  wrap.style.display=mfCtx.t==='saida'?'none':'block';
+  document.getElementById('mf-alvara-sim').classList.toggle('on',!!mfCtx.alvara);
+  document.getElementById('mf-alvara-nao').classList.toggle('on',!mfCtx.alvara);
+}
+function mfAlvara(v){mfCtx.alvara=v;mfCtx.alvaraManual=true;atualizarAlvaraNoModalFin();}
+// "alvará" na descrição já marca sozinho, enquanto ninguém escolheu à mão
+function mfDescMudou(){
+  if(mfCtx.alvaraManual)return;
+  mfCtx.alvara=semAcento(document.getElementById('mf-desc').value).includes('alvara');
+  atualizarAlvaraNoModalFin();
 }
 // crédito dependente de terceiro (execução judicial / honorário condicionado a pagamento
 // de terceiro): só faz sentido para lançamentos do tipo "Previsto"
@@ -8793,7 +8836,7 @@ function mfPopularContratos(cid,selecionado){
 }
 function mfClienteMudou(){mfPopularContratos(document.getElementById('mf-cli').value);}
 function abrirModalFin(cid,fid,ctId){
-  mfCtx={cid,fid,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,rec:false};
+  mfCtx={cid,fid,t:'alc',dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,rec:false,alvara:false,alvaraManual:false};
   const cliWrap=document.getElementById('mf-cli-wrap');
   const sel=document.getElementById('mf-cli');
   if(!cid){ // aberto pela tela Financeiro: escolher o cliente
@@ -8814,6 +8857,7 @@ function abrirModalFin(cid,fid,ctId){
     mfCtx.dependeTerceiro=!!f.dependeTerceiro;
     mfCtx.dataPrevistaRecebimento=f.dataPrevistaRecebimento||'';
     mfCtx.aceiteVerbal=!!f.aceiteVerbal;
+    mfCtx.alvara=ehAlvara(f);mfCtx.alvaraManual=true;
     mfPopularContratos(cid,f.contratoId||'');
     // a repetição só se escolhe ao criar; numa parcela existente, mostra de qual série ela é
     document.getElementById('mf-rec-wrap').style.display=f.serieId?'block':'none';
@@ -8920,6 +8964,7 @@ function salvarFin(){
     novoRecebido=mfCtx.t==='alc';
   }
   f.contratoId=contratoId;
+  f.alvara=mfCtx.t!=='saida'&&!!mfCtx.alvara;
   // o contrato é da série inteira: mudar numa parcela muda em todas
   if(f.serieId)c.fin.forEach(x=>{if(x.serieId===f.serieId)x.contratoId=contratoId;});
   f.dependeTerceiro=mfCtx.t==='prev'&&mfCtx.dependeTerceiro;
@@ -8944,7 +8989,7 @@ function salvarFinRecorrente(c,d,contratoId){
   const serieId=uid(), n=ps.length, total=ps.reduce((a,p)=>a+p.v,0);
   ps.forEach((p,i)=>c.fin.push({
     id:uid(),d:d+' — parcela '+(i+1)+'/'+n,v:p.v,t:mfCtx.t,dt:p.dt,criadoEm:Date.now(),
-    contratoId,serieId,parcela:i+1,parcelas:n,
+    contratoId,serieId,parcela:i+1,parcelas:n,alvara:mfCtx.t!=='saida'&&!!mfCtx.alvara,
     dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,
   }));
   salvarDB();
@@ -9821,9 +9866,53 @@ function renderFilaHoje(){
     </div>`;
   }).join('');
 }
+// ─── METAS DO ESCRITÓRIO ──────────────────────────────────
+// Três metas de dinheiro, além da de quantidade de contratos:
+//   recebido   → faturamento: o que de fato entrou no mês (sem alvarás judiciais)
+//   faturamento→ honorários fechados no mês (valor dos contratos fechados). O nome
+//                da chave ficou "faturamento" por compatibilidade com metas já salvas.
+//   trimestre  → honorários fechados no trimestre civil (jan–mar, abr–jun…)
+// Padrões calibrados pela faixa atual do escritório: R$ 6 a 7 mil/mês recebidos
+// de clientes, sem alvarás. A meta de recebido fica um pouco acima do teto dessa
+// faixa; a de honorários fechados, acima da de recebido, porque parte do que se
+// fecha entra parcelado ou não chega a entrar; a trimestral é três meses disso.
+const META_PADRAO={contratos:3,honorarios:8000,recebido:7500,trimestre:24000};
 function metaCRMDoMes(chave){
   const m=(DB.metasCRM||{})[chave];
-  return {contratos:m&&typeof m.contratos==='number'?m.contratos:3, faturamento:m&&typeof m.faturamento==='number'?m.faturamento:7500};
+  return {
+    contratos:m&&typeof m.contratos==='number'?m.contratos:META_PADRAO.contratos,
+    faturamento:m&&typeof m.faturamento==='number'?m.faturamento:META_PADRAO.honorarios,
+    recebido:m&&typeof m.recebido==='number'?m.recebido:META_PADRAO.recebido,
+  };
+}
+function chaveTrimestre(chaveMes){const[y,m]=chaveMes.split('-').map(Number);return y+'-T'+(Math.floor((m-1)/3)+1)}
+function mesesDoTrimestre(chaveTri){const[y,t]=chaveTri.split('-T').map(Number);return [1,2,3].map(i=>y+'-'+String((t-1)*3+i).padStart(2,'0'))}
+function nomeTrimestre(chaveTri){const[y,t]=chaveTri.split('-T');return t+'º trimestre de '+y}
+function metaTrimestre(chaveTri){
+  const m=(DB.metasCRM||{})[chaveTri];
+  return m&&typeof m.honorarios==='number'?m.honorarios:META_PADRAO.trimestre;
+}
+function mesChaveDesloca(chave,n){const[y,m]=chave.split('-').map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+// alvará judicial: marcado no lançamento; lançamentos antigos sem a marcação
+// são reconhecidos pela palavra "alvará" na descrição
+function ehAlvara(f){return f.alvara===true||(f.alvara===undefined&&semAcento(f.d).includes('alvara'))}
+// recebido de clientes no mês, separando o que fica fora da meta de faturamento
+function recebidoDoMes(chave){
+  const r={meta:0,n:0,alvaras:0,socios:0};
+  (DB.clientes||[]).forEach(c=>(c.fin||[]).forEach(f=>{
+    if(f.t!=='alc'||!f.dt||f.dt.slice(0,7)!==chave)return;
+    if(ehAlvara(f))r.alvaras+=f.v;
+    else if(c.tipo==='pessoal')r.socios+=f.v;
+    else{r.meta+=f.v;r.n++;}
+  }));
+  return r;
+}
+function honorariosFechadosDoMes(chave){return contratosFechadosDoMes(chave).reduce((a,x)=>a+x.valor,0)}
+// média dos últimos n meses já encerrados (o mês corrente fica de fora por estar incompleto)
+function mediaUltimosMeses(n,fn){
+  const atual=mesChaveDe(Date.now());
+  let soma=0;for(let i=1;i<=n;i++)soma+=fn(mesChaveDesloca(atual,-i));
+  return soma/n;
 }
 // um lead conta como "contrato fechado" se foi ganho no funil OU convertido em cliente
 // (o botão "fechar contrato" converte sem passar pelo statusCRM "Ganho")
@@ -9958,6 +10047,28 @@ function contratosFechadosDoMes(chave){
   const mes=chave||mesChaveDe(Date.now());
   return contratosFechadosTodos().filter(x=>x.data.slice(0,7)===mes);
 }
+// barra de uma meta em dinheiro: realizado × meta, com a marca de onde o
+// realizado deveria estar se o ritmo fosse linear ao longo do período
+function metaBarraHTML(titulo,sub,real,meta,ritmo,detalhe){
+  const pct=meta>0?Math.round(real/meta*100):0;
+  const largura=Math.min(100,pct);
+  const esperado=Math.round(ritmo*100);
+  const noRitmo=pct>=esperado;
+  const cor=pct>=100?'var(--green)':noRitmo?'var(--navy)':'var(--amber)';
+  const falta=Math.max(0,meta-real);
+  const status=pct>=100?'meta batida':(noRitmo?'no ritmo':'abaixo do ritmo')+' · faltam '+money(falta);
+  return `<div class="meta-bloco">
+    <div class="meta-bloco-top">
+      <div><div class="meta-bloco-tit">${titulo}</div><div class="meta-bloco-sub">${esc(sub)}</div></div>
+      <div class="meta-bloco-val"><b>${money(real)}</b> de ${money(meta)}</div>
+    </div>
+    <div class="hbar-track meta-track">
+      <div class="hbar-fill" style="width:${Math.max(largura,largura>0?8:0)}%;background:${cor}">${pct}%</div>
+      ${pct<100?`<span class="meta-ritmo" style="left:${esperado}%" title="Ritmo esperado até hoje: ${esperado}%"></span>`:''}
+    </div>
+    <div class="meta-bloco-pe"><span>${esc(detalhe)}</span><span style="color:${pct>=100?'var(--green-hi)':noRitmo?'var(--t3)':'var(--amber-hi)'}">${status}</span></div>
+  </div>`;
+}
 // card de meta de contratos na página inicial (visão geral)
 function renderDashMetaContratos(){
   const body=document.getElementById('dash-meta-body');
@@ -9976,10 +10087,22 @@ function renderDashMetaContratos(){
     <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
   </div>
   <div class="meta-chips">${chips}</div>
+  <div class="meta-mini">${metasResumoMini(k).map(m=>`<span><b style="color:${m.pct>=100?'var(--green-hi)':'var(--navy)'}">${m.pct}%</b> ${m.rot}</span>`).join('')}</div>
   <div style="font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5">
-    Conta todo contrato fechado no mês, pela data de início: os que vieram do funil, os cadastrados direto na ficha do cliente e os novos contratos de clientes antigos.
-    <b style="color:var(--navy)">Clique no card para ver contrato por contrato.</b>
+    Conta todo contrato fechado no mês, pela data de início, venha do funil ou da ficha do cliente.
+    <b style="color:var(--navy)">Clique no card para ver as metas de faturamento e de honorários, e contrato por contrato.</b>
   </div>`;
+}
+// percentuais das três metas em dinheiro, para o resumo do card
+function metasResumoMini(k){
+  const meta=metaCRMDoMes(k.mesAtual), tri=chaveTrimestre(k.mesAtual);
+  const honTri=mesesDoTrimestre(tri).reduce((a,m)=>a+honorariosFechadosDoMes(m),0);
+  const p=(r,m)=>m>0?Math.round(r/m*100):0;
+  return [
+    {rot:'do faturamento',pct:p(recebidoDoMes(k.mesAtual).meta,meta.recebido)},
+    {rot:'dos honorários do mês',pct:p(k.faturamentoFechadoMes,meta.faturamento)},
+    {rot:'dos honorários do trimestre',pct:p(honTri,metaTrimestre(tri))},
+  ];
 }
 // detalhe do card: mostra exatamente quais leads foram contados e por quê
 function abrirDetalheMetaContratos(){
@@ -9989,17 +10112,30 @@ function abrirDetalheMetaContratos(){
   const cor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--navy)';
   const semData=itens.filter(x=>x.estimada).length;
 
+  const metaMes=metaCRMDoMes(k.mesAtual);
+  const rec=recebidoDoMes(k.mesAtual);
+  const tri=chaveTrimestre(k.mesAtual), mesesTri=mesesDoTrimestre(tri);
+  const honTri=mesesTri.reduce((a,m)=>a+honorariosFechadosDoMes(m),0);
+  // quanto do período já passou: referência de ritmo para cada barra
+  const hoje=new Date();
+  const diasMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  const ritmoMes=hoje.getDate()/diasMes;
+  const iniTri=new Date(hoje.getFullYear(),mesesTri[0].split('-')[1]-1,1), fimTri=new Date(hoje.getFullYear(),Number(mesesTri[2].split('-')[1]),0);
+  const ritmoTri=Math.min(1,(hoje-iniTri+86400000)/(fimTri-iniTri+86400000));
+  const foraMeta=[rec.alvaras?money(rec.alvaras)+' em alvarás':'',rec.socios?money(rec.socios)+' de demandas dos sócios':''].filter(Boolean).join(' e ');
+
   document.getElementById('mmd-mes').textContent=nomeMesChave(k.mesAtual);
-  document.getElementById('mmd-sub').textContent='Meta de '+k.metaContratos+' contrato'+(k.metaContratos!==1?'s':'')+' e de '+money(k.metaFaturamento)+' de honorários no mês.';
-  document.getElementById('mmd-resumo').innerHTML=`
-    <div class="fin-totais">
-      <div class="fin-bloco"><div class="fin-label">Contratos fechados</div><div class="fin-val">${k.contratosFechadosMes} / ${k.metaContratos}</div></div>
-      <div class="fin-bloco"><div class="fin-label">Honorários fechados</div><div class="fin-val g">${money(k.faturamentoFechadoMes)}</div></div>
-      <div class="fin-bloco"><div class="fin-label">Meta de honorários</div><div class="fin-val">${money(k.metaFaturamento)}</div></div>
-    </div>
-    <div class="hbar-row" style="cursor:default;margin-bottom:14px">
-      <div class="hbar-label" style="width:auto;margin-right:10px;font-weight:700;color:var(--navy)">${pct}%</div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(pct,pct>0?8:0)}%;background:${cor}">${k.contratosFechadosMes}/${k.metaContratos}</div></div>
+  document.getElementById('mmd-sub').textContent='Faturamento, honorários fechados no mês e no trimestre, e quantidade de contratos.';
+  document.getElementById('mmd-resumo').innerHTML=
+    metaBarraHTML('Faturamento do mês','recebido de clientes, sem alvarás',rec.meta,metaMes.recebido,ritmoMes,
+      rec.n+' recebimento'+(rec.n!==1?'s':'')+(foraMeta?' · fora da meta: '+foraMeta:''))+
+    metaBarraHTML('Honorários fechados no mês','valor dos contratos fechados',k.faturamentoFechadoMes,metaMes.faturamento,ritmoMes,
+      k.contratosFechadosMes+' contrato'+(k.contratosFechadosMes!==1?'s':''))+
+    metaBarraHTML('Honorários fechados no trimestre',nomeTrimestre(tri),honTri,metaTrimestre(tri),ritmoTri,
+      mesesTri.map(m=>nomeMesChave(m).split(' ')[0]+' '+money(honorariosFechadosDoMes(m))).join(' · '))+
+    `<div class="meta-qtd">
+      <span>Contratos fechados no mês: <b>${k.contratosFechadosMes} de ${k.metaContratos}</b></span>
+      <div class="hbar-track" style="height:10px"><div class="hbar-fill" style="min-width:0;width:${pct}%;background:${cor}"></div></div>
     </div>`;
   document.getElementById('mmd-explica').innerHTML=
     'Como a contagem é feita: entra no mês <b>todo contrato fechado</b>, venha de onde vier — fechado pelo funil do CRM, '+
@@ -10072,17 +10208,25 @@ function toggleCrmDash(){
 function abrirModalMetaCRM(){
   const chave=mesChaveDe(Date.now());
   const meta=metaCRMDoMes(chave);
-  const nomesM=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const[ano,mes]=chave.split('-');
-  document.getElementById('mcrm-mes').textContent='Referente a '+nomesM[Number(mes)-1]+'/'+ano;
+  const tri=chaveTrimestre(chave);
+  document.getElementById('mcrm-mes').textContent='Metas de '+nomeMesChave(chave)+' e do '+nomeTrimestre(tri)+'. As referências abaixo de cada campo são a média dos meses já encerrados.';
   document.getElementById('mcrm-contratos').value=meta.contratos;
   document.getElementById('mcrm-faturamento').value=meta.faturamento;
+  document.getElementById('mcrm-recebido').value=meta.recebido;
+  document.getElementById('mcrm-trimestre').value=metaTrimestre(tri);
+  const rec3=mediaUltimosMeses(3,m=>recebidoDoMes(m).meta), rec6=mediaUltimosMeses(6,m=>recebidoDoMes(m).meta);
+  const hon3=mediaUltimosMeses(3,honorariosFechadosDoMes), hon6=mediaUltimosMeses(6,honorariosFechadosDoMes);
+  document.getElementById('mcrm-ref-recebido').textContent='Média recebida: '+money(rec3)+' (3 meses) · '+money(rec6)+' (6 meses)';
+  document.getElementById('mcrm-ref-hon').textContent='Média fechada: '+money(hon3)+' (3 meses) · '+money(hon6)+' (6 meses)';
+  document.getElementById('mcrm-ref-tri').textContent='Três meses no ritmo atual: '+money(hon3*3);
   abrirOverlay('overlay-metacrm');
 }
 function salvarMetaCRM(){
   const chave=mesChaveDe(Date.now());
   if(!DB.metasCRM)DB.metasCRM={};
-  DB.metasCRM[chave]={contratos:Number(document.getElementById('mcrm-contratos').value)||0,faturamento:Number(document.getElementById('mcrm-faturamento').value)||0};
+  const num=id=>Math.max(0,Number(document.getElementById(id).value)||0);
+  DB.metasCRM[chave]={contratos:num('mcrm-contratos'),faturamento:num('mcrm-faturamento'),recebido:num('mcrm-recebido')};
+  DB.metasCRM[chaveTrimestre(chave)]={honorarios:num('mcrm-trimestre')};
   salvarDB();
   fecharOverlay('overlay-metacrm');
   renderDashboardCRM();
