@@ -18,7 +18,8 @@
     "ds/05-telas.css",
     "ds/06-login.css",
     "ds/07-paleta.css",
-    "ds/08-responsivo.css"
+    "ds/08-responsivo.css",
+    "ds/09-drive-e-modelos.css"
   ],
   "js": [
     "00-sementes.js",
@@ -44,6 +45,9 @@
     "20-backup.js",
     "21-casca.js",
     "22-paleta-comandos.js",
+    "23-drive-mapa.js",
+    "24-modelos-catalogo.js",
+    "25-modelos.js",
     "99-inicializacao.js"
   ]
 }

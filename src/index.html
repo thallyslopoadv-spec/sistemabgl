@@ -82,6 +82,7 @@
       <button class="sb-item" id="nav-rotina" onclick="navegarPara('rotina')" title="Rotina"><i class="ti ti-checklist"></i><span class="sb-rot">Rotina</span><span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-processos" onclick="navegarPara('processos')" title="Processos"><i class="ti ti-gavel"></i><span class="sb-rot">Processos</span><span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-arquivados" onclick="navegarPara('arquivados')" title="Arquivados"><i class="ti ti-archive"></i><span class="sb-rot">Arquivados</span></button>
+      <button class="sb-item" id="nav-modelos" onclick="navegarPara('modelos')" title="Modelos"><i class="ti ti-file-text"></i><span class="sb-rot">Modelos</span></button>
       <div class="sb-grupo"><span>Carteira</span></div>
       <button class="sb-item" id="nav-crm" onclick="navegarPara('crm')" title="Clientes"><i class="ti ti-users"></i><span class="sb-rot">Clientes</span></button>
       <button class="sb-item" id="nav-fin" onclick="navegarPara('fin')" title="Financeiro"><i class="ti ti-wallet"></i><span class="sb-rot">Financeiro</span></button>
@@ -942,6 +943,28 @@
       <div class="comercial-board" id="comercial-board"></div>
     </div>
 
+    <!-- ─── VIEW: MODELOS ───
+         Peças e documentos-padrão da pasta "02 Modelos" do Drive. O catálogo
+         vem de 24-modelos-catalogo.js; os links, do mapa do Drive importado
+         em Configurações. Montada em renderModelos() (25-modelos.js). -->
+    <div class="view" id="view-modelos">
+      <div class="page-head mod-head">
+        <div>
+          <h1>Modelos</h1>
+          <p id="mod-sub"></p>
+        </div>
+        <button class="det-add" id="mod-pasta" onclick="abrirPastaModelos()" style="display:none"><i class="ti ti-brand-google-drive"></i> Pasta no Drive ↗</button>
+      </div>
+      <div id="mod-aviso"></div>
+      <div class="mod-busca">
+        <i class="ti ti-search"></i>
+        <input class="search-inp" id="mod-search" placeholder="Buscar por código, título ou campo (ex.: TDE-001, contestação, PREPOSTO)…" oninput="buscaModelos(this.value)">
+      </div>
+      <div class="mod-chips" id="mod-areas"></div>
+      <div class="mod-chips mod-chips-sub" id="mod-subs" style="display:none"></div>
+      <div id="mod-lista"></div>
+    </div>
+
   </div>
   </div><!-- /.principal -->
 </div>
@@ -1446,6 +1469,12 @@
     </div>
     <button class="det-add" style="margin-top:12px" onclick="adicionarTipoTarefa()"><i class="ti ti-plus"></i> Adicionar tipo</button>
 
+    <div class="det-sec-titulo" style="margin-top:26px"><span>Google Drive</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">pastas dos clientes e modelos</span></div>
+    <div class="bk-info">Importe os arquivos da pasta <b>00 Painel BGL › Integração</b> do Drive: <code>mapa_links_drive.json</code> e, se houver modelos novos, <code>catalogo_modelos.json</code> e <code>dicionario_campos.json</code>. Eles ficam guardados na nuvem do sistema, junto com os dados, e nunca no código da página.</div>
+    <div class="bk-info" id="cfg-drive-estado" style="margin-bottom:12px"></div>
+    <div class="fg"><label>Arquivos de integração (.json)</label><input type="file" id="cfg-drive-arquivos" accept=".json,application/json" multiple onchange="importarArquivosDrive(this)"></div>
+    <button class="det-add" id="cfg-drive-sugerir" onclick="abrirSugestaoDrive(null)"><i class="ti ti-wand"></i> Sugerir links do Drive para os clientes</button>
+
     <div class="det-sec-titulo" style="margin-top:26px"><span>Sua senha</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400" id="cfg-senha-quem"></span></div>
     <div class="bk-info">A senha vale para todos os dispositivos e é ela que destranca o token guardado neste computador. Use pelo menos 8 caracteres e não repita senha de outro serviço.</div>
     <div class="fg"><label>Senha atual</label><input type="password" id="cfg-senha-atual" autocomplete="current-password" placeholder="••••••••"></div>
@@ -1458,6 +1487,30 @@
 
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-config')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: SUGERIR LINKS DO DRIVE ═══════════════
+     Prévia do que será preenchido nas fichas. Nada é gravado antes do
+     botão de confirmar; links já preenchidos só mudam com "substituir". -->
+<div class="overlay" id="overlay-drive">
+  <div class="modal drv-modal">
+    <h3 id="drv-titulo">Sugerir links do Drive</h3>
+    <div class="bk-info">Confira a pasta encontrada para cada cliente. Só os campos vazios serão preenchidos; um link já salvo só é trocado se você marcar “substituir”. Onde estiver “Decidir”, escolha a pasta na lista.</div>
+    <div class="drv-topo">
+      <div class="drv-resumo" id="drv-resumo"></div>
+      <div class="drv-chips" id="drv-chips">
+        <button class="chip active" data-f="todos" onclick="filtroSugestaoDrive('todos',this)">Todos</button>
+        <button class="chip" data-f="ok" onclick="filtroSugestaoDrive('ok',this)">Associados</button>
+        <button class="chip" data-f="ambiguo" onclick="filtroSugestaoDrive('ambiguo',this)">Decidir</button>
+        <button class="chip" data-f="sem" onclick="filtroSugestaoDrive('sem',this)">Sem pasta</button>
+      </div>
+    </div>
+    <div class="drv-lista" id="drv-lista"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-drive')">Cancelar</button>
+      <button class="btn-confirm" id="drv-aplicar" onclick="aplicarSugestaoDrive()">Preencher</button>
     </div>
   </div>
 </div>

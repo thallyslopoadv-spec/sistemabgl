@@ -192,13 +192,21 @@ function detalheClienteHTML(c){
   }).join('')
     :'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nenhum processo vinculado a este cliente.</p>';
 
+  // sugestão do mapa do Drive (Configurações → Google Drive), só para cards vazios
+  const sug=driveSugestaoCliente(c);
+  const escolherCaso=driveFaltaEscolherCaso(c);
   const pastasHTML=PASTAS.map(p=>{
     const url=driveGet(c.id,p.k);
+    const s=!url&&sug&&sug.links[p.k];
+    let status=url?'<i class="ti ti-brand-google-drive"></i> Abrir no Drive ↗':'Configurar link do Drive';
+    if(url&&p.k==='processos'&&escolherCaso)status='<i class="ti ti-brand-google-drive"></i> Pasta do cliente ↗ <span class="drv-aviso">escolher caso</span>';
+    if(s)status=`<span class="pasta-sug-de" title="${esc(s.de)}">Drive: ${esc(s.de)}</span>`;
     return `<div class="pasta-card ${url?'':'sem-link'}" onclick="abrirPasta('${c.id}','${p.k}')" title="${url?'Abrir no Google Drive':'Clique para configurar o link do Drive'}">
       <div class="pasta-ico"><i class="ti ${p.ico}" aria-hidden="true"></i></div>
       <div class="pasta-info">
         <div class="pasta-nome">${p.nome}</div>
-        <div class="pasta-status ${url?'on':''}">${url?'<i class="ti ti-brand-google-drive"></i> Abrir no Drive ↗':'Configurar link do Drive'}</div>
+        <div class="pasta-status ${url?'on':''}">${status}</div>
+        ${s?`<button class="pasta-sugerida" onclick="event.stopPropagation();usarPastaSugerida('${c.id}','${p.k}')"><i class="ti ti-wand"></i> Usar pasta sugerida</button>`:''}
       </div>
       <button class="pasta-edit" onclick="event.stopPropagation();configurarPasta('${c.id}','${p.k}')" title="Editar link"><i class="ti ti-pencil"></i></button>
     </div>`;
@@ -214,9 +222,11 @@ function detalheClienteHTML(c){
         </div>
       </div>
       <button class="btn-ico" onclick="abrirModalCliente('${c.id}')" title="Editar dados do cliente"><i class="ti ti-pencil"></i></button>
-      <button class="btn-drive-root ${rootUrl?'':'sem-link'}" onclick="abrirPasta('${c.id}','root')" title="${rootUrl?'Abrir pasta raiz do cliente no Drive':'Configurar a pasta raiz do cliente no Drive'}">
+      ${!rootUrl&&sug?`<button class="btn-drive-root sem-link" onclick="usarPastaSugerida('${c.id}','root')" title="Drive: ${esc(sug.links.root.de)}">
+        <i class="ti ti-wand"></i>Usar pasta sugerida
+      </button>`:`<button class="btn-drive-root ${rootUrl?'':'sem-link'}" onclick="abrirPasta('${c.id}','root')" title="${rootUrl?'Abrir pasta raiz do cliente no Drive':'Configurar a pasta raiz do cliente no Drive'}">
         <i class="ti ti-brand-google-drive"></i>${rootUrl?'Pasta do cliente ↗':'Vincular pasta do Drive'}
-      </button>
+      </button>`}
     </div>
     <div class="cli-detail-scroll">
       ${clientePendenciaVinculo(c)?`<div class="det-obs" style="border-color:var(--amber);color:var(--amber-hi);cursor:pointer" onclick="abrirModalCliente('${c.id}')"><i class="ti ti-link-off"></i> Pendência: este contrato ainda não está vinculado a um lead do CRM — clique para vincular.</div>`:''}
@@ -250,7 +260,10 @@ function detalheClienteHTML(c){
         ${procsHTML}
       </div>
       <div class="det-sec">
-        <div class="det-sec-titulo"><span>Pastas do cliente · Google Drive</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">links salvos neste navegador</span></div>
+        <div class="det-sec-titulo"><span>Pastas do cliente · Google Drive</span>
+          ${driveMapa()?`<button class="det-add" onclick="abrirSugestaoDrive('${c.id}')"><i class="ti ti-wand"></i> Sugerir links do Drive</button>`:''}
+        </div>
+        <p class="pasta-nota">Os links ficam salvos na nuvem do sistema e valem para todos os dispositivos.</p>
         <div class="pasta-grid">${pastasHTML}</div>
       </div>
       <div class="det-sec">

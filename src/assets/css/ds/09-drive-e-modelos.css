@@ -1,0 +1,108 @@
+/* ==========================================================================
+   DESIGN SYSTEM BGL · Google Drive e Modelos
+   Prévia de "Sugerir links do Drive", sugestão nos cards de pasta da ficha
+   e a tela de Modelos. Usa só os tokens de 01-tokens.css.
+   ========================================================================== */
+
+/* ─── FICHA: pastas do cliente ─── */
+/* minmax(0,…): o caminho sugerido é cortado com reticências em vez de alargar o card */
+.pasta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pasta-nota{font-size:var(--fs-sm);color:var(--t3);margin:-4px 0 var(--s3)}
+.pasta-sug-de{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)}
+.pasta-sugerida{margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;font-size:var(--fs-xs);font-weight:600;
+  border-radius:var(--rs);border:1px solid var(--navy-soft);background:var(--surface);color:var(--navy);cursor:pointer;transition:background .15s}
+.pasta-sugerida:hover{background:var(--cream)}
+.drv-aviso{display:inline-block;padding:1px 7px;border-radius:var(--r-pill);font-size:10.5px;font-weight:600;
+  background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.28);white-space:nowrap}
+.cli-status.s-amb{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.28)}
+
+/* ─── PRÉVIA: sugerir links do Drive ─── */
+.drv-modal{width:980px;max-width:100%}
+.drv-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;margin:var(--s3) 0}
+.drv-resumo{font-size:var(--fs-md);color:var(--t2)}
+.drv-resumo b{color:var(--t)}
+.drv-chips{display:flex;gap:6px;flex-wrap:wrap}
+.drv-lista{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.drv-linha{display:grid;grid-template-columns:minmax(150px,1fr) minmax(200px,1.2fr) minmax(260px,1.6fr);gap:var(--s4);
+  padding:14px var(--s4);border-bottom:1px solid var(--border);align-items:start}
+.drv-linha:last-child{border-bottom:none}
+.drv-linha:nth-child(even){background:var(--surface2)}
+.drv-cli{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.drv-cli b{font-size:var(--fs-base);font-weight:600;color:var(--t);overflow-wrap:anywhere}
+.drv-escolha{display:flex;flex-direction:column;gap:8px;min-width:0}
+.drv-sel{width:100%;min-height:36px;padding:7px 10px;font-size:var(--fs-md);font-family:inherit;background:var(--surface);
+  border:1px solid var(--border-med);border-radius:var(--rs);color:var(--t);box-shadow:var(--shadow-xs)}
+.drv-sel:focus{border-color:var(--navy-soft);box-shadow:var(--foco);outline:none}
+.drv-itens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;min-width:0}
+.drv-itens li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:var(--fs-sm);color:var(--t2)}
+.drv-k{font-weight:600;color:var(--t);min-width:150px}
+.drv-acao{color:var(--t3)}
+.drv-acao.novo{color:var(--green-hi);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.drv-acao.troca{color:var(--amber-hi);font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.drv-de{flex-basis:100%;font-size:var(--fs-xs);color:var(--t3);overflow-wrap:anywhere}
+.drv-nada,.drv-vazio{color:var(--t3);font-size:var(--fs-sm)}
+.drv-vazio{padding:var(--s6);text-align:center}
+#drv-aplicar:disabled{opacity:.55;cursor:default}
+
+/* ─── TELA: MODELOS ─── */
+.mod-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.mod-alerta{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:12px var(--s4);margin-bottom:var(--s4);
+  border-radius:var(--r);border:1px solid rgba(169,116,27,.30);background:var(--amber-bg);color:var(--amber-hi);font-size:var(--fs-md)}
+.mod-alerta>i{font-size:18px}
+.mod-alerta span{flex:1;min-width:200px}
+.mod-busca{position:relative;max-width:560px;margin-bottom:var(--s3)}
+.mod-busca i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:16px;pointer-events:none}
+.mod-busca .search-inp{width:100%;padding-left:36px}
+.mod-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--s3)}
+.mod-chips .chip:disabled{opacity:.45;cursor:default}
+.mod-chips-sub{padding-left:var(--s3);border-left:2px solid var(--border-med)}
+.mod-n{font-size:var(--fs-xs);opacity:.7;margin-left:2px}
+.mod-area{display:flex;align-items:center;gap:var(--s2);font-family:var(--font-sans);font-size:var(--fs-lg);font-weight:600;color:var(--t);
+  margin:var(--s6) 0 var(--s3);padding-bottom:var(--s2);border-bottom:1px solid var(--border)}
+.mod-area i{color:var(--t3);font-size:18px}
+.mod-area span{font-size:var(--fs-sm);font-weight:500;color:var(--t3)}
+.mod-subtit{font-size:var(--fs-sm);font-weight:600;color:var(--t2);margin:var(--s4) 0 var(--s2)}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--s3);align-items:start}
+.mod-card{display:flex;flex-direction:column;gap:var(--s2);padding:14px var(--s4);background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow-xs);cursor:pointer;transition:border-color .15s,box-shadow .15s;min-width:0}
+.mod-card:hover{border-color:var(--border-hi);box-shadow:var(--shadow-hover)}
+.mod-card:focus-visible{outline:none;box-shadow:var(--foco);border-color:var(--navy-soft)}
+.mod-card.mod-off{cursor:default;background:var(--surface2);box-shadow:none}
+.mod-card.mod-off:hover{border-color:var(--border);box-shadow:none}
+.mod-card.mod-off .mod-tit,.mod-card.mod-off .mod-cod{color:var(--t3)}
+.mod-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.mod-cod{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:600;color:var(--navy)}
+.mod-fmt{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;background:var(--surface3);color:var(--t2)}
+.mod-fmt-docx{background:#e9eff8;color:#2f5d94}
+.mod-fmt-pdf{background:#f8ecec;color:#a33a3a}
+.mod-tit{font-size:var(--fs-base);font-weight:600;color:var(--t);line-height:1.35;overflow-wrap:anywhere}
+.mod-pe{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-top:auto;flex-wrap:wrap}
+.mod-campos-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;margin-left:-8px;border:none;border-radius:var(--rs);
+  background:transparent;color:var(--t2);font-size:var(--fs-sm);font-weight:500;cursor:pointer}
+.mod-campos-btn:hover{background:var(--surface3);color:var(--navy)}
+.mod-chev{transition:transform .15s}
+.mod-card.aberto .mod-chev{transform:rotate(180deg)}
+.mod-semcampo{font-size:var(--fs-sm);color:var(--t3)}
+.mod-abrir{font-size:var(--fs-sm);font-weight:600;color:var(--navy)}
+.mod-off .mod-abrir{color:var(--amber-hi);font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.mod-campos{display:none;list-style:none;margin:var(--s1) 0 0;padding:var(--s2) 0 0;border-top:1px solid var(--border);cursor:default}
+.mod-card.aberto .mod-campos{display:flex;flex-direction:column;gap:6px}
+.mod-campos li{display:flex;flex-direction:column;gap:1px;font-size:var(--fs-sm);color:var(--t2)}
+.mod-campos code{font-family:var(--font-mono);font-size:11.5px;color:var(--navy);overflow-wrap:anywhere}
+.mod-vazio{padding:var(--s10) var(--s4);text-align:center;color:var(--t3);font-size:var(--fs-md)}
+.mod-vazio i{display:block;font-size:28px;margin-bottom:var(--s2)}
+
+@media (max-width:960px){
+  .pasta-grid{grid-template-columns:minmax(0,1fr)}
+  .drv-linha{grid-template-columns:1fr;gap:var(--s3)}
+  .drv-k{min-width:0}
+  .mod-grid{grid-template-columns:1fr}
+  /* áreas e subpastas numa faixa que rola de lado, para a lista aparecer logo */
+  .mod-chips{flex-wrap:nowrap;overflow-x:auto;margin-right:-16px;padding-right:16px;scrollbar-width:none}
+  .mod-chips::-webkit-scrollbar{display:none}
+  .mod-chips .chip{flex-shrink:0;white-space:nowrap}
+  .mod-busca{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .mod-chev{transition:none}
+}

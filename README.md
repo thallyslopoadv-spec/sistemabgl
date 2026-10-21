@@ -19,6 +19,7 @@ src/
     img/                   logos em PNG
 tools/
   build.mjs                junta src/ no index.html publicado
+  catalogo-modelos.mjs     regenera o catálogo de modelos embutido (sem links)
   separar.py               registro de como o arquivo monolítico foi separado
 ```
 
@@ -34,6 +35,15 @@ node tools/build.mjs --dev    # gera ./dev.html, que carrega os arquivos de src/
 O arquivo publicado precisa ser único: o backup "sistema completo" copia a própria página com os dados embutidos, e isso só funciona se CSS, JS e imagens estiverem dentro dela. Por isso o código-fonte fica em pastas e o build monta o `index.html`.
 
 Toda alteração é feita em `src/` e seguida de `node tools/build.mjs`. Os dois arquivos vão juntos no commit.
+
+## Google Drive
+
+O repositório é público, então nenhum link do Drive e nenhum nome de pasta de cliente entra no código. O mapa gerado pelo Apps Script `gerarMapaLinks` (`mapa_links_drive.json`, na pasta `00 Painel BGL/Integração` do Drive) é importado no próprio sistema, em Configurações → Google Drive, e fica no Gist junto com os dados. Com ele:
+
+- **Sugerir links do Drive** (Configurações, paleta de comandos ou a ficha do cliente) mostra a pasta encontrada para cada cliente e o que será preenchido; só grava depois da confirmação, só em campos vazios, e só troca um link existente se "substituir" for marcado;
+- a tela **Modelos** ganha os links de cada modelo.
+
+Quando houver pastas ou modelos novos no Drive: rode `gerarMapaLinks` de novo e importe o mapa atualizado no sistema; não é preciso mexer no código. Para atualizar o catálogo embutido (títulos, áreas e campos), rode `node tools/catalogo-modelos.mjs <catalogo_modelos.json> <dicionario_campos.json>` e depois o build; o catálogo e o dicionário também podem ser importados no sistema pela mesma tela.
 
 ## Design system
 
