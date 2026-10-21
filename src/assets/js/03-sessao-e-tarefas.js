@@ -18,6 +18,7 @@ function slugify(s){
 }
 function abrirConfiguracoes(){
   renderConfigTipos();
+  renderConfigDrive();
   prepararTrocaSenha();
   abrirOverlay('overlay-config');
 }

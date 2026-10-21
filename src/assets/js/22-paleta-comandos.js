@@ -8,6 +8,7 @@
 const PALETA_TELAS=[
   {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},
   {id:'processos',t:'Processos',i:'ti-gavel'},{id:'arquivados',t:'Arquivados',i:'ti-archive'},
+  {id:'modelos',t:'Modelos',i:'ti-file-text'},
   {id:'crm',t:'Clientes',i:'ti-users'},{id:'fin',t:'Financeiro',i:'ti-wallet'},
   {id:'trab',t:'Atendimento',i:'ti-headset'},{id:'comercial',t:'Comercial',i:'ti-speakerphone'},
 ];
@@ -20,6 +21,7 @@ const PALETA_ACOES=[
   {t:'Novo lead trabalhista',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('trab');}},
   {t:'Novo lead cível',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('civel');}},
   {t:'Metas do mês',d:'Faturamento, honorários e contratos',i:'ti-target-arrow',fn:()=>abrirDetalheMetaContratos()},
+  {t:'Sugerir links do Drive',d:'Preencher as pastas dos clientes',i:'ti-brand-google-drive',fn:()=>abrirSugestaoDrive(null)},
   {t:'Fazer backup dos dados',d:'Baixar cópia completa',i:'ti-cloud-download',fn:()=>abrirBackup()},
   {t:'Ocultar ou mostrar valores',d:'Máscara de valores na tela',i:'ti-eye',fn:()=>toggleMoney()},
 ];
@@ -58,9 +60,12 @@ function paletaResultados(q){
   const lds=[...leads.map(l=>[l,'trab']),...leadsCivel.map(l=>[l,'civel'])]
     .filter(([l])=>paletaCasa(q,l.nome,l.tel)).slice(0,6)
     .map(([l,mod])=>({t:l.nome,d:'Lead '+(mod==='civel'?'cível':'trabalhista')+(l.statusCRM?' · '+l.statusCRM:''),i:'ti-headset',fn:()=>abrirLeadDeTarefa(l.id,mod)}));
+  const mods=modelosCatalogo().filter(m=>paletaCasa(q,m.codigo,m.titulo,m.areaNome)).slice(0,6)
+    .map(m=>({t:m.codigo+' · '+m.titulo,d:m.areaNome+(modeloUrl(m.codigo)?'':' · sem link'),i:'ti-file-text',fn:()=>abrirModelo(m.codigo)}));
   if(cli.length)grupos.push(['Clientes',cli]);
   if(procs.length)grupos.push(['Processos',procs]);
   if(lds.length)grupos.push(['Leads',lds]);
+  if(mods.length)grupos.push(['Modelos',mods]);
   if(telas.length)grupos.push(['Telas',telas]);
   if(acoes.length)grupos.push(['Ações',acoes]);
   return grupos;

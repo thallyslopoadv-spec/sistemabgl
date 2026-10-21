@@ -1895,6 +1895,114 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
   .stat-val{font-size:26px}
   .page-head h1{font-size:24px}
 }
+/* ==========================================================================
+   DESIGN SYSTEM BGL · Google Drive e Modelos
+   Prévia de "Sugerir links do Drive", sugestão nos cards de pasta da ficha
+   e a tela de Modelos. Usa só os tokens de 01-tokens.css.
+   ========================================================================== */
+
+/* ─── FICHA: pastas do cliente ─── */
+/* minmax(0,…): o caminho sugerido é cortado com reticências em vez de alargar o card */
+.pasta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pasta-nota{font-size:var(--fs-sm);color:var(--t3);margin:-4px 0 var(--s3)}
+.pasta-sug-de{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)}
+.pasta-sugerida{margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;font-size:var(--fs-xs);font-weight:600;
+  border-radius:var(--rs);border:1px solid var(--navy-soft);background:var(--surface);color:var(--navy);cursor:pointer;transition:background .15s}
+.pasta-sugerida:hover{background:var(--cream)}
+.drv-aviso{display:inline-block;padding:1px 7px;border-radius:var(--r-pill);font-size:10.5px;font-weight:600;
+  background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.28);white-space:nowrap}
+.cli-status.s-amb{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.28)}
+
+/* ─── PRÉVIA: sugerir links do Drive ─── */
+.drv-modal{width:980px;max-width:100%}
+.drv-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;margin:var(--s3) 0}
+.drv-resumo{font-size:var(--fs-md);color:var(--t2)}
+.drv-resumo b{color:var(--t)}
+.drv-chips{display:flex;gap:6px;flex-wrap:wrap}
+.drv-lista{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.drv-linha{display:grid;grid-template-columns:minmax(150px,1fr) minmax(200px,1.2fr) minmax(260px,1.6fr);gap:var(--s4);
+  padding:14px var(--s4);border-bottom:1px solid var(--border);align-items:start}
+.drv-linha:last-child{border-bottom:none}
+.drv-linha:nth-child(even){background:var(--surface2)}
+.drv-cli{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.drv-cli b{font-size:var(--fs-base);font-weight:600;color:var(--t);overflow-wrap:anywhere}
+.drv-escolha{display:flex;flex-direction:column;gap:8px;min-width:0}
+.drv-sel{width:100%;min-height:36px;padding:7px 10px;font-size:var(--fs-md);font-family:inherit;background:var(--surface);
+  border:1px solid var(--border-med);border-radius:var(--rs);color:var(--t);box-shadow:var(--shadow-xs)}
+.drv-sel:focus{border-color:var(--navy-soft);box-shadow:var(--foco);outline:none}
+.drv-itens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;min-width:0}
+.drv-itens li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:var(--fs-sm);color:var(--t2)}
+.drv-k{font-weight:600;color:var(--t);min-width:150px}
+.drv-acao{color:var(--t3)}
+.drv-acao.novo{color:var(--green-hi);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.drv-acao.troca{color:var(--amber-hi);font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.drv-de{flex-basis:100%;font-size:var(--fs-xs);color:var(--t3);overflow-wrap:anywhere}
+.drv-nada,.drv-vazio{color:var(--t3);font-size:var(--fs-sm)}
+.drv-vazio{padding:var(--s6);text-align:center}
+#drv-aplicar:disabled{opacity:.55;cursor:default}
+
+/* ─── TELA: MODELOS ─── */
+.mod-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.mod-alerta{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:12px var(--s4);margin-bottom:var(--s4);
+  border-radius:var(--r);border:1px solid rgba(169,116,27,.30);background:var(--amber-bg);color:var(--amber-hi);font-size:var(--fs-md)}
+.mod-alerta>i{font-size:18px}
+.mod-alerta span{flex:1;min-width:200px}
+.mod-busca{position:relative;max-width:560px;margin-bottom:var(--s3)}
+.mod-busca i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:16px;pointer-events:none}
+.mod-busca .search-inp{width:100%;padding-left:36px}
+.mod-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--s3)}
+.mod-chips .chip:disabled{opacity:.45;cursor:default}
+.mod-chips-sub{padding-left:var(--s3);border-left:2px solid var(--border-med)}
+.mod-n{font-size:var(--fs-xs);opacity:.7;margin-left:2px}
+.mod-area{display:flex;align-items:center;gap:var(--s2);font-family:var(--font-sans);font-size:var(--fs-lg);font-weight:600;color:var(--t);
+  margin:var(--s6) 0 var(--s3);padding-bottom:var(--s2);border-bottom:1px solid var(--border)}
+.mod-area i{color:var(--t3);font-size:18px}
+.mod-area span{font-size:var(--fs-sm);font-weight:500;color:var(--t3)}
+.mod-subtit{font-size:var(--fs-sm);font-weight:600;color:var(--t2);margin:var(--s4) 0 var(--s2)}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--s3);align-items:start}
+.mod-card{display:flex;flex-direction:column;gap:var(--s2);padding:14px var(--s4);background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow-xs);cursor:pointer;transition:border-color .15s,box-shadow .15s;min-width:0}
+.mod-card:hover{border-color:var(--border-hi);box-shadow:var(--shadow-hover)}
+.mod-card:focus-visible{outline:none;box-shadow:var(--foco);border-color:var(--navy-soft)}
+.mod-card.mod-off{cursor:default;background:var(--surface2);box-shadow:none}
+.mod-card.mod-off:hover{border-color:var(--border);box-shadow:none}
+.mod-card.mod-off .mod-tit,.mod-card.mod-off .mod-cod{color:var(--t3)}
+.mod-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.mod-cod{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:600;color:var(--navy)}
+.mod-fmt{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;background:var(--surface3);color:var(--t2)}
+.mod-fmt-docx{background:#e9eff8;color:#2f5d94}
+.mod-fmt-pdf{background:#f8ecec;color:#a33a3a}
+.mod-tit{font-size:var(--fs-base);font-weight:600;color:var(--t);line-height:1.35;overflow-wrap:anywhere}
+.mod-pe{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-top:auto;flex-wrap:wrap}
+.mod-campos-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;margin-left:-8px;border:none;border-radius:var(--rs);
+  background:transparent;color:var(--t2);font-size:var(--fs-sm);font-weight:500;cursor:pointer}
+.mod-campos-btn:hover{background:var(--surface3);color:var(--navy)}
+.mod-chev{transition:transform .15s}
+.mod-card.aberto .mod-chev{transform:rotate(180deg)}
+.mod-semcampo{font-size:var(--fs-sm);color:var(--t3)}
+.mod-abrir{font-size:var(--fs-sm);font-weight:600;color:var(--navy)}
+.mod-off .mod-abrir{color:var(--amber-hi);font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.mod-campos{display:none;list-style:none;margin:var(--s1) 0 0;padding:var(--s2) 0 0;border-top:1px solid var(--border);cursor:default}
+.mod-card.aberto .mod-campos{display:flex;flex-direction:column;gap:6px}
+.mod-campos li{display:flex;flex-direction:column;gap:1px;font-size:var(--fs-sm);color:var(--t2)}
+.mod-campos code{font-family:var(--font-mono);font-size:11.5px;color:var(--navy);overflow-wrap:anywhere}
+.mod-vazio{padding:var(--s10) var(--s4);text-align:center;color:var(--t3);font-size:var(--fs-md)}
+.mod-vazio i{display:block;font-size:28px;margin-bottom:var(--s2)}
+
+@media (max-width:960px){
+  .pasta-grid{grid-template-columns:minmax(0,1fr)}
+  .drv-linha{grid-template-columns:1fr;gap:var(--s3)}
+  .drv-k{min-width:0}
+  .mod-grid{grid-template-columns:1fr}
+  /* áreas e subpastas numa faixa que rola de lado, para a lista aparecer logo */
+  .mod-chips{flex-wrap:nowrap;overflow-x:auto;margin-right:-16px;padding-right:16px;scrollbar-width:none}
+  .mod-chips::-webkit-scrollbar{display:none}
+  .mod-chips .chip{flex-shrink:0;white-space:nowrap}
+  .mod-busca{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .mod-chev{transition:none}
+}
 </style>
 </head>
 <body>
@@ -1948,6 +2056,7 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       <button class="sb-item" id="nav-rotina" onclick="navegarPara('rotina')" title="Rotina"><i class="ti ti-checklist"></i><span class="sb-rot">Rotina</span><span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-processos" onclick="navegarPara('processos')" title="Processos"><i class="ti ti-gavel"></i><span class="sb-rot">Processos</span><span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-arquivados" onclick="navegarPara('arquivados')" title="Arquivados"><i class="ti ti-archive"></i><span class="sb-rot">Arquivados</span></button>
+      <button class="sb-item" id="nav-modelos" onclick="navegarPara('modelos')" title="Modelos"><i class="ti ti-file-text"></i><span class="sb-rot">Modelos</span></button>
       <div class="sb-grupo"><span>Carteira</span></div>
       <button class="sb-item" id="nav-crm" onclick="navegarPara('crm')" title="Clientes"><i class="ti ti-users"></i><span class="sb-rot">Clientes</span></button>
       <button class="sb-item" id="nav-fin" onclick="navegarPara('fin')" title="Financeiro"><i class="ti ti-wallet"></i><span class="sb-rot">Financeiro</span></button>
@@ -2808,6 +2917,28 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       <div class="comercial-board" id="comercial-board"></div>
     </div>
 
+    <!-- ─── VIEW: MODELOS ───
+         Peças e documentos-padrão da pasta "02 Modelos" do Drive. O catálogo
+         vem de 24-modelos-catalogo.js; os links, do mapa do Drive importado
+         em Configurações. Montada em renderModelos() (25-modelos.js). -->
+    <div class="view" id="view-modelos">
+      <div class="page-head mod-head">
+        <div>
+          <h1>Modelos</h1>
+          <p id="mod-sub"></p>
+        </div>
+        <button class="det-add" id="mod-pasta" onclick="abrirPastaModelos()" style="display:none"><i class="ti ti-brand-google-drive"></i> Pasta no Drive ↗</button>
+      </div>
+      <div id="mod-aviso"></div>
+      <div class="mod-busca">
+        <i class="ti ti-search"></i>
+        <input class="search-inp" id="mod-search" placeholder="Buscar por código, título ou campo (ex.: TDE-001, contestação, PREPOSTO)…" oninput="buscaModelos(this.value)">
+      </div>
+      <div class="mod-chips" id="mod-areas"></div>
+      <div class="mod-chips mod-chips-sub" id="mod-subs" style="display:none"></div>
+      <div id="mod-lista"></div>
+    </div>
+
   </div>
   </div><!-- /.principal -->
 </div>
@@ -3312,6 +3443,12 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
     </div>
     <button class="det-add" style="margin-top:12px" onclick="adicionarTipoTarefa()"><i class="ti ti-plus"></i> Adicionar tipo</button>
 
+    <div class="det-sec-titulo" style="margin-top:26px"><span>Google Drive</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">pastas dos clientes e modelos</span></div>
+    <div class="bk-info">Importe os arquivos da pasta <b>00 Painel BGL › Integração</b> do Drive: <code>mapa_links_drive.json</code> e, se houver modelos novos, <code>catalogo_modelos.json</code> e <code>dicionario_campos.json</code>. Eles ficam guardados na nuvem do sistema, junto com os dados, e nunca no código da página.</div>
+    <div class="bk-info" id="cfg-drive-estado" style="margin-bottom:12px"></div>
+    <div class="fg"><label>Arquivos de integração (.json)</label><input type="file" id="cfg-drive-arquivos" accept=".json,application/json" multiple onchange="importarArquivosDrive(this)"></div>
+    <button class="det-add" id="cfg-drive-sugerir" onclick="abrirSugestaoDrive(null)"><i class="ti ti-wand"></i> Sugerir links do Drive para os clientes</button>
+
     <div class="det-sec-titulo" style="margin-top:26px"><span>Sua senha</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400" id="cfg-senha-quem"></span></div>
     <div class="bk-info">A senha vale para todos os dispositivos e é ela que destranca o token guardado neste computador. Use pelo menos 8 caracteres e não repita senha de outro serviço.</div>
     <div class="fg"><label>Senha atual</label><input type="password" id="cfg-senha-atual" autocomplete="current-password" placeholder="••••••••"></div>
@@ -3324,6 +3461,30 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
 
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-config')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: SUGERIR LINKS DO DRIVE ═══════════════
+     Prévia do que será preenchido nas fichas. Nada é gravado antes do
+     botão de confirmar; links já preenchidos só mudam com "substituir". -->
+<div class="overlay" id="overlay-drive">
+  <div class="modal drv-modal">
+    <h3 id="drv-titulo">Sugerir links do Drive</h3>
+    <div class="bk-info">Confira a pasta encontrada para cada cliente. Só os campos vazios serão preenchidos; um link já salvo só é trocado se você marcar “substituir”. Onde estiver “Decidir”, escolha a pasta na lista.</div>
+    <div class="drv-topo">
+      <div class="drv-resumo" id="drv-resumo"></div>
+      <div class="drv-chips" id="drv-chips">
+        <button class="chip active" data-f="todos" onclick="filtroSugestaoDrive('todos',this)">Todos</button>
+        <button class="chip" data-f="ok" onclick="filtroSugestaoDrive('ok',this)">Associados</button>
+        <button class="chip" data-f="ambiguo" onclick="filtroSugestaoDrive('ambiguo',this)">Decidir</button>
+        <button class="chip" data-f="sem" onclick="filtroSugestaoDrive('sem',this)">Sem pasta</button>
+      </div>
+    </div>
+    <div class="drv-lista" id="drv-lista"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-drive')">Cancelar</button>
+      <button class="btn-confirm" id="drv-aplicar" onclick="aplicarSugestaoDrive()">Preencher</button>
     </div>
   </div>
 </div>
@@ -4626,6 +4787,7 @@ function slugify(s){
 }
 function abrirConfiguracoes(){
   renderConfigTipos();
+  renderConfigDrive();
   prepararTrocaSenha();
   abrirOverlay('overlay-config');
 }
@@ -9150,13 +9312,21 @@ function detalheClienteHTML(c){
   }).join('')
     :'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nenhum processo vinculado a este cliente.</p>';
 
+  // sugestão do mapa do Drive (Configurações → Google Drive), só para cards vazios
+  const sug=driveSugestaoCliente(c);
+  const escolherCaso=driveFaltaEscolherCaso(c);
   const pastasHTML=PASTAS.map(p=>{
     const url=driveGet(c.id,p.k);
+    const s=!url&&sug&&sug.links[p.k];
+    let status=url?'<i class="ti ti-brand-google-drive"></i> Abrir no Drive ↗':'Configurar link do Drive';
+    if(url&&p.k==='processos'&&escolherCaso)status='<i class="ti ti-brand-google-drive"></i> Pasta do cliente ↗ <span class="drv-aviso">escolher caso</span>';
+    if(s)status=`<span class="pasta-sug-de" title="${esc(s.de)}">Drive: ${esc(s.de)}</span>`;
     return `<div class="pasta-card ${url?'':'sem-link'}" onclick="abrirPasta('${c.id}','${p.k}')" title="${url?'Abrir no Google Drive':'Clique para configurar o link do Drive'}">
       <div class="pasta-ico"><i class="ti ${p.ico}" aria-hidden="true"></i></div>
       <div class="pasta-info">
         <div class="pasta-nome">${p.nome}</div>
-        <div class="pasta-status ${url?'on':''}">${url?'<i class="ti ti-brand-google-drive"></i> Abrir no Drive ↗':'Configurar link do Drive'}</div>
+        <div class="pasta-status ${url?'on':''}">${status}</div>
+        ${s?`<button class="pasta-sugerida" onclick="event.stopPropagation();usarPastaSugerida('${c.id}','${p.k}')"><i class="ti ti-wand"></i> Usar pasta sugerida</button>`:''}
       </div>
       <button class="pasta-edit" onclick="event.stopPropagation();configurarPasta('${c.id}','${p.k}')" title="Editar link"><i class="ti ti-pencil"></i></button>
     </div>`;
@@ -9172,9 +9342,11 @@ function detalheClienteHTML(c){
         </div>
       </div>
       <button class="btn-ico" onclick="abrirModalCliente('${c.id}')" title="Editar dados do cliente"><i class="ti ti-pencil"></i></button>
-      <button class="btn-drive-root ${rootUrl?'':'sem-link'}" onclick="abrirPasta('${c.id}','root')" title="${rootUrl?'Abrir pasta raiz do cliente no Drive':'Configurar a pasta raiz do cliente no Drive'}">
+      ${!rootUrl&&sug?`<button class="btn-drive-root sem-link" onclick="usarPastaSugerida('${c.id}','root')" title="Drive: ${esc(sug.links.root.de)}">
+        <i class="ti ti-wand"></i>Usar pasta sugerida
+      </button>`:`<button class="btn-drive-root ${rootUrl?'':'sem-link'}" onclick="abrirPasta('${c.id}','root')" title="${rootUrl?'Abrir pasta raiz do cliente no Drive':'Configurar a pasta raiz do cliente no Drive'}">
         <i class="ti ti-brand-google-drive"></i>${rootUrl?'Pasta do cliente ↗':'Vincular pasta do Drive'}
-      </button>
+      </button>`}
     </div>
     <div class="cli-detail-scroll">
       ${clientePendenciaVinculo(c)?`<div class="det-obs" style="border-color:var(--amber);color:var(--amber-hi);cursor:pointer" onclick="abrirModalCliente('${c.id}')"><i class="ti ti-link-off"></i> Pendência: este contrato ainda não está vinculado a um lead do CRM — clique para vincular.</div>`:''}
@@ -9208,7 +9380,10 @@ function detalheClienteHTML(c){
         ${procsHTML}
       </div>
       <div class="det-sec">
-        <div class="det-sec-titulo"><span>Pastas do cliente · Google Drive</span><span style="font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:400">links salvos neste navegador</span></div>
+        <div class="det-sec-titulo"><span>Pastas do cliente · Google Drive</span>
+          ${driveMapa()?`<button class="det-add" onclick="abrirSugestaoDrive('${c.id}')"><i class="ti ti-wand"></i> Sugerir links do Drive</button>`:''}
+        </div>
+        <p class="pasta-nota">Os links ficam salvos na nuvem do sistema e valem para todos os dispositivos.</p>
         <div class="pasta-grid">${pastasHTML}</div>
       </div>
       <div class="det-sec">
@@ -12299,7 +12474,7 @@ function abrirBackup(){
 // celular vira uma gaveta que abre pelo botão de menu do cabeçalho.
 const LS_SIDEBAR='bgl_sidebar_recolhida';
 const TITULO_TELA={dash:'Visão geral',rotina:'Rotina',processos:'Processos',arquivados:'Arquivados',
-  crm:'Clientes',fin:'Financeiro',trab:'Atendimento',comercial:'Comercial'};
+  crm:'Clientes',fin:'Financeiro',trab:'Atendimento',comercial:'Comercial',modelos:'Modelos'};
 
 function prepararCasca(){
   const av=document.getElementById('sb-av');
@@ -12335,6 +12510,7 @@ function fecharSidebarMovel(){const a=document.getElementById('screen-dashboard'
 const PALETA_TELAS=[
   {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},
   {id:'processos',t:'Processos',i:'ti-gavel'},{id:'arquivados',t:'Arquivados',i:'ti-archive'},
+  {id:'modelos',t:'Modelos',i:'ti-file-text'},
   {id:'crm',t:'Clientes',i:'ti-users'},{id:'fin',t:'Financeiro',i:'ti-wallet'},
   {id:'trab',t:'Atendimento',i:'ti-headset'},{id:'comercial',t:'Comercial',i:'ti-speakerphone'},
 ];
@@ -12347,6 +12523,7 @@ const PALETA_ACOES=[
   {t:'Novo lead trabalhista',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('trab');}},
   {t:'Novo lead cível',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('civel');}},
   {t:'Metas do mês',d:'Faturamento, honorários e contratos',i:'ti-target-arrow',fn:()=>abrirDetalheMetaContratos()},
+  {t:'Sugerir links do Drive',d:'Preencher as pastas dos clientes',i:'ti-brand-google-drive',fn:()=>abrirSugestaoDrive(null)},
   {t:'Fazer backup dos dados',d:'Baixar cópia completa',i:'ti-cloud-download',fn:()=>abrirBackup()},
   {t:'Ocultar ou mostrar valores',d:'Máscara de valores na tela',i:'ti-eye',fn:()=>toggleMoney()},
 ];
@@ -12385,9 +12562,12 @@ function paletaResultados(q){
   const lds=[...leads.map(l=>[l,'trab']),...leadsCivel.map(l=>[l,'civel'])]
     .filter(([l])=>paletaCasa(q,l.nome,l.tel)).slice(0,6)
     .map(([l,mod])=>({t:l.nome,d:'Lead '+(mod==='civel'?'cível':'trabalhista')+(l.statusCRM?' · '+l.statusCRM:''),i:'ti-headset',fn:()=>abrirLeadDeTarefa(l.id,mod)}));
+  const mods=modelosCatalogo().filter(m=>paletaCasa(q,m.codigo,m.titulo,m.areaNome)).slice(0,6)
+    .map(m=>({t:m.codigo+' · '+m.titulo,d:m.areaNome+(modeloUrl(m.codigo)?'':' · sem link'),i:'ti-file-text',fn:()=>abrirModelo(m.codigo)}));
   if(cli.length)grupos.push(['Clientes',cli]);
   if(procs.length)grupos.push(['Processos',procs]);
   if(lds.length)grupos.push(['Leads',lds]);
+  if(mods.length)grupos.push(['Modelos',mods]);
   if(telas.length)grupos.push(['Telas',telas]);
   if(acoes.length)grupos.push(['Ações',acoes]);
   return grupos;
@@ -12443,6 +12623,726 @@ document.addEventListener('keydown',e=>{
     fecharPaleta();
   }
 });
+// ═══════════════════════════════════════════════════════════
+//  GOOGLE DRIVE — MAPA DE PASTAS E SUGESTÃO DE LINKS
+// ═══════════════════════════════════════════════════════════
+// O Apps Script "gerarMapaLinks" do Drive gera mapa_links_drive.json com o
+// link de cada pasta e de cada modelo. Esse mapa NÃO fica no código: o
+// repositório é público e a página chega inteira a quem a abrir, e os nomes
+// das pastas são nomes de clientes e de partes. Ele é importado aqui
+// (Configurações → Google Drive) e guardado em DB.driveMapa, no Gist, junto
+// com os demais dados do escritório. Só entram as pastas de "01 Clientes"
+// até o nível das subpastas do caso e os links dos modelos.
+//
+// Com o mapa carregado, "Sugerir links do Drive" casa cada cliente do
+// sistema com uma pasta de cliente do Drive e mostra uma prévia. Nada é
+// gravado antes da confirmação, só campos vazios são preenchidos e um link
+// já existente só é trocado se a caixa "substituir" for marcada.
+const DRIVE_SUB={
+  docs:'03 Documentos do Cliente',
+  contrato:'05 Contrato e Procuração',
+  consultivo:'Contratos e Procurações',
+};
+// subpastas-padrão que identificam uma pasta de caso
+const DRIVE_SUB_CASO=/^0[1-6] /;
+const DRIVE_CHAVES=['root','docs','contrato','procuracao','processos'];
+const DRIVE_ROTULO={root:'Pasta do cliente',docs:'Docs pessoais',contrato:'Contrato de honorários',procuracao:'Procuração',processos:'Docs dos processos'};
+const DRIVE_STOP=new Set(['de','da','do','das','dos','e','x','a','o','ltda','me','eireli','epp','sa','cia']);
+
+function driveMapa(){return DB&&DB.driveMapa&&Array.isArray(DB.driveMapa.clientes)?DB.driveMapa:null}
+
+// ─── IMPORTAÇÃO DOS ARQUIVOS DE INTEGRAÇÃO ─────────────────
+// Aceita, juntos ou separados: mapa_links_drive.json, catalogo_modelos.json
+// e dicionario_campos.json. Cada um é reconhecido pelo formato.
+function linkValido(u){return typeof u==='string'&&/^https:\/\//i.test(u)?u:''}
+function compactarMapaDrive(m){
+  const porCliente=new Map();
+  Object.entries(m.pastas||{}).forEach(([caminho,v])=>{
+    const p=caminho.split('/'),url=linkValido(v&&v.url);
+    if(p[0]!=='01 Clientes'||p.length<3||p.length>5||!url)return;
+    if(p[1]!=='Ativos'&&p[1]!=='Inativos')return;
+    if(p[2].startsWith('_'))return;           // pastas avulsas, não são clientes
+    const chave=p[1]+'/'+p[2];
+    if(!porCliente.has(chave))porCliente.set(chave,{nome:p[2],situacao:p[1],url:'',filhos:[]});
+    const cli=porCliente.get(chave);
+    if(p.length===3){cli.url=url;return;}
+    let f=cli.filhos.find(x=>x.nome===p[3]);
+    if(!f){f={nome:p[3],url:'',sub:{}};cli.filhos.push(f);}
+    if(p.length===4)f.url=url;else f.sub[p[4]]=url;
+  });
+  const modelos={};
+  Object.entries(m.arquivos||{}).forEach(([caminho,v])=>{
+    if(!caminho.startsWith('02 Modelos/'))return;
+    const cod=/^([A-Z]{2,4}-\d{3})\b/.exec(caminho.split('/').pop());
+    const url=linkValido(v&&v.url);
+    if(cod&&url)modelos[cod[1]]=url;
+  });
+  const clientes=[...porCliente.values()].filter(c=>c.url)
+    .sort((a,b)=>a.situacao.localeCompare(b.situacao)||a.nome.localeCompare(b.nome,'pt-BR'));
+  clientes.forEach(c=>c.filhos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')));
+  return {
+    geradoEm:m.gerado_em||'',importadoEm:Date.now(),importadoPor:EU?EU.nome:'',
+    pastaModelos:linkValido(m.pastas&&m.pastas['02 Modelos']&&m.pastas['02 Modelos'].url),
+    clientes,modelos,
+  };
+}
+function compactarCatalogo(c){
+  return {
+    geradoEm:c.gerado_em||'',
+    // peca_de_origem fica de fora: aponta para a pasta de um cliente
+    modelos:c.modelos.filter(m=>m&&m.codigo&&m.titulo).map(m=>[
+      String(m.codigo),MODELOS_AREAS.indexOf(m.area),String(m.subpasta||'').replace(/\\/g,'/'),
+      String(m.titulo),String(m.formato||''),(m.campos||[]).map(x=>String(x).replace(/^\{\{|\}\}$/g,'')),
+      MODELOS_AREAS.includes(m.area)?'':String(m.area||''),
+    ]),
+  };
+}
+async function importarArquivosDrive(input){
+  const arquivos=[...(input.files||[])];
+  if(!arquivos.length)return;
+  const feitos=[],erros=[];
+  for(const arq of arquivos){
+    try{
+      const j=JSON.parse(await arq.text());
+      if(j&&j.pastas&&j.arquivos){
+        DB.driveMapa=compactarMapaDrive(j);
+        feitos.push('mapa do Drive ('+DB.driveMapa.clientes.length+' pastas de cliente, '+Object.keys(DB.driveMapa.modelos).length+' modelos com link)');
+      }else if(j&&Array.isArray(j.modelos)){
+        DB.driveCatalogo=compactarCatalogo(j);
+        feitos.push('catálogo ('+DB.driveCatalogo.modelos.length+' modelos)');
+      }else if(j&&typeof j==='object'&&Object.keys(j).length&&Object.keys(j).every(k=>/^\{\{\w+\}\}$/.test(k))){
+        DB.driveCampos=Object.fromEntries(Object.entries(j).map(([k,v])=>[k.replace(/^\{\{|\}\}$/g,''),String(v)]));
+        feitos.push('dicionário ('+Object.keys(DB.driveCampos).length+' campos)');
+      }else erros.push(arq.name+': formato não reconhecido');
+    }catch(e){erros.push(arq.name+': não é um JSON válido');}
+  }
+  input.value='';
+  if(feitos.length){salvarDB();refreshUI();}
+  renderConfigDrive();
+  if(erros.length)alert((feitos.length?'Importado: '+feitos.join('; ')+'.\n\n':'')+'Não importado:\n'+erros.join('\n'));
+  else mostrarToast('Importado: '+feitos.join('; '));
+}
+function renderConfigDrive(){
+  const el=document.getElementById('cfg-drive-estado');
+  if(!el)return;
+  const m=driveMapa();
+  const cat=DB&&DB.driveCatalogo;
+  const quando=s=>{const d=new Date(s);return isNaN(d)?'—':d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})};
+  el.innerHTML=m
+    ?`<i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Mapa gerado em ${quando(m.geradoEm)} e importado em ${quando(m.importadoEm)}${m.importadoPor?' por '+esc(m.importadoPor):''}: ${m.clientes.length} pastas de cliente e ${Object.keys(m.modelos).length} modelos com link.`
+      +(cat?`<br><i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Catálogo de modelos importado (${cat.modelos.length} modelos).`:'')
+    :'<i class="ti ti-info-circle"></i> Nenhum mapa importado ainda. Sem ele, a sugestão de pastas e os links dos modelos ficam desligados.';
+  const b=document.getElementById('cfg-drive-sugerir');
+  if(b)b.disabled=!m;
+}
+
+// ─── COMPARAÇÃO DE NOMES ───────────────────────────────────
+function driveNorm(s){return semAcento(s).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function driveTokens(s){return driveNorm(s).split(' ').filter(w=>w.length>1&&!DRIVE_STOP.has(w))}
+// "Padaria Exemplo (Nome Fantasia)" → nome principal e o que vem entre
+// parênteses. Parênteses que só dizem o papel (sócio, causa própria) não
+// valem como nome; "rep. Fulana" vale, mas com peso menor.
+function driveApelidos(nome){
+  const principal=nome.replace(/\(.*?\)/g,' ').trim();
+  const lista=[{t:principal,peso:1}];
+  (nome.match(/\(([^)]*)\)/g)||[]).forEach(par=>{
+    const dentro=par.slice(1,-1).trim();
+    const n=driveNorm(dentro);
+    if(!n||/^(socio|socia|causa propria)$/.test(n))return;
+    if(/^rep\b/.test(n))lista.push({t:dentro.replace(/^rep\.?\s*/i,''),peso:.6});
+    else lista.push({t:dentro,peso:1});
+  });
+  return lista;
+}
+function driveNota(a,b){
+  const na=driveNorm(a),nb=driveNorm(b);
+  if(!na||!nb)return 0;
+  if(na===nb)return 100;
+  const ta=driveTokens(a),tb=driveTokens(b);
+  if(!ta.length||!tb.length)return 0;
+  const emA=tb.filter(w=>ta.includes(w)).length;
+  if(emA===tb.length)return tb.length>1?90:(ta[0]===tb[0]?75:55);    // a pasta cabe inteira no nome do sistema
+  const emB=ta.filter(w=>tb.includes(w)).length;
+  if(emB===ta.length)return ta.length>1?85:(ta[0]===tb[0]?70:50);    // o nome do sistema cabe inteiro na pasta
+  if(emA>=2)return 65;
+  if(emA===1&&ta[0]===tb[0])return 45;                               // só o primeiro nome
+  return emA?20:0;
+}
+function driveNotaCliente(c,pasta){
+  let melhor=0;
+  driveApelidos(pasta.nome).forEach(ap=>{
+    [c.nome,c.curto].filter(Boolean).forEach(n=>{melhor=Math.max(melhor,Math.round(driveNota(n,ap.t)*ap.peso));});
+  });
+  return melhor;
+}
+function drivePastaId(p){return p.situacao+'/'+p.nome}
+function drivePastaPorId(id){const m=driveMapa();return m&&m.clientes.find(p=>drivePastaId(p)===id)||null}
+
+// Associa todos os clientes de uma vez: um cliente só fica "associado"
+// quando a melhor pasta tem nota alta, nenhuma outra chega perto dela e
+// nenhum outro cliente disputa a mesma pasta. O resto fica para decidir.
+function associarClientesDrive(){
+  const m=driveMapa();
+  if(!m)return new Map();
+  const res=new Map();
+  DB.clientes.forEach(c=>{
+    const notas=m.clientes.map(p=>({p,n:driveNotaCliente(c,p)})).filter(x=>x.n>=40).sort((a,b)=>b.n-a.n);
+    const [a,b]=notas;
+    let status='sem';
+    if(a&&a.n>=70&&(!b||b.n<a.n-10))status='ok';
+    else if(a)status='ambiguo';
+    res.set(c.id,{status,pasta:status==='ok'?a.p:null,nota:a?a.n:0,candidatas:notas.slice(0,4).map(x=>x.p)});
+  });
+  // mesma pasta para dois clientes: fica com quem tem nota maior; empate → os dois decidem
+  const porPasta=new Map();
+  res.forEach((r,cid)=>{if(r.status==='ok'){const k=drivePastaId(r.pasta);if(!porPasta.has(k))porPasta.set(k,[]);porPasta.get(k).push(cid);}});
+  porPasta.forEach(cids=>{
+    if(cids.length<2)return;
+    const max=Math.max(...cids.map(id=>res.get(id).nota));
+    const vencedores=cids.filter(id=>res.get(id).nota===max);
+    cids.forEach(id=>{
+      if(vencedores.length===1&&id===vencedores[0])return;
+      const r=res.get(id);r.status='ambiguo';r.pasta=null;
+    });
+  });
+  return res;
+}
+
+// ─── CASO DO CLIENTE ───────────────────────────────────────
+function driveCasos(pasta){return pasta?pasta.filhos.filter(f=>f.url&&Object.keys(f.sub).some(s=>DRIVE_SUB_CASO.test(s))):[]}
+// Com mais de um caso, procura o caso de cada processo cadastrado: tira do
+// nome do caso o nome do cliente e a área, e compara o resto com as partes
+// do processo. Só escolhe sozinho quando todos os processos (os ativos, se
+// houver) caem no mesmo caso; processos em casos diferentes → escolher.
+function driveCasoSugerido(c,pasta){
+  const casos=driveCasos(pasta);
+  if(casos.length<=1)return {caso:casos[0]||null,escolher:false,casos};
+  const doCliente=new Set([...driveTokens(c.nome),...driveTokens(c.curto||''),...driveApelidos(pasta.nome).flatMap(a=>driveTokens(a.t))]);
+  const partesDoCaso=casos.map(caso=>driveTokens(caso.nome.replace(/\([^)]*\)\s*$/,'')).filter(w=>!doCliente.has(w)));
+  const procs=procsDe(c.id);
+  const ativos=procs.filter(p=>p.status!=='Arquivado');
+  const achados=new Set();
+  (ativos.length?ativos:procs).forEach(p=>{
+    const partes=new Set([...driveTokens(p.ativo),...driveTokens(p.passivo)]);
+    const notas=partesDoCaso.map(ws=>ws.filter(w=>partes.has(w)).length);
+    const max=Math.max(...notas);
+    if(max>0&&notas.filter(n=>n===max).length===1)achados.add(notas.indexOf(max));
+  });
+  if(achados.size===1)return {caso:casos[[...achados][0]],escolher:false,casos};
+  return {caso:null,escolher:true,casos};
+}
+// Links que a pasta (e o caso) preenchem em cada card da ficha
+function driveLinksSugeridos(c,pasta,caso){
+  if(!pasta)return {};
+  const consultivo=pasta.filhos.find(f=>f.nome===DRIVE_SUB.consultivo);
+  const contrato=(caso&&caso.sub[DRIVE_SUB.contrato])||(consultivo&&consultivo.url)||'';
+  const caminho=(...p)=>p.filter(Boolean).join(' › ');
+  const contratoDe=caso&&caso.sub[DRIVE_SUB.contrato]?caminho(caso.nome,DRIVE_SUB.contrato):consultivo?DRIVE_SUB.consultivo:'';
+  return {
+    root:{url:pasta.url,de:pasta.nome},
+    docs:caso&&caso.sub[DRIVE_SUB.docs]?{url:caso.sub[DRIVE_SUB.docs],de:caminho(caso.nome,DRIVE_SUB.docs)}:null,
+    contrato:contrato?{url:contrato,de:contratoDe}:null,
+    procuracao:contrato?{url:contrato,de:contratoDe}:null,
+    processos:caso?{url:caso.url,de:caso.nome}:{url:pasta.url,de:pasta.nome,escolherCaso:driveCasos(pasta).length>1},
+  };
+}
+// Sugestão para um cliente só (usada nos cards da ficha): só quando a
+// associação é segura
+function driveSugestaoCliente(c){
+  if(!driveMapa())return null;
+  const r=associarClientesDrive().get(c.id);
+  if(!r||r.status!=='ok')return null;
+  const {caso}=driveCasoSugerido(c,r.pasta);
+  return {pasta:r.pasta,caso,links:driveLinksSugeridos(c,r.pasta,caso)};
+}
+// a pasta do Drive a que o link raiz do cliente aponta, se estiver no mapa
+function drivePastaDoCliente(c){
+  const m=driveMapa(),root=driveGet(c.id,'root');
+  return m&&root?m.clientes.find(p=>p.url===root)||null:null;
+}
+// "processos" apontando para a pasta do cliente que tem mais de um caso
+function driveFaltaEscolherCaso(c){
+  const p=drivePastaDoCliente(c);
+  return !!(p&&driveGet(c.id,'processos')===p.url&&driveCasos(p).length>1);
+}
+function usarPastaSugerida(cid,k){
+  const c=DB.clientes.find(x=>x.id===cid);
+  const s=c&&driveSugestaoCliente(c);
+  const l=s&&s.links[k];
+  if(!l||driveGet(cid,k))return;
+  driveSet(cid,k,l.url);
+  refreshUI();
+  mostrarToast(DRIVE_ROTULO[k]+': pasta do Drive vinculada','Desfazer',()=>{driveSet(cid,k,'');refreshUI();});
+}
+
+// ─── PRÉVIA: "SUGERIR LINKS DO DRIVE" ──────────────────────
+let drvLinhas=[], drvFiltro='todos';
+const DRV_STATUS={ok:['Associado','s-ativo'],ambiguo:['Decidir','s-amb'],sem:['Sem pasta','s-arq']};
+
+function abrirSugestaoDrive(cid){
+  if(!driveMapa()){
+    alert('Importe primeiro o mapa_links_drive.json em Configurações → Google Drive.');
+    abrirConfiguracoes();
+    return;
+  }
+  const assoc=associarClientesDrive();
+  const lista=cid?DB.clientes.filter(c=>c.id===cid):ordenarPorNome([...DB.clientes]);
+  drvLinhas=lista.map(c=>{
+    const r=assoc.get(c.id);
+    const pasta=r.pasta;
+    const cs=pasta?driveCasoSugerido(c,pasta):{caso:null,escolher:false};
+    return {cid:c.id,status:r.status,candidatas:r.candidatas,pastaId:pasta?drivePastaId(pasta):'',casoNome:cs.caso?cs.caso.nome:'',substituir:new Set()};
+  });
+  drvFiltro='todos';
+  document.querySelectorAll('#drv-chips .chip').forEach(b=>b.classList.toggle('active',b.dataset.f==='todos'));
+  document.getElementById('drv-chips').style.display=cid?'none':'';
+  document.getElementById('drv-titulo').textContent=cid?'Sugerir links do Drive · '+nomeCliente(cid):'Sugerir links do Drive';
+  renderSugestaoDrive();
+  fecharOverlay('overlay-config');
+  abrirOverlay('overlay-drive');
+}
+function filtroSugestaoDrive(f,btn){
+  drvFiltro=f;
+  document.querySelectorAll('#drv-chips .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSugestaoDrive();
+}
+// o que cada linha vai fazer com cada card, a partir das escolhas na tela
+function drvPlano(l){
+  const c=DB.clientes.find(x=>x.id===l.cid);
+  const pasta=l.pastaId?drivePastaPorId(l.pastaId):null;
+  if(!c||!pasta)return {c,pasta:null,itens:[]};
+  const casos=driveCasos(pasta);
+  const caso=casos.find(x=>x.nome===l.casoNome)||(casos.length===1?casos[0]:null);
+  const links=driveLinksSugeridos(c,pasta,caso);
+  const itens=DRIVE_CHAVES.map(k=>{
+    const s=links[k],atual=driveGet(c.id,k);
+    let acao;
+    if(!s)acao=atual?'mantem':(casos.length>1&&!caso?'caso':'sem');
+    else if(!atual)acao='preenche';
+    else if(atual===s.url)acao='igual';
+    else acao=l.substituir.has(k)?'substitui':'conflito';
+    return {k,s,atual,acao};
+  });
+  return {c,pasta,casos,caso,itens};
+}
+function renderSugestaoDrive(){
+  const planos=drvLinhas.map(l=>({l,...drvPlano(l)}));
+  const cont={ok:0,ambiguo:0,sem:0};
+  drvLinhas.forEach(l=>cont[l.status]++);
+  let novos=0,trocas=0;
+  planos.forEach(p=>p.itens.forEach(i=>{if(i.acao==='preenche')novos++;if(i.acao==='substitui')trocas++;}));
+  document.getElementById('drv-resumo').innerHTML=drvLinhas.length>1
+    ?`<b>${cont.ok}</b> associado${cont.ok===1?'':'s'} · <b>${cont.ambiguo}</b> para decidir · <b>${cont.sem}</b> sem pasta no Drive`
+    :'';
+  const btn=document.getElementById('drv-aplicar');
+  const total=novos+trocas;
+  btn.disabled=!total;
+  btn.innerHTML=`<i class="ti ti-check"></i>${total?'Preencher '+total+' link'+(total>1?'s':''):'Nada a preencher'}`;
+  const m=driveMapa();
+  const opcoesPasta=(l)=>{
+    const cand=l.candidatas.map(drivePastaId);
+    const opt=p=>{const id=drivePastaId(p);return `<option value="${esc(id)}"${id===l.pastaId?' selected':''}>${esc(p.nome)}</option>`};
+    return `<option value="">${l.status==='sem'?'Nenhuma pasta encontrada':'Escolher pasta…'}</option>`
+      +(cand.length?`<optgroup label="Mais parecidas">${l.candidatas.map(opt).join('')}</optgroup>`:'')
+      +['Ativos','Inativos'].map(s=>`<optgroup label="${s}">${m.clientes.filter(p=>p.situacao===s&&!cand.includes(drivePastaId(p))).map(opt).join('')}</optgroup>`).join('');
+  };
+  const visiveis=planos.map((p,i)=>({p,i})).filter(({p})=>drvFiltro==='todos'||p.l.status===drvFiltro);
+  const el=document.getElementById('drv-lista');
+  if(!visiveis.length){el.innerHTML='<div class="drv-vazio">Nenhum cliente nesta situação.</div>';return;}
+  el.innerHTML=visiveis.map(({p,i})=>{
+    const {l,c}=p;
+    const [stTxt,stCls]=DRV_STATUS[l.status];
+    const selCaso=p.pasta&&p.casos.length>1
+      ?`<select class="drv-sel" onchange="drvEscolherCaso(${i},this.value)" aria-label="Caso">
+          <option value="">Escolher caso (processos → pasta do cliente)</option>
+          ${p.casos.map(x=>`<option value="${esc(x.nome)}"${x.nome===l.casoNome?' selected':''}>${esc(x.nome)}</option>`).join('')}
+        </select>`:'';
+    const itens=p.pasta?p.itens.map(it=>{
+      const de=it.s?`<span class="drv-de">${esc(it.s.de)}</span>`:'';
+      let estado;
+      if(it.acao==='preenche')estado=`<span class="drv-acao novo"><i class="ti ti-plus"></i>preenche</span>`;
+      else if(it.acao==='igual')estado=`<span class="drv-acao">já está assim</span>`;
+      else if(it.acao==='mantem')estado=`<span class="drv-acao">mantém o atual</span>`;
+      else if(it.acao==='sem')estado=`<span class="drv-acao">sem subpasta no Drive</span>`;
+      else if(it.acao==='caso')estado=`<span class="drv-acao">depende do caso escolhido</span>`;
+      else estado=`<label class="drv-acao troca"><input type="checkbox"${it.acao==='substitui'?' checked':''} onchange="drvSubstituir(${i},'${it.k}',this.checked)">substituir o link atual</label>`;
+      const aviso=it.s&&it.s.escolherCaso?'<span class="drv-aviso">escolher caso</span>':'';
+      return `<li><span class="drv-k">${DRIVE_ROTULO[it.k]}</span>${estado}${aviso}${de}</li>`;
+    }).join(''):'<li class="drv-nada">Escolha a pasta para ver os links.</li>';
+    return `<div class="drv-linha">
+      <div class="drv-cli"><b>${esc(c.nome)}</b><span class="cli-status ${stCls}">${stTxt}</span></div>
+      <div class="drv-escolha">
+        <select class="drv-sel" onchange="drvEscolherPasta(${i},this.value)" aria-label="Pasta no Drive">${opcoesPasta(l)}</select>
+        ${selCaso}
+      </div>
+      <ul class="drv-itens">${itens}</ul>
+    </div>`;
+  }).join('');
+}
+function drvEscolherPasta(i,id){
+  const l=drvLinhas[i];
+  l.pastaId=id;l.substituir.clear();
+  const c=DB.clientes.find(x=>x.id===l.cid);
+  const p=id?drivePastaPorId(id):null;
+  const cs=p&&c?driveCasoSugerido(c,p):{caso:null};
+  l.casoNome=cs.caso?cs.caso.nome:'';
+  renderSugestaoDrive();
+}
+function drvEscolherCaso(i,nome){drvLinhas[i].casoNome=nome;drvLinhas[i].substituir.clear();renderSugestaoDrive();}
+function drvSubstituir(i,k,on){const s=drvLinhas[i].substituir;if(on)s.add(k);else s.delete(k);renderSugestaoDrive();}
+function aplicarSugestaoDrive(){
+  const planos=drvLinhas.map(drvPlano);
+  const trocas=planos.reduce((a,p)=>a+p.itens.filter(i=>i.acao==='substitui').length,0);
+  if(trocas&&!confirm('Substituir '+trocas+' link'+(trocas>1?'s':'')+' já preenchido'+(trocas>1?'s':'')+' pelo do Drive?\n\nO link atual será perdido.'))return;
+  let n=0;const clientes=new Set();
+  planos.forEach(p=>p.itens.forEach(it=>{
+    if(it.acao!=='preenche'&&it.acao!=='substitui')return;
+    if(!p.c.drive)p.c.drive={};
+    p.c.drive[it.k]=it.s.url;
+    n++;clientes.add(p.c.id);
+  }));
+  if(!n)return;
+  salvarDB();
+  fecharOverlay('overlay-drive');
+  refreshUI();
+  mostrarToast(n+' link'+(n>1?'s':'')+' do Drive preenchido'+(n>1?'s':'')+' em '+clientes.size+' cliente'+(clientes.size>1?'s':''));
+}
+// ═══════════════════════════════════════════════════════════
+//  CATÁLOGO DE MODELOS — gerado por tools/catalogo-modelos.mjs
+//  Não editar à mão. Fonte: catalogo_modelos.json (21/10/2026).
+//  Sem links e sem a peça de origem: o repositório é público. Os links
+//  vêm do mapa do Drive importado em Configurações → Google Drive.
+// ═══════════════════════════════════════════════════════════
+const MODELOS_AREAS=["Trabalhista - Defesa Empresarial","Trabalhista - Reclamante","Cível - Petições Iniciais","Cível - Respostas e Manifestações","Recursos","Execução e Cumprimento de Sentença","Petições Intermediárias","Família","Criminal","Extrajudicial","Consultivo - Auditoria Trabalhista","Gestão do Escritório"];
+// [código, índice da área, subpasta, título, formato, campos]
+const MODELOS_EMBUTIDOS=[
+["TDE-001",0,"","Contestação Trabalhista (Empresa)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PREPOSTO_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["TDE-002",0,"","Quesitos - Perícia de Insalubridade","docx",["CLIENTE_NOME","PARTE_CONTRARIA_3_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-003",0,"","Manifestação com Quesitos - Perícia Médica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-004",0,"","Anexo de Quesitos - Medicina do Trabalho","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-005",0,"","Manifestação com Quesitos - Perícia Psiquiátrica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-006",0,"","Anexo de Quesitos - Psiquiatria","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-007",0,"","Petição de Apresentação de Carta de Preposto","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PREPOSTO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-008",0,"","Carta de Preposto","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PREPOSTO_CEP","PREPOSTO_ENDERECO","PREPOSTO_NOME","PREPOSTO_RG","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_ENDERECO","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
+["TDE-009",0,"","Habilitação nos Autos (Reclamada)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-010",0,"","Pedido de Oitiva de Testemunha","docx",["CLIENTE_NOME","PROCESSO_NUMERO","TESTEMUNHA_CPF","TESTEMUNHA_NOME","TESTEMUNHA_RG","TESTEMUNHA_TELEFONE","VARA_NUMERO"]],
+["TDE-011",0,"","Convite de Testemunha - Audiência Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","TESTEMUNHA_NOME","VARA_NUMERO"]],
+["TDE-012",0,"","Contestação Trabalhista (Empresa) - Modelo Alternativo","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["TRE-001",1,"","Reclamação Trabalhista - Acidente de Trabalho","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","CLIENTE_TELEFONE","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME"]],
+["TRE-002",1,"","Reclamação Trabalhista - Terceirização (Responsabilidade Subsidiária)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","VARA_NUMERO"]],
+["TRE-003",1,"","Aditamento à Inicial - CAT","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-004",1,"","Impugnação à Contestação Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-005",1,"","Quesitos - Perícia Médica (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-006",1,"","Quesitos - Perícia de Engenharia (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-007",1,"","Petição de Juntada de Documentos (Perícia)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-008",1,"","Concordância com Acordo","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-009",1,"","Manifestação Trabalhista","docx",["CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-001",2,"","Ação de Cobrança","docx",["CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-002",2,"","Ação de Cobrança - Danos em Veículo","docx",["CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PARTE_CONTRARIA_TELEFONE","PLACA_VEICULO"]],
+["CIV-003",2,"","Inicial JEC - Consumidor Bancário (Contestação de Compra)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-004",2,"","Inicial - Imobiliário contra Construtora","docx",["CLIENTE_2_CEP","CLIENTE_2_CPF","CLIENTE_2_EMAIL","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO"]],
+["CIV-005",2,"","Inicial - Consumidor (Dois Réus)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-006",2,"","Inicial - Telecomunicações","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO"]],
+["CIV-007",2,"","Inicial - Plataforma Digital (Remoção de Conteúdo e Danos)","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-008",2,"","Inicial - Consumidor (Farmácia)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-009",2,"","Inicial - Habilitação de Crédito (Recuperação Judicial)","docx",["CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-101",3,"","Impugnação à Contestação (Réplica) - Cível","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-102",3,"","Impugnação à Contestação - Plano de Saúde","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-103",3,"","Impugnação à Contestação - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-104",3,"","Impugnação às Contestações (Múltiplos Réus)","docx",["CLIENTE_CPF","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-105",3,"","Especificação de Provas","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-106",3,"","Exceção de Pré-Executividade","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PLACA_VEICULO","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-107",3,"","Resposta à Impugnação ao Cumprimento de Sentença","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-108",3,"","Impugnação ao Cumprimento de Sentença","docx",["CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-001",4,"","Embargos de Declaração","docx",["ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-002",4,"","Embargos de Declaração - Sentença","docx",["CLIENTE_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["REC-003",4,"","Contrarrazões aos Embargos de Declaração","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-004",4,"","Recurso Inominado","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-005",4,"","Contrarrazões ao Recurso Inominado","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-006",4,"","Contrarrazões ao Recurso - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-007",4,"","Contrarrazões ao Agravo de Instrumento","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-001",5,"","Cumprimento de Sentença","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-002",5,"","Cumprimento de Sentença - RPV (Fazenda Pública)","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-003",5,"","Cumprimento de Sentença com Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-004",5,"","Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-005",5,"","Pedido de Penhora - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-006",5,"","Requerimento de Expedição de Alvará","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-007",5,"","Requerimento de Alvará + Majoração de Multa","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-008",5,"","Levantamento de Alvará + Multa de 10%","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-009",5,"","Petição de Dados para Expedição de RPV","docx",["CLIENTE_NOME","PROCESSO_NUMERO"]],
+["EXE-010",5,"","Nova Tentativa de Citação + SISBAJUD","docx",["CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-011",5,"","Pagamento da Obrigação - Pedido de Extinção","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-012",5,"","Descumprimento de Decisão","docx",["CLIENTE_NOME","PLACA_VEICULO","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-013",5,"","Cumprimento de Sentença - JEC","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-001",6,"","Juntada de Comprovante de Endereço","docx",["CLIENTE_CEP","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-002",6,"","Requerimento de Andamento do Feito","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-003",6,"","Comprovação de Hipossuficiência","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-004",6,"","Manifestação - Cancelamento de Audiência","docx",["CLIENTE_NOME","PROCESSO_NUMERO"]],
+["INT-005",6,"","Habilitação nos Autos (Cível)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-007",6,"","Juntada de Comprovante","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-008",6,"","Juntada de AR","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-009",6,"","Manifestação de Concordância","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-010",6,"","Manifestação sobre Saneamento","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["INT-011",6,"","Juntada de Vídeos por Link","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-012",6,"","Manifestação sobre Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-013",6,"","Manifestação sobre Alvará","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["FAM-001",7,"","Inicial - Família (Alimentos)","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["FAM-002",7,"","Alimentante Demitido - Requerimento","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["FAM-003",7,"","Ofício ao INSS - Desconto de Alimentos","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["FAM-004",7,"","Manifestação - Ação de Alimentos","docx",["CLIENTE_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["CRI-001",8,"","Resposta à Acusação","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CRI-002",8,"","Notícia-Crime","docx",["CLIENTE_2_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
+["CRI-003",8,"","Atualização de Endereço (Processo Criminal)","docx",["CLIENTE_CEP","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXT-001",9,"","Notificação Extrajudicial","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PROCESSO_NUMERO"]],
+["EXT-002",9,"","Notificação Extrajudicial - Plataforma Digital","docx",["PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["EXT-003",9,"","Termo de Acordo e Confissão de Dívida","docx",[]],
+["EXT-004",9,"","Recibo de Quitação","docx",["CLIENTE_CPF","CLIENTE_NOME","CLIENTE_RG","PROCESSO_NUMERO"]],
+["EXT-005",9,"","Notificação Extrajudicial (PDF de referência)","pdf",[]],
+["AUD-001",10,"01 Relatórios e Roteiros","Resumo da Auditoria Trabalhista","docx",["EMPRESA_RAZAO_SOCIAL"]],
+["AUD-002",10,"01 Relatórios e Roteiros","Roteiro de Visita Técnica","docx",["EMPRESA_RAZAO_SOCIAL"]],
+["AUD-003",10,"01 Relatórios e Roteiros","Análise Documental (Etapa 1)","docx",["EMPRESA_RAZAO_SOCIAL"]],
+["AUD-004",10,"01 Relatórios e Roteiros","Orientações de Uso dos Documentos","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-010",10,"02 Regulamentos e Normas","Regulamento Interno - Comércio de Alimentos","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-011",10,"02 Regulamentos e Normas","Normas e Regras Internas","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-012",10,"02 Regulamentos e Normas","Regulamento Interno - Corretora e Escritório","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-013",10,"02 Regulamentos e Normas","Termo de Ciência e Adesão ao Regulamento","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-020",10,"03 Contratos de Trabalho","Contrato de Experiência (Geral)","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-021",10,"03 Contratos de Trabalho","Contrato de Trabalho (Geral)","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-030",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Auxiliar de Padeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-031",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Auxiliar de Produção","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-032",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Confeiteiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-033",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Forneiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-034",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Padeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-035",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Salgadeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-036",10,"03 Contratos de Trabalho/Cozinha","Contrato de Trabalho - Auxiliar de Cozinha","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-037",10,"03 Contratos de Trabalho/Cozinha","Contrato de Trabalho - Chapeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-038",10,"03 Contratos de Trabalho/Cozinha","Contrato de Trabalho - Cozinheiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-039",10,"03 Contratos de Trabalho/Cozinha","Contrato de Trabalho - Saladeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-040",10,"03 Contratos de Trabalho/Atendimento","Contrato de Trabalho - Balconista","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-041",10,"03 Contratos de Trabalho/Atendimento","Contrato de Trabalho - Operador de Caixa","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-042",10,"03 Contratos de Trabalho/Estoque","Contrato de Trabalho - Auxiliar de Estoque","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-043",10,"03 Contratos de Trabalho/Estoque","Contrato de Trabalho - Estoquista","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-044",10,"03 Contratos de Trabalho/Serviços Gerais","Contrato de Trabalho - Auxiliar de Serviços Gerais","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-045",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Auxiliar Administrativo","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-046",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Fiscal de Loja","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-047",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Gerente Administrativo","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-048",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Líder de Produção","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-049",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Subgerente","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-050",10,"03 Contratos de Trabalho/Produção","Contrato de Trabalho - Auxiliar de Salgadeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-051",10,"03 Contratos de Trabalho/Atendimento","Contrato de Trabalho - Atendente","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-052",10,"03 Contratos de Trabalho/Atendimento","Contrato de Trabalho - Repositor","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-053",10,"03 Contratos de Trabalho/Entrega","Contrato de Trabalho - Entregador","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-054",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Gestor de RH","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-055",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Gestor Financeiro","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-056",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Assistente de RH","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-057",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Auxiliar de Escritório","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-058",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Gerente Geral","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-059",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Gerente de Produção","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-060",10,"03 Contratos de Trabalho/Administração e Gestão","Contrato de Trabalho - Supervisor","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-070",10,"04 Termos e Formulários","Termo de Opção do Vale-Transporte","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-071",10,"04 Termos e Formulários","Termo de Responsabilidade do Salário-Família","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-072",10,"04 Termos e Formulários","Termo de Responsabilidade do Armário","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-073",10,"04 Termos e Formulários","Termo de Entrega de Uniforme","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-074",10,"04 Termos e Formulários","Ficha de Controle de Entrega de EPI","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-075",10,"04 Termos e Formulários","Termo de Concessão do Cartão Voucher","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-076",10,"04 Termos e Formulários","Termo de Adesão ao Prêmio Assiduidade","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-077",10,"04 Termos e Formulários","Termo de Ciência de Jornada e Ponto","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-078",10,"04 Termos e Formulários","Termo de Ciência de Procedimentos com Produtos","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-079",10,"04 Termos e Formulários","Termo de Confidencialidade","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-080",10,"04 Termos e Formulários","Solicitação de Documentos para Admissão","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-081",10,"04 Termos e Formulários","Justificativa de Ausência e Ajuste de Ponto","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-082",10,"04 Termos e Formulários","Contrato de Prestação de Serviços entre Empresas (PJ)","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-090",10,"05 Advertências","Advertência Disciplinar","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-091",10,"05 Advertências","Advertência - Não Uso do Uniforme","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-092",10,"05 Advertências","Advertência - Uso Indevido do Celular","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["GES-001",11,"01 Contratos de Honorários","Contrato de Honorários - Êxito","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
+["GES-002",11,"01 Contratos de Honorários","Contrato de Honorários - Entrada e Parcelas","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
+["GES-003",11,"01 Contratos de Honorários","Contrato de Honorários - Auditoria Trabalhista","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_NOME"]],
+["GES-004",11,"01 Contratos de Honorários","Contrato de Honorários - Assessoria Mensal","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME"]],
+["GES-005",11,"01 Contratos de Honorários","Contrato de Honorários - Pessoa Jurídica (Contencioso)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-006",11,"01 Contratos de Honorários","Contrato de Honorários - Ação contra Plataforma Digital","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
+["GES-010",11,"02 Procurações","Procuração - JEC (Cível)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
+["GES-011",11,"02 Procurações","Procuração - Defesa Trabalhista","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-012",11,"02 Procurações","Procuração - Pessoa Jurídica","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-013",11,"02 Procurações","Procuração - Previdenciário (INSS)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE"]],
+["GES-014",11,"02 Procurações","Procuração - Dois Outorgantes","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
+["GES-020",11,"03 Declarações","Declaração de Hipossuficiência","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
+["GES-030",11,"04 Propostas e Atendimento","Proposta de Assessoria Mensal","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["GES-031",11,"04 Propostas e Atendimento","Roteiro de Condução de Reunião Comercial","docx",["CLIENTE_NOME","EMPRESA_NOME"]],
+["GES-032",11,"04 Propostas e Atendimento","Checklist de Perguntas - Defesa Trabalhista (PDF preenchível)","pdf",[]]
+];
+// descrição de cada campo {{CAMPO}} usado nos modelos
+const MODELOS_CAMPOS={
+  "ASSISTENTE_TECNICO_CPF":"CPF do assistente técnico",
+  "ASSISTENTE_TECNICO_EMAIL":"E-mail do assistente técnico",
+  "ASSISTENTE_TECNICO_NOME":"Nome completo do assistente técnico",
+  "ASSISTENTE_TECNICO_TELEFONE":"Telefone do assistente técnico",
+  "CLIENTE_2_CEP":"CEP do segundo cliente",
+  "CLIENTE_2_CPF":"CPF do segundo cliente",
+  "CLIENTE_2_EMAIL":"E-mail do segundo cliente",
+  "CLIENTE_2_NOME":"Nome completo do segundo cliente",
+  "CLIENTE_CEP":"CEP do cliente",
+  "CLIENTE_CNPJ":"CNPJ do cliente",
+  "CLIENTE_CPF":"CPF do cliente",
+  "CLIENTE_EMAIL":"E-mail do cliente",
+  "CLIENTE_ENDERECO":"Endereço completo do cliente",
+  "CLIENTE_NOME":"Nome completo do cliente",
+  "CLIENTE_RG":"RG e órgão emissor do cliente",
+  "CLIENTE_TELEFONE":"Telefone do cliente",
+  "EMPRESA_CNPJ":"CNPJ da empresa auditada/assessorada",
+  "EMPRESA_ENDERECO":"Endereço completo da empresa auditada/assessorada",
+  "EMPRESA_NOME":"Nome da empresa (prospect/cliente)",
+  "EMPRESA_RAZAO_SOCIAL":"Razão social da empresa auditada/assessorada",
+  "PARTE_CONTRARIA_2_CEP":"CEP da segunda parte contrária",
+  "PARTE_CONTRARIA_2_CNPJ":"CNPJ da segunda parte contrária",
+  "PARTE_CONTRARIA_2_ENDERECO":"Endereço completo da segunda parte contrária",
+  "PARTE_CONTRARIA_2_NOME":"Nome completo da segunda parte contrária",
+  "PARTE_CONTRARIA_3_NOME":"Nome completo da terceira parte contrária",
+  "PARTE_CONTRARIA_CEP":"CEP da parte contrária",
+  "PARTE_CONTRARIA_CNPJ":"CNPJ da parte contrária",
+  "PARTE_CONTRARIA_CPF":"CPF da parte contrária",
+  "PARTE_CONTRARIA_EMAIL":"E-mail da parte contrária",
+  "PARTE_CONTRARIA_ENDERECO":"Endereço completo da parte contrária",
+  "PARTE_CONTRARIA_NOME":"Nome completo da parte contrária",
+  "PARTE_CONTRARIA_TELEFONE":"Telefone da parte contrária",
+  "PLACA_VEICULO":"Placa do veículo",
+  "PREPOSTO_CEP":"CEP do preposto",
+  "PREPOSTO_ENDERECO":"Endereço completo do preposto",
+  "PREPOSTO_NOME":"Nome completo do preposto",
+  "PREPOSTO_RG":"RG e órgão emissor do preposto",
+  "PROCESSO_NUMERO":"Número do processo (padrão CNJ)",
+  "REPRESENTANTE_LEGAL_CEP":"CEP do representante legal/sócio",
+  "REPRESENTANTE_LEGAL_CPF":"CPF do representante legal/sócio",
+  "REPRESENTANTE_LEGAL_ENDERECO":"Endereço completo do representante legal/sócio",
+  "REPRESENTANTE_LEGAL_NOME":"Nome completo do representante legal/sócio",
+  "REPRESENTANTE_LEGAL_RG":"RG e órgão emissor do representante legal/sócio",
+  "TERCEIRO_NOME":"Nome completo de terceiro citado na peça",
+  "TESTEMUNHA_CPF":"CPF da testemunha",
+  "TESTEMUNHA_NOME":"Nome completo da testemunha",
+  "TESTEMUNHA_RG":"RG e órgão emissor da testemunha",
+  "TESTEMUNHA_TELEFONE":"Telefone da testemunha",
+  "VARA_NUMERO":"Número da vara/juizado/turma (ex.: 9ª)"
+};
+// ═══════════════════════════════════════════════════════════
+//  MODELOS — peças e documentos-padrão do escritório no Drive
+// ═══════════════════════════════════════════════════════════
+// O catálogo vem embutido (24-modelos-catalogo.js) ou, se tiver sido
+// importado depois, de DB.driveCatalogo. Os links saem do mapa do Drive
+// importado em Configurações (DB.driveMapa.modelos, por código). Modelo
+// sem link aparece desabilitado: o mapa está velho ou o arquivo é novo.
+const MODELOS_ICONES=['ti-building','ti-user','ti-file-plus','ti-file-text','ti-arrow-back-up','ti-coin',
+  'ti-files','ti-heart-handshake','ti-shield','ti-mail','ti-clipboard-check','ti-briefcase'];
+let modArea=-1, modSub='', modBusca='', modSubs=[];
+
+function modelosCatalogo(){
+  const lista=DB&&DB.driveCatalogo&&Array.isArray(DB.driveCatalogo.modelos)?DB.driveCatalogo.modelos:MODELOS_EMBUTIDOS;
+  return lista.map(([codigo,area,sub,titulo,formato,campos,areaNome])=>({codigo,area,sub,titulo,formato,campos:campos||[],areaNome:areaNome||MODELOS_AREAS[area]||'Outros'}));
+}
+function modeloCampoDesc(c){
+  const d=(DB&&DB.driveCampos)||MODELOS_CAMPOS;
+  return d[c]||MODELOS_CAMPOS[c]||'';
+}
+function modeloUrl(codigo){const m=driveMapa();return (m&&m.modelos&&m.modelos[codigo])||''}
+// "03 Contratos de Trabalho/Produção" → "Contratos de Trabalho › Produção"
+function modeloSubRotulo(s){return s.split('/').map(x=>x.replace(/^\d+\s+/,'')).join(' › ')}
+function modeloCasaBusca(m,q){
+  if(!q)return true;
+  const alvo=semAcento([m.codigo,m.titulo,m.areaNome,m.sub,...m.campos,...m.campos.map(modeloCampoDesc)].join(' '));
+  return q.split(/\s+/).every(p=>alvo.includes(p));
+}
+
+function filtroModelosArea(a){modArea=a;modSub='';renderModelos();}
+function filtroModelosSub(i){const s=modSubs[i]||'';modSub=modSub===s?'':s;renderModelos();}
+function buscaModelos(v){modBusca=v;renderModelos();}
+
+function renderModelos(){
+  const el=document.getElementById('mod-lista');
+  if(!el||!DB)return;
+  const todos=modelosCatalogo();
+  const m=driveMapa();
+  const comLink=todos.filter(x=>modeloUrl(x.codigo)).length;
+  document.getElementById('mod-sub').textContent=todos.length+' modelos · '+(m?comLink+' com link no Drive':'links do Drive ainda não importados');
+  const btnPasta=document.getElementById('mod-pasta');
+  btnPasta.style.display=m&&m.pastaModelos?'':'none';
+  document.getElementById('mod-aviso').innerHTML=!m
+    ?`<div class="mod-alerta"><i class="ti ti-plug-connected-x"></i><span>Os modelos aparecem desabilitados porque o mapa de links do Drive ainda não foi importado.</span><button class="det-add" onclick="abrirConfiguracoes()"><i class="ti ti-upload"></i> Importar mapa</button></div>`
+    :comLink<todos.length?`<div class="mod-alerta"><i class="ti ti-alert-triangle"></i><span>${todos.length-comLink} modelo${todos.length-comLink>1?'s':''} sem link: rode o gerador de links do Drive de novo e importe o mapa atualizado.</span></div>`:'';
+
+  // filtros por área, com a contagem do que casa com a busca
+  const q=semAcento(modBusca.trim());
+  const achados=todos.filter(x=>modeloCasaBusca(x,q));
+  const areas=[...new Set(todos.map(x=>x.areaNome))];
+  const ordem=n=>{const i=MODELOS_AREAS.indexOf(n);return i<0?99:i};
+  areas.sort((a,b)=>ordem(a)-ordem(b));
+  if(modArea!==-1&&!areas[modArea])modArea=-1;
+  const n=a=>achados.filter(x=>x.areaNome===a).length;
+  document.getElementById('mod-areas').innerHTML=
+    `<button class="chip${modArea===-1?' active':''}" onclick="filtroModelosArea(-1)">Todas <span class="mod-n">${achados.length}</span></button>`+
+    areas.map((a,i)=>`<button class="chip${modArea===i?' active':''}" onclick="filtroModelosArea(${i})"${n(a)?'':' disabled'}>${esc(a)} <span class="mod-n">${n(a)}</span></button>`).join('');
+  const areaSel=modArea===-1?null:areas[modArea];
+  const subs=modSubs=areaSel?[...new Set(todos.filter(x=>x.areaNome===areaSel&&x.sub).map(x=>x.sub))].sort():[];
+  const subsEl=document.getElementById('mod-subs');
+  subsEl.style.display=subs.length?'':'none';
+  subsEl.innerHTML=subs.map((s,i)=>`<button class="chip${modSub===s?' active':''}" onclick="filtroModelosSub(${i})">${esc(modeloSubRotulo(s))}</button>`).join('');
+
+  let lista=achados;
+  if(areaSel)lista=lista.filter(x=>x.areaNome===areaSel);
+  if(modSub)lista=lista.filter(x=>x.sub===modSub||x.sub.startsWith(modSub+'/'));
+  if(!lista.length){
+    el.innerHTML=`<div class="mod-vazio"><i class="ti ti-search-off"></i>Nenhum modelo encontrado${modBusca?' para “'+esc(modBusca)+'”':''}.</div>`;
+    return;
+  }
+  // seções por área e, dentro delas, por subpasta
+  const grupos=[];
+  lista.forEach(x=>{
+    const chave=x.areaNome+'|'+x.sub;
+    let g=grupos.find(y=>y.chave===chave);
+    if(!g){g={chave,area:x.areaNome,sub:x.sub,itens:[]};grupos.push(g);}
+    g.itens.push(x);
+  });
+  grupos.sort((a,b)=>ordem(a.area)-ordem(b.area)||a.sub.localeCompare(b.sub));
+  let areaAtual='';
+  el.innerHTML=grupos.map(g=>{
+    let cab='';
+    if(g.area!==areaAtual){
+      areaAtual=g.area;
+      const i=MODELOS_AREAS.indexOf(g.area);
+      cab=`<h2 class="mod-area"><i class="ti ${MODELOS_ICONES[i]||'ti-folder'}"></i>${esc(g.area)}<span>${lista.filter(x=>x.areaNome===g.area).length}</span></h2>`;
+    }
+    return cab+(g.sub?`<div class="mod-subtit">${esc(modeloSubRotulo(g.sub))}</div>`:'')
+      +`<div class="mod-grid">${g.itens.map(cardModelo).join('')}</div>`;
+  }).join('');
+}
+function cardModelo(x){
+  const url=modeloUrl(x.codigo);
+  const fmt=(x.formato||'').toUpperCase();
+  const campos=x.campos.map(c=>{
+    const d=modeloCampoDesc(c);
+    return `<li><code title="${esc(d)}">{{${esc(c)}}}</code><span>${esc(d||'sem descrição no dicionário')}</span></li>`;
+  }).join('');
+  const titulo=url?'Abrir no Google Drive':'Sem link: rode o gerador de links de novo';
+  return `<div class="mod-card${url?'':' mod-off'}"${url?` role="link" tabindex="0" onclick="abrirModelo('${x.codigo}')" onkeydown="if(event.key==='Enter'&&event.target===this)abrirModelo('${x.codigo}')"`:' aria-disabled="true"'} title="${titulo}">
+    <div class="mod-topo">
+      <span class="mod-cod">${esc(x.codigo)}</span>
+      <span class="mod-fmt mod-fmt-${esc(x.formato)}">${esc(fmt)}</span>
+    </div>
+    <div class="mod-tit">${esc(x.titulo)}</div>
+    <div class="mod-pe">
+      ${x.campos.length?`<button class="mod-campos-btn" onclick="event.stopPropagation();this.closest('.mod-card').classList.toggle('aberto')" aria-label="Ver campos"><i class="ti ti-braces"></i>${x.campos.length} campo${x.campos.length>1?'s':''}<i class="ti ti-chevron-down mod-chev"></i></button>`:'<span class="mod-semcampo">sem campos</span>'}
+      <span class="mod-abrir">${url?'Abrir ↗':'<i class="ti ti-link-off"></i> rodar o gerador de links de novo'}</span>
+    </div>
+    ${campos?`<ul class="mod-campos" onclick="event.stopPropagation()">${campos}</ul>`:''}
+  </div>`;
+}
+function abrirModelo(codigo){
+  const url=modeloUrl(codigo);
+  if(!url){alert('Este modelo ainda não tem link.\n\nRode o gerador de links do Drive de novo e importe o mapa atualizado em Configurações → Google Drive.');return;}
+  abrirLinkExterno(url);
+}
+function abrirPastaModelos(){const m=driveMapa();if(m&&m.pastaModelos)abrirLinkExterno(m.pastaModelos);}
+
+RENDERIZADORES.modelos=()=>renderModelos();
 
 // ─── INICIALIZAÇÃO (por último, após todas as declarações) ──
 initApp();
