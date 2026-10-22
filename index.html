@@ -12686,14 +12686,24 @@ function compactarMapaDrive(m){
     clientes,modelos,
   };
 }
+// "22/10/2026" ou "2026-10-22T…" → "2026-10-22", para comparar catálogos e mapas
+function dataCatalogo(s){
+  const t=String(s||'');
+  const br=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(t);
+  return br?br[3]+'-'+br[2]+'-'+br[1]:(/^\d{4}-\d{2}-\d{2}/.test(t)?t.slice(0,10):'');
+}
+// só links do próprio Drive/Docs, em https
+function linkModeloValido(u){return /^https:\/\/(docs|drive)\.google\.com\//i.test(String(u||''))?u:''}
 function compactarCatalogo(c){
   return {
-    geradoEm:c.gerado_em||'',
-    // peca_de_origem fica de fora: aponta para a pasta de um cliente
+    geradoEm:dataCatalogo(c.gerado_em),importadoEm:Date.now(),
+    // peca_de_origem fica de fora: aponta para a pasta de um cliente. O link
+    // (url) entra: este registro vai para o Gist, nunca para o código.
     modelos:c.modelos.filter(m=>m&&m.codigo&&m.titulo).map(m=>[
       String(m.codigo),MODELOS_AREAS.indexOf(m.area),String(m.subpasta||'').replace(/\\/g,'/'),
       String(m.titulo),String(m.formato||''),(m.campos||[]).map(x=>String(x).replace(/^\{\{|\}\}$/g,'')),
       MODELOS_AREAS.includes(m.area)?'':String(m.area||''),
+      linkModeloValido(m.url),
     ]),
   };
 }
@@ -12709,7 +12719,7 @@ async function importarArquivosDrive(input){
         feitos.push('mapa do Drive ('+DB.driveMapa.clientes.length+' pastas de cliente, '+Object.keys(DB.driveMapa.modelos).length+' modelos com link)');
       }else if(j&&Array.isArray(j.modelos)){
         DB.driveCatalogo=compactarCatalogo(j);
-        feitos.push('catálogo ('+DB.driveCatalogo.modelos.length+' modelos)');
+        feitos.push('catálogo ('+DB.driveCatalogo.modelos.length+' modelos, '+DB.driveCatalogo.modelos.filter(x=>x[7]).length+' com link)');
       }else if(j&&typeof j==='object'&&Object.keys(j).length&&Object.keys(j).every(k=>/^\{\{\w+\}\}$/.test(k))){
         DB.driveCampos=Object.fromEntries(Object.entries(j).map(([k,v])=>[k.replace(/^\{\{|\}\}$/g,''),String(v)]));
         feitos.push('dicionário ('+Object.keys(DB.driveCampos).length+' campos)');
@@ -12730,7 +12740,7 @@ function renderConfigDrive(){
   const quando=s=>{const d=new Date(s);return isNaN(d)?'—':d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})};
   el.innerHTML=m
     ?`<i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Mapa gerado em ${quando(m.geradoEm)} e importado em ${quando(m.importadoEm)}${m.importadoPor?' por '+esc(m.importadoPor):''}: ${m.clientes.length} pastas de cliente e ${Object.keys(m.modelos).length} modelos com link.`
-      +(cat?`<br><i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Catálogo de modelos importado (${cat.modelos.length} modelos).`:'')
+      +(cat?`<br><i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Catálogo de modelos importado (${cat.modelos.length} modelos${cat.geradoEm?', gerado em '+cat.geradoEm.split('-').reverse().join('/'):''})${modelosCatalogoImportadoValido()?'':': o catálogo embutido no sistema é mais novo e está sendo usado no lugar dele'}.`:'')
     :'<i class="ti ti-info-circle"></i> Nenhum mapa importado ainda. Sem ele, a sugestão de pastas e os links dos modelos ficam desligados.';
   const b=document.getElementById('cfg-drive-sugerir');
   if(b)b.disabled=!m;
@@ -13010,102 +13020,24 @@ function aplicarSugestaoDrive(){
 }
 // ═══════════════════════════════════════════════════════════
 //  CATÁLOGO DE MODELOS — gerado por tools/catalogo-modelos.mjs
-//  Não editar à mão. Fonte: catalogo_modelos.json (21/10/2026).
+//  Não editar à mão. Fonte: catalogo_modelos.json (22/10/2026).
 //  Sem links e sem a peça de origem: o repositório é público. Os links
-//  vêm do mapa do Drive importado em Configurações → Google Drive.
+//  vêm do mapa ou do catálogo importados em Configurações → Google Drive.
 // ═══════════════════════════════════════════════════════════
+const MODELOS_GERADO_EM='2026-10-22';
 const MODELOS_AREAS=["Trabalhista - Defesa Empresarial","Trabalhista - Reclamante","Cível - Petições Iniciais","Cível - Respostas e Manifestações","Recursos","Execução e Cumprimento de Sentença","Petições Intermediárias","Família","Criminal","Extrajudicial","Consultivo - Auditoria Trabalhista","Gestão do Escritório"];
+// códigos trocados no Drive (anterior → atual). O arquivo é o mesmo, então o
+// link guardado no mapa sob o código antigo continua valendo para o novo.
+const MODELOS_RENOMEADOS={"CIV-104":"EXE-014","INT-012":"EXE-015","INT-013":"EXE-016","CIV-105":"FAM-005"};
 // [código, índice da área, subpasta, título, formato, campos]
 const MODELOS_EMBUTIDOS=[
-["TDE-001",0,"","Contestação Trabalhista (Empresa)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PREPOSTO_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
-["TDE-002",0,"","Quesitos - Perícia de Insalubridade","docx",["CLIENTE_NOME","PARTE_CONTRARIA_3_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-003",0,"","Manifestação com Quesitos - Perícia Médica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-004",0,"","Anexo de Quesitos - Medicina do Trabalho","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-005",0,"","Manifestação com Quesitos - Perícia Psiquiátrica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-006",0,"","Anexo de Quesitos - Psiquiatria","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-007",0,"","Petição de Apresentação de Carta de Preposto","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PREPOSTO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-008",0,"","Carta de Preposto","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PREPOSTO_CEP","PREPOSTO_ENDERECO","PREPOSTO_NOME","PREPOSTO_RG","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_ENDERECO","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
-["TDE-009",0,"","Habilitação nos Autos (Reclamada)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TDE-010",0,"","Pedido de Oitiva de Testemunha","docx",["CLIENTE_NOME","PROCESSO_NUMERO","TESTEMUNHA_CPF","TESTEMUNHA_NOME","TESTEMUNHA_RG","TESTEMUNHA_TELEFONE","VARA_NUMERO"]],
-["TDE-011",0,"","Convite de Testemunha - Audiência Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","TESTEMUNHA_NOME","VARA_NUMERO"]],
-["TDE-012",0,"","Contestação Trabalhista (Empresa) - Modelo Alternativo","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
-["TRE-001",1,"","Reclamação Trabalhista - Acidente de Trabalho","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","CLIENTE_TELEFONE","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME"]],
-["TRE-002",1,"","Reclamação Trabalhista - Terceirização (Responsabilidade Subsidiária)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","VARA_NUMERO"]],
-["TRE-003",1,"","Aditamento à Inicial - CAT","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-004",1,"","Impugnação à Contestação Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-005",1,"","Quesitos - Perícia Médica (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-006",1,"","Quesitos - Perícia de Engenharia (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-007",1,"","Petição de Juntada de Documentos (Perícia)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-008",1,"","Concordância com Acordo","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["TRE-009",1,"","Manifestação Trabalhista","docx",["CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
-["CIV-001",2,"","Ação de Cobrança","docx",["CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
-["CIV-002",2,"","Ação de Cobrança - Danos em Veículo","docx",["CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PARTE_CONTRARIA_TELEFONE","PLACA_VEICULO"]],
-["CIV-003",2,"","Inicial JEC - Consumidor Bancário (Contestação de Compra)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-004",2,"","Inicial - Imobiliário contra Construtora","docx",["CLIENTE_2_CEP","CLIENTE_2_CPF","CLIENTE_2_EMAIL","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO"]],
-["CIV-005",2,"","Inicial - Consumidor (Dois Réus)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
-["CIV-006",2,"","Inicial - Telecomunicações","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO"]],
-["CIV-007",2,"","Inicial - Plataforma Digital (Remoção de Conteúdo e Danos)","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
-["CIV-008",2,"","Inicial - Consumidor (Farmácia)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
-["CIV-009",2,"","Inicial - Habilitação de Crédito (Recuperação Judicial)","docx",["CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-101",3,"","Impugnação à Contestação (Réplica) - Cível","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-102",3,"","Impugnação à Contestação - Plano de Saúde","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-103",3,"","Impugnação à Contestação - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-104",3,"","Impugnação às Contestações (Múltiplos Réus)","docx",["CLIENTE_CPF","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-105",3,"","Especificação de Provas","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-106",3,"","Exceção de Pré-Executividade","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PLACA_VEICULO","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
-["CIV-107",3,"","Resposta à Impugnação ao Cumprimento de Sentença","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CIV-108",3,"","Impugnação ao Cumprimento de Sentença","docx",["CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-001",4,"","Embargos de Declaração","docx",["ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-002",4,"","Embargos de Declaração - Sentença","docx",["CLIENTE_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
-["REC-003",4,"","Contrarrazões aos Embargos de Declaração","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-004",4,"","Recurso Inominado","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-005",4,"","Contrarrazões ao Recurso Inominado","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-006",4,"","Contrarrazões ao Recurso - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["REC-007",4,"","Contrarrazões ao Agravo de Instrumento","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-001",5,"","Cumprimento de Sentença","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-002",5,"","Cumprimento de Sentença - RPV (Fazenda Pública)","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-003",5,"","Cumprimento de Sentença com Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-004",5,"","Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-005",5,"","Pedido de Penhora - Fazenda Pública","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-006",5,"","Requerimento de Expedição de Alvará","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-007",5,"","Requerimento de Alvará + Majoração de Multa","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-008",5,"","Levantamento de Alvará + Multa de 10%","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-009",5,"","Petição de Dados para Expedição de RPV","docx",["CLIENTE_NOME","PROCESSO_NUMERO"]],
-["EXE-010",5,"","Nova Tentativa de Citação + SISBAJUD","docx",["CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-011",5,"","Pagamento da Obrigação - Pedido de Extinção","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-012",5,"","Descumprimento de Decisão","docx",["CLIENTE_NOME","PLACA_VEICULO","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXE-013",5,"","Cumprimento de Sentença - JEC","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-001",6,"","Juntada de Comprovante de Endereço","docx",["CLIENTE_CEP","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-002",6,"","Requerimento de Andamento do Feito","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-003",6,"","Comprovação de Hipossuficiência","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-004",6,"","Manifestação - Cancelamento de Audiência","docx",["CLIENTE_NOME","PROCESSO_NUMERO"]],
-["INT-005",6,"","Habilitação nos Autos (Cível)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-007",6,"","Juntada de Comprovante","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-008",6,"","Juntada de AR","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-009",6,"","Manifestação de Concordância","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-010",6,"","Manifestação sobre Saneamento","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
-["INT-011",6,"","Juntada de Vídeos por Link","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-012",6,"","Manifestação sobre Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["INT-013",6,"","Manifestação sobre Alvará","docx",["CLIENTE_CPF","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["FAM-001",7,"","Inicial - Família (Alimentos)","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
-["FAM-002",7,"","Alimentante Demitido - Requerimento","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["FAM-003",7,"","Ofício ao INSS - Desconto de Alimentos","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["FAM-004",7,"","Manifestação - Ação de Alimentos","docx",["CLIENTE_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
-["CRI-001",8,"","Resposta à Acusação","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["CRI-002",8,"","Notícia-Crime","docx",["CLIENTE_2_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
-["CRI-003",8,"","Atualização de Endereço (Processo Criminal)","docx",["CLIENTE_CEP","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
-["EXT-001",9,"","Notificação Extrajudicial","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PROCESSO_NUMERO"]],
-["EXT-002",9,"","Notificação Extrajudicial - Plataforma Digital","docx",["PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
-["EXT-003",9,"","Termo de Acordo e Confissão de Dívida","docx",[]],
-["EXT-004",9,"","Recibo de Quitação","docx",["CLIENTE_CPF","CLIENTE_NOME","CLIENTE_RG","PROCESSO_NUMERO"]],
-["EXT-005",9,"","Notificação Extrajudicial (PDF de referência)","pdf",[]],
-["AUD-001",10,"01 Relatórios e Roteiros","Resumo da Auditoria Trabalhista","docx",["EMPRESA_RAZAO_SOCIAL"]],
-["AUD-002",10,"01 Relatórios e Roteiros","Roteiro de Visita Técnica","docx",["EMPRESA_RAZAO_SOCIAL"]],
-["AUD-003",10,"01 Relatórios e Roteiros","Análise Documental (Etapa 1)","docx",["EMPRESA_RAZAO_SOCIAL"]],
+["AUD-001",10,"01 Relatórios e Roteiros","Resumo da Auditoria Trabalhista","docx",["DATA_EXTENSO","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-002",10,"01 Relatórios e Roteiros","Roteiro de Visita Técnica","docx",["EMPREGADO_NOME","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-003",10,"01 Relatórios e Roteiros","Análise Documental (Etapa 1)","docx",["EMPREGADO_NOME","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-004",10,"01 Relatórios e Roteiros","Orientações de Uso dos Documentos","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-010",10,"02 Regulamentos e Normas","Regulamento Interno - Comércio de Alimentos","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-011",10,"02 Regulamentos e Normas","Normas e Regras Internas","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
-["AUD-012",10,"02 Regulamentos e Normas","Regulamento Interno - Corretora e Escritório","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["AUD-012",10,"02 Regulamentos e Normas","Regulamento Interno - Corretora e Escritório","docx",["DATA_EXTENSO","EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL","SOCIO_NOME"]],
 ["AUD-013",10,"02 Regulamentos e Normas","Termo de Ciência e Adesão ao Regulamento","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-020",10,"03 Contratos de Trabalho","Contrato de Experiência (Geral)","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-021",10,"03 Contratos de Trabalho","Contrato de Trabalho (Geral)","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
@@ -13156,21 +13088,103 @@ const MODELOS_EMBUTIDOS=[
 ["AUD-090",10,"05 Advertências","Advertência Disciplinar","docx",["EMPRESA_CNPJ","EMPRESA_ENDERECO","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-091",10,"05 Advertências","Advertência - Não Uso do Uniforme","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
 ["AUD-092",10,"05 Advertências","Advertência - Uso Indevido do Celular","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["CIV-001",2,"","Ação de Cobrança (JEC)","docx",["CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_EMPRESA","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-002",2,"","Ação de Cobrança c-c Ressarcimento - Locação de Veículo","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","EMPRESA_CNPJ","EMPRESA_PROPRIETARIA_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PARTE_CONTRARIA_RG","PARTE_CONTRARIA_TELEFONE","PLACA_VEICULO","TERCEIRO_NOME"]],
+["CIV-003",2,"","Inicial JEC - Consumidor Bancário (Contestação de Compra)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_CNPJ_RAIZ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_EMAIL","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-004",2,"","Inicial - Imobiliário contra Construtora","docx",["CLIENTE_2_CEP","CLIENTE_2_CPF","CLIENTE_2_EMAIL","CLIENTE_2_NOME","CLIENTE_2_RG","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","EMPREENDIMENTO_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME"]],
+["CIV-005",2,"","Inicial JEC - Consumidor (Rescisão de Contrato de Mentoria Online)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","PRODUTO_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-006",2,"","Inicial - Telecom (Inexigibilidade de Multa, Prova Digital e Dano Moral)","docx",["CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO"]],
+["CIV-007",2,"","Inicial - Plataforma Digital (Preservação de Registros e Danos Morais)","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-008",2,"","Inicial JEC - Dano Moral (Constrangimento em Estabelecimento)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["CIV-009",2,"","Inicial - Habilitação de Crédito (Recuperação Judicial)","docx",["CLIENTE_CNPJ","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-101",3,"","Impugnação à Contestação - Condomínio (Nulidade de Multa)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","RELATOR_NOME","VARA_NUMERO"]],
+["CIV-102",3,"","Impugnação à Contestação - Plano de Saúde (Negativa de Internação)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-103",3,"","Impugnação à Contestação - Fazenda Pública (Cobrança Administrativa)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-106",3,"","Exceção de Pré-Executividade","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PARTE_CONTRARIA_TELEFONE","PLACA_VEICULO","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["CIV-107",3,"","Resposta à Impugnação ao Cumprimento de Sentença","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CIV-108",3,"","Manifestação - Cumprimento Parcial e Memória de Cálculo","docx",["CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["CRI-001",8,"","Resposta à Acusação","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PROCESSO_NUMERO","TERCEIRO_NOME","TESTEMUNHA_NOME","VARA_NUMERO","VITIMA_NOME"]],
+["CRI-002",8,"","Notícia-Crime","docx",["CLIENTE_2_NOME","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
+["CRI-003",8,"","Atualização de Endereço (Processo Criminal)","docx",["CLIENTE_CEP","CLIENTE_ENDERECO","CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-001",5,"","Cumprimento de Sentença - Executada em Recuperação Judicial","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-002",5,"","Cumprimento de Sentença - RPV (Fazenda Pública)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-003",5,"","Pedido de Multa do Art. 523 e Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-004",5,"","Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-005",5,"","Prosseguimento do Cumprimento - Multa do Art. 523","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-006",5,"","Requerimento de Expedição de Alvará","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-007",5,"","Requerimento de Alvará + Majoração de Multa","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-008",5,"","Levantamento de Alvará + Multa de 10%","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-009",5,"","Petição de Dados para Expedição de RPV","docx",["CLIENTE_NOME","PROCESSO_NUMERO"]],
+["EXE-010",5,"","Nova Tentativa de Citação + SISBAJUD","docx",["CLIENTE_NOME","PARTE_CONTRARIA_CPF","PARTE_CONTRARIA_EMAIL","PARTE_CONTRARIA_NOME","PARTE_CONTRARIA_TELEFONE","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-011",5,"","Pagamento da Obrigação - Pedido de Extinção","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-012",5,"","Descumprimento de Decisão - Astreintes e Busca e Apreensão","docx",["CLIENTE_NOME","PLACA_VEICULO","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-013",5,"","Cumprimento de Sentença - Exequente Pessoa Jurídica (JEC)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-014",5,"","Desarquivamento e Cumprimento de Sentença (JEC)","docx",["PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-015",5,"","Atualização do Débito e Pedido de Penhora","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXE-016",5,"","Manifestação - Excesso de Execução e Levantamento de Alvará","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["EXT-001",9,"","Notificação Extrajudicial - Cobrança de Honorários","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","DATA_EXTENSO","PROCESSO_NUMERO"]],
+["EXT-002",9,"","Notificação Extrajudicial - Plataforma Digital","docx",["CLIENTE_2_NOME","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME"]],
+["EXT-003",9,"","Termo de Acordo e Confissão de Dívida","docx",[]],
+["EXT-004",9,"","Recibo de Quitação - Repasse de Valores ao Cliente","docx",["CLIENTE_CPF","CLIENTE_NOME","CLIENTE_RG","PROCESSO_NUMERO"]],
+["EXT-005",9,"","Notificação Extrajudicial (PDF de referência)","pdf",[]],
+["FAM-001",7,"","Contestação - Guarda e Alimentos","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["FAM-002",7,"","Alimentante Demitido - Requerimento","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["FAM-003",7,"","Manifestação - Alimentante Afastado (Benefício do INSS)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["FAM-004",7,"","Manifestação - Oposição ao Aditamento da Inicial","docx",["CLIENTE_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["FAM-005",7,"","Especificação de Provas (Família)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
 ["GES-001",11,"01 Contratos de Honorários","Contrato de Honorários - Êxito","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
-["GES-002",11,"01 Contratos de Honorários","Contrato de Honorários - Entrada e Parcelas","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
-["GES-003",11,"01 Contratos de Honorários","Contrato de Honorários - Auditoria Trabalhista","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_NOME"]],
-["GES-004",11,"01 Contratos de Honorários","Contrato de Honorários - Assessoria Mensal","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME"]],
-["GES-005",11,"01 Contratos de Honorários","Contrato de Honorários - Pessoa Jurídica (Contencioso)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
-["GES-006",11,"01 Contratos de Honorários","Contrato de Honorários - Ação contra Plataforma Digital","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
-["GES-010",11,"02 Procurações","Procuração - JEC (Cível)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME"]],
-["GES-011",11,"02 Procurações","Procuração - Defesa Trabalhista","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
-["GES-012",11,"02 Procurações","Procuração - Pessoa Jurídica","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
-["GES-013",11,"02 Procurações","Procuração - Previdenciário (INSS)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE"]],
-["GES-014",11,"02 Procurações","Procuração - Dois Outorgantes","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
-["GES-020",11,"03 Declarações","Declaração de Hipossuficiência","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
-["GES-030",11,"04 Propostas e Atendimento","Proposta de Assessoria Mensal","docx",["EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
+["GES-002",11,"01 Contratos de Honorários","Contrato de Honorários - Entrada e Parcelas (Dois Contratantes)","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME"]],
+["GES-003",11,"01 Contratos de Honorários","Contrato de Honorários - Auditoria Trabalhista","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","REPRESENTANTE_LEGAL_NOME"]],
+["GES-004",11,"01 Contratos de Honorários","Contrato de Honorários - Assessoria Mensal","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME"]],
+["GES-005",11,"01 Contratos de Honorários","Contrato de Honorários - Defesa em Cumprimento de Sentença (PJ)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-006",11,"01 Contratos de Honorários","Contrato de Honorários - Êxito sobre Danos Morais","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME"]],
+["GES-010",11,"02 Procurações","Procuração - Pessoa Física (Cível e JEC)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME"]],
+["GES-011",11,"02 Procurações","Procuração - Pessoa Jurídica (Defesa Trabalhista)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-012",11,"02 Procurações","Procuração - Pessoa Jurídica (Cível)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","DATA_EXTENSO","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","VARA_NUMERO"]],
+["GES-013",11,"02 Procurações","Procuração - Previdenciário (INSS)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","DATA_EXTENSO"]],
+["GES-014",11,"02 Procurações","Procuração - Dois Outorgantes","docx",["CLIENTE_2_CPF","CLIENTE_2_NOME","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","DATA_EXTENSO","PARTE_CONTRARIA_NOME"]],
+["GES-020",11,"03 Declarações","Declaração de Hipossuficiência","docx",["CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
+["GES-030",11,"04 Propostas e Atendimento","Proposta de Assessoria Mensal","docx",["DATA_EXTENSO","EMPRESA_CNPJ","EMPRESA_RAZAO_SOCIAL"]],
 ["GES-031",11,"04 Propostas e Atendimento","Roteiro de Condução de Reunião Comercial","docx",["CLIENTE_NOME","EMPRESA_NOME"]],
-["GES-032",11,"04 Propostas e Atendimento","Checklist de Perguntas - Defesa Trabalhista (PDF preenchível)","pdf",[]]
+["GES-032",11,"04 Propostas e Atendimento","Checklist de Perguntas - Defesa Trabalhista (PDF preenchível)","pdf",[]],
+["INT-001",6,"","Juntada de Comprovante de Endereço","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-002",6,"","Manifestação - Intimação Duplicada (Provas já Especificadas)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-003",6,"","Comprovação de Hipossuficiência","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-004",6,"","Desinteresse em Audiência de Mediação (2º Grau)","docx",["CLIENTE_NOME","PROCESSO_NUMERO","RELATOR_NOME"]],
+["INT-005",6,"","Habilitação nos Autos (Cível)","docx",["CLIENTE_NOME","DATA_EXTENSO","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-007",6,"","Juntada de Comprovante de Pagamento de Custas","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-008",6,"","Juntada de AR","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-009",6,"","Manifestação de Concordância","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["INT-010",6,"","Delimitação de Questões e Especificação de Provas (Saneamento)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["INT-011",6,"","Juntada de Vídeos por Link","docx",["CLIENTE_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-001",4,"","Embargos de Declaração com Efeitos Infringentes (JEC)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","PRODUTO_NOME","TERCEIRO_NOME","VARA_NUMERO"]],
+["REC-002",4,"","Embargos de Declaração - Sentença (Plano de Saúde)","docx",["CLIENTE_NOME","DATA_EXTENSO","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["REC-003",4,"","Contrarrazões aos Embargos de Declaração","docx",["CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-004",4,"","Recurso Inominado","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-005",4,"","Contrarrazões ao Recurso Inominado","docx",["CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-006",4,"","Contrarrazões ao Recurso - Fazenda Pública","docx",["CLIENTE_NOME","DATA_EXTENSO","PROCESSO_NUMERO","VARA_NUMERO"]],
+["REC-007",4,"","Contrarrazões ao Agravo de Instrumento","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","RELATOR_NOME","VARA_NUMERO"]],
+["TDE-001",0,"","Contestação Trabalhista (Empresa)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_TELEFONE","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","VARA_NUMERO"]],
+["TDE-002",0,"","Quesitos - Perícia de Insalubridade","docx",["CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PERITO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-003",0,"","Indicação de Assistente Técnico - Perícia Médica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-004",0,"","Quesitos da Reclamada - Perícia Médica do Trabalho (Assistente Técnico)","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PERITO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-005",0,"","Indicação de Assistente Técnico - Perícia Psiquiátrica","docx",["ASSISTENTE_TECNICO_EMAIL","ASSISTENTE_TECNICO_NOME","ASSISTENTE_TECNICO_TELEFONE","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-006",0,"","Quesitos da Reclamada - Perícia Psiquiátrica (Assistente Técnico)","docx",["ASSISTENTE_TECNICO_CPF","ASSISTENTE_TECNICO_NOME","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PERITO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-007",0,"","Petição de Apresentação de Carta de Preposto","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PREPOSTO_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-008",0,"","Carta de Preposto","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","PREPOSTO_CEP","PREPOSTO_CPF","PREPOSTO_ENDERECO","PREPOSTO_NOME","PREPOSTO_RG","PROCESSO_NUMERO","REPRESENTANTE_LEGAL_CEP","REPRESENTANTE_LEGAL_CPF","REPRESENTANTE_LEGAL_ENDERECO","REPRESENTANTE_LEGAL_NOME","REPRESENTANTE_LEGAL_RG"]],
+["TDE-009",0,"","Habilitação nos Autos (Reclamada)","docx",["CLIENTE_CEP","CLIENTE_CNPJ","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TDE-010",0,"","Pedido de Oitiva de Testemunha","docx",["CLIENTE_NOME","PROCESSO_NUMERO","TESTEMUNHA_CPF","TESTEMUNHA_ENDERECO","TESTEMUNHA_NOME","TESTEMUNHA_RG","TESTEMUNHA_TELEFONE","VARA_NUMERO"]],
+["TDE-011",0,"","Convite de Testemunha - Audiência Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TESTEMUNHA_NOME","VARA_NUMERO"]],
+["TDE-012",0,"","Contestação Trabalhista - Reclamado Pessoa Física (Ilegitimidade Passiva)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME","TESTEMUNHA_NOME","VARA_NUMERO"]],
+["TRE-001",1,"","Reclamação Trabalhista - Acidente de Trabalho","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_EMAIL","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","TERCEIRO_NOME"]],
+["TRE-002",1,"","Reclamação Trabalhista - Terceirização (Responsabilidade Subsidiária)","docx",["CLIENTE_CEP","CLIENTE_CPF","CLIENTE_ENDERECO","CLIENTE_NOME","CLIENTE_RG","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_CEP","PARTE_CONTRARIA_CNPJ","PARTE_CONTRARIA_ENDERECO","PARTE_CONTRARIA_NOME","VARA_NUMERO"]],
+["TRE-003",1,"","Aditamento à Inicial - CAT","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-004",1,"","Impugnação à Contestação Trabalhista","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-005",1,"","Quesitos - Perícia Médica (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-006",1,"","Quesitos - Perícia de Engenharia (Reclamante)","docx",["CLIENTE_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-007",1,"","Petição de Juntada de Documentos (Perícia)","docx",["CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-008",1,"","Concordância com Acordo","docx",["CLIENTE_NOME","DATA_EXTENSO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","PROCESSO_NUMERO","VARA_NUMERO"]],
+["TRE-009",1,"","Manifestação sobre Certidão Negativa de Diligência","docx",["CLIENTE_ENDERECO","CLIENTE_NOME","PARTE_CONTRARIA_2_CEP","PARTE_CONTRARIA_2_CNPJ","PARTE_CONTRARIA_2_ENDERECO","PARTE_CONTRARIA_2_NOME","PARTE_CONTRARIA_NOME","TERCEIRO_NOME","VARA_NUMERO"]]
 ];
 // descrição de cada campo {{CAMPO}} usado nos modelos
 const MODELOS_CAMPOS={
@@ -13182,7 +13196,9 @@ const MODELOS_CAMPOS={
   "CLIENTE_2_CPF":"CPF do segundo cliente",
   "CLIENTE_2_EMAIL":"E-mail do segundo cliente",
   "CLIENTE_2_NOME":"Nome completo do segundo cliente",
+  "CLIENTE_2_RG":"RG e órgão emissor do segundo cliente",
   "CLIENTE_CEP":"CEP do cliente",
+  "CLIENTE_CNPJ_RAIZ":"Raiz do CNPJ do cliente MEI (8 primeiros dígitos)",
   "CLIENTE_CNPJ":"CNPJ do cliente",
   "CLIENTE_CPF":"CPF do cliente",
   "CLIENTE_EMAIL":"E-mail do cliente",
@@ -13190,60 +13206,107 @@ const MODELOS_CAMPOS={
   "CLIENTE_NOME":"Nome completo do cliente",
   "CLIENTE_RG":"RG e órgão emissor do cliente",
   "CLIENTE_TELEFONE":"Telefone do cliente",
+  "DATA_EXTENSO":"Data por extenso (ex.: 22 de outubro de 2026)",
+  "EMPREENDIMENTO_NOME":"Nome do empreendimento imobiliário",
+  "EMPREGADO_NOME":"Nome completo do empregado",
   "EMPRESA_CNPJ":"CNPJ da empresa auditada/assessorada",
   "EMPRESA_ENDERECO":"Endereço completo da empresa auditada/assessorada",
   "EMPRESA_NOME":"Nome da empresa (prospect/cliente)",
+  "EMPRESA_PROPRIETARIA_NOME":"Empresa proprietária do bem",
   "EMPRESA_RAZAO_SOCIAL":"Razão social da empresa auditada/assessorada",
   "PARTE_CONTRARIA_2_CEP":"CEP da segunda parte contrária",
   "PARTE_CONTRARIA_2_CNPJ":"CNPJ da segunda parte contrária",
   "PARTE_CONTRARIA_2_ENDERECO":"Endereço completo da segunda parte contrária",
   "PARTE_CONTRARIA_2_NOME":"Nome completo da segunda parte contrária",
-  "PARTE_CONTRARIA_3_NOME":"Nome completo da terceira parte contrária",
   "PARTE_CONTRARIA_CEP":"CEP da parte contrária",
   "PARTE_CONTRARIA_CNPJ":"CNPJ da parte contrária",
   "PARTE_CONTRARIA_CPF":"CPF da parte contrária",
   "PARTE_CONTRARIA_EMAIL":"E-mail da parte contrária",
+  "PARTE_CONTRARIA_EMPRESA":"Empresa/estabelecimento da parte contrária",
   "PARTE_CONTRARIA_ENDERECO":"Endereço completo da parte contrária",
   "PARTE_CONTRARIA_NOME":"Nome completo da parte contrária",
+  "PARTE_CONTRARIA_RG":"RG e órgão emissor da parte contrária",
   "PARTE_CONTRARIA_TELEFONE":"Telefone da parte contrária",
+  "PERITO_NOME":"Nome completo do perito judicial",
   "PLACA_VEICULO":"Placa do veículo",
   "PREPOSTO_CEP":"CEP do preposto",
+  "PREPOSTO_CPF":"CPF do preposto",
   "PREPOSTO_ENDERECO":"Endereço completo do preposto",
   "PREPOSTO_NOME":"Nome completo do preposto",
   "PREPOSTO_RG":"RG e órgão emissor do preposto",
   "PROCESSO_NUMERO":"Número do processo (padrão CNJ)",
+  "PRODUTO_NOME":"Nome do produto/serviço contratado",
+  "RELATOR_NOME":"Nome completo do relator",
   "REPRESENTANTE_LEGAL_CEP":"CEP do representante legal/sócio",
   "REPRESENTANTE_LEGAL_CPF":"CPF do representante legal/sócio",
   "REPRESENTANTE_LEGAL_ENDERECO":"Endereço completo do representante legal/sócio",
   "REPRESENTANTE_LEGAL_NOME":"Nome completo do representante legal/sócio",
   "REPRESENTANTE_LEGAL_RG":"RG e órgão emissor do representante legal/sócio",
+  "SOCIO_NOME":"Nome completo do sócio da empresa",
+  "TERCEIRO_EMAIL":"E-mail de terceiro citado na peça",
   "TERCEIRO_NOME":"Nome completo de terceiro citado na peça",
   "TESTEMUNHA_CPF":"CPF da testemunha",
+  "TESTEMUNHA_ENDERECO":"Endereço completo da testemunha",
   "TESTEMUNHA_NOME":"Nome completo da testemunha",
   "TESTEMUNHA_RG":"RG e órgão emissor da testemunha",
   "TESTEMUNHA_TELEFONE":"Telefone da testemunha",
-  "VARA_NUMERO":"Número da vara/juizado/turma (ex.: 9ª)"
+  "VARA_NUMERO":"Número da vara/juizado/turma (ex.: 9ª)",
+  "VITIMA_NOME":"Nome completo da vítima"
 };
 // ═══════════════════════════════════════════════════════════
 //  MODELOS — peças e documentos-padrão do escritório no Drive
 // ═══════════════════════════════════════════════════════════
-// O catálogo vem embutido (24-modelos-catalogo.js) ou, se tiver sido
-// importado depois, de DB.driveCatalogo. Os links saem do mapa do Drive
-// importado em Configurações (DB.driveMapa.modelos, por código). Modelo
-// sem link aparece desabilitado: o mapa está velho ou o arquivo é novo.
+// O catálogo vem embutido (24-modelos-catalogo.js) ou, se um mais novo tiver
+// sido importado em Configurações, de DB.driveCatalogo. Nenhum link fica no
+// código: eles vêm do catálogo importado (campo url) ou do mapa do Drive
+// (DB.driveMapa.modelos), ambos guardados no Gist. Modelo sem link aparece
+// desabilitado: o mapa está velho ou o arquivo é novo.
 const MODELOS_ICONES=['ti-building','ti-user','ti-file-plus','ti-file-text','ti-arrow-back-up','ti-coin',
   'ti-files','ti-heart-handshake','ti-shield','ti-mail','ti-clipboard-check','ti-briefcase'];
 let modArea=-1, modSub='', modBusca='', modSubs=[];
 
+// o catálogo importado só vale se não for mais velho que o embutido; um
+// catálogo antigo no Gist esconderia os títulos e códigos novos
+function modelosCatalogoImportadoValido(){
+  const c=DB&&DB.driveCatalogo;
+  return !!(c&&Array.isArray(c.modelos)&&c.modelos.length&&dataCatalogo(c.geradoEm)>=MODELOS_GERADO_EM);
+}
 function modelosCatalogo(){
-  const lista=DB&&DB.driveCatalogo&&Array.isArray(DB.driveCatalogo.modelos)?DB.driveCatalogo.modelos:MODELOS_EMBUTIDOS;
-  return lista.map(([codigo,area,sub,titulo,formato,campos,areaNome])=>({codigo,area,sub,titulo,formato,campos:campos||[],areaNome:areaNome||MODELOS_AREAS[area]||'Outros'}));
+  const lista=modelosCatalogoImportadoValido()?DB.driveCatalogo.modelos:MODELOS_EMBUTIDOS;
+  return lista.map(([codigo,area,sub,titulo,formato,campos,areaNome])=>({codigo,area,sub,titulo,formato,campos:campos||[],areaNome:areaNome||MODELOS_AREAS[area]||'Outros'}))
+    .sort((a,b)=>a.codigo.localeCompare(b.codigo));
 }
 function modeloCampoDesc(c){
-  const d=(DB&&DB.driveCampos)||MODELOS_CAMPOS;
-  return d[c]||MODELOS_CAMPOS[c]||'';
+  // o dicionário embutido vem antes: um dicionário antigo importado no Gist
+  // não pode sobrepor descrições revistas; ele só cobre campos que faltem
+  return MODELOS_CAMPOS[c]||((DB&&DB.driveCampos)||{})[c]||'';
 }
-function modeloUrl(codigo){const m=driveMapa();return (m&&m.modelos&&m.modelos[codigo])||''}
+// Código → link. Ordem: mapa do Drive, com os códigos renomeados traduzidos
+// quando o mapa é anterior ao catálogo (o arquivo no Drive é o mesmo), e por
+// cima os links do catálogo importado. Refeito só quando um dos dois muda.
+let __modLinks=null,__modLinksChave='';
+function modelosLinks(){
+  const m=driveMapa(),c=DB&&DB.driveCatalogo;
+  const chave=(m?m.importadoEm+'|'+m.geradoEm:'')+'#'+(c?c.importadoEm+'|'+c.geradoEm:'');
+  if(__modLinks&&chave===__modLinksChave)return __modLinks;
+  const catalogoData=modelosCatalogoImportadoValido()?dataCatalogo(c.geradoEm):MODELOS_GERADO_EM;
+  const traduzir=(links,data)=>{
+    if(!data||data>=catalogoData)return links;
+    Object.entries(MODELOS_RENOMEADOS).forEach(([antes,depois])=>{
+      if(links[antes]){links[depois]=links[antes];delete links[antes];}
+    });
+    return links;
+  };
+  const links=traduzir({...((m&&m.modelos)||{})},m&&dataCatalogo(m.geradoEm));
+  if(c&&Array.isArray(c.modelos)){
+    const doCatalogo={};
+    c.modelos.forEach(x=>{if(linkModeloValido(x[7]))doCatalogo[x[0]]=x[7];});
+    Object.assign(links,traduzir(doCatalogo,dataCatalogo(c.geradoEm)));
+  }
+  __modLinks=links;__modLinksChave=chave;
+  return links;
+}
+function modeloUrl(codigo){return (DB&&modelosLinks()[codigo])||''}
 // "03 Contratos de Trabalho/Produção" → "Contratos de Trabalho › Produção"
 function modeloSubRotulo(s){return s.split('/').map(x=>x.replace(/^\d+\s+/,'')).join(' › ')}
 function modeloCasaBusca(m,q){
@@ -13262,12 +13325,12 @@ function renderModelos(){
   const todos=modelosCatalogo();
   const m=driveMapa();
   const comLink=todos.filter(x=>modeloUrl(x.codigo)).length;
-  document.getElementById('mod-sub').textContent=todos.length+' modelos · '+(m?comLink+' com link no Drive':'links do Drive ainda não importados');
+  document.getElementById('mod-sub').textContent=todos.length+' modelos · '+(comLink?comLink+' com link no Drive':'links do Drive ainda não importados');
   const btnPasta=document.getElementById('mod-pasta');
   btnPasta.style.display=m&&m.pastaModelos?'':'none';
-  document.getElementById('mod-aviso').innerHTML=!m
-    ?`<div class="mod-alerta"><i class="ti ti-plug-connected-x"></i><span>Os modelos aparecem desabilitados porque o mapa de links do Drive ainda não foi importado.</span><button class="det-add" onclick="abrirConfiguracoes()"><i class="ti ti-upload"></i> Importar mapa</button></div>`
-    :comLink<todos.length?`<div class="mod-alerta"><i class="ti ti-alert-triangle"></i><span>${todos.length-comLink} modelo${todos.length-comLink>1?'s':''} sem link: rode o gerador de links do Drive de novo e importe o mapa atualizado.</span></div>`:'';
+  document.getElementById('mod-aviso').innerHTML=!comLink
+    ?`<div class="mod-alerta"><i class="ti ti-plug-connected-x"></i><span>Os modelos aparecem desabilitados porque os links do Drive ainda não foram importados (mapa_links_drive.json ou catalogo_modelos.json).</span><button class="det-add" onclick="abrirConfiguracoes()"><i class="ti ti-upload"></i> Importar</button></div>`
+    :comLink<todos.length?`<div class="mod-alerta"><i class="ti ti-alert-triangle"></i><span>${todos.length-comLink} modelo${todos.length-comLink>1?'s':''} sem link: rode o gerador de links do Drive de novo e importe o catálogo ou o mapa atualizado.</span></div>`:'';
 
   // filtros por área, com a contagem do que casa com a busca
   const q=semAcento(modBusca.trim());
@@ -13337,7 +13400,7 @@ function cardModelo(x){
 }
 function abrirModelo(codigo){
   const url=modeloUrl(codigo);
-  if(!url){alert('Este modelo ainda não tem link.\n\nRode o gerador de links do Drive de novo e importe o mapa atualizado em Configurações → Google Drive.');return;}
+  if(!url){alert('Este modelo ainda não tem link.\n\nRode o gerador de links do Drive de novo e importe o catálogo ou o mapa atualizado em Configurações → Google Drive.');return;}
   abrirLinkExterno(url);
 }
 function abrirPastaModelos(){const m=driveMapa();if(m&&m.pastaModelos)abrirLinkExterno(m.pastaModelos);}
