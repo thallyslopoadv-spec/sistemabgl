@@ -1,23 +1,57 @@
 // ═══════════════════════════════════════════════════════════
 //  MODELOS — peças e documentos-padrão do escritório no Drive
 // ═══════════════════════════════════════════════════════════
-// O catálogo vem embutido (24-modelos-catalogo.js) ou, se tiver sido
-// importado depois, de DB.driveCatalogo. Os links saem do mapa do Drive
-// importado em Configurações (DB.driveMapa.modelos, por código). Modelo
-// sem link aparece desabilitado: o mapa está velho ou o arquivo é novo.
+// O catálogo vem embutido (24-modelos-catalogo.js) ou, se um mais novo tiver
+// sido importado em Configurações, de DB.driveCatalogo. Nenhum link fica no
+// código: eles vêm do catálogo importado (campo url) ou do mapa do Drive
+// (DB.driveMapa.modelos), ambos guardados no Gist. Modelo sem link aparece
+// desabilitado: o mapa está velho ou o arquivo é novo.
 const MODELOS_ICONES=['ti-building','ti-user','ti-file-plus','ti-file-text','ti-arrow-back-up','ti-coin',
   'ti-files','ti-heart-handshake','ti-shield','ti-mail','ti-clipboard-check','ti-briefcase'];
 let modArea=-1, modSub='', modBusca='', modSubs=[];
 
+// o catálogo importado só vale se não for mais velho que o embutido; um
+// catálogo antigo no Gist esconderia os títulos e códigos novos
+function modelosCatalogoImportadoValido(){
+  const c=DB&&DB.driveCatalogo;
+  return !!(c&&Array.isArray(c.modelos)&&c.modelos.length&&dataCatalogo(c.geradoEm)>=MODELOS_GERADO_EM);
+}
 function modelosCatalogo(){
-  const lista=DB&&DB.driveCatalogo&&Array.isArray(DB.driveCatalogo.modelos)?DB.driveCatalogo.modelos:MODELOS_EMBUTIDOS;
-  return lista.map(([codigo,area,sub,titulo,formato,campos,areaNome])=>({codigo,area,sub,titulo,formato,campos:campos||[],areaNome:areaNome||MODELOS_AREAS[area]||'Outros'}));
+  const lista=modelosCatalogoImportadoValido()?DB.driveCatalogo.modelos:MODELOS_EMBUTIDOS;
+  return lista.map(([codigo,area,sub,titulo,formato,campos,areaNome])=>({codigo,area,sub,titulo,formato,campos:campos||[],areaNome:areaNome||MODELOS_AREAS[area]||'Outros'}))
+    .sort((a,b)=>a.codigo.localeCompare(b.codigo));
 }
 function modeloCampoDesc(c){
-  const d=(DB&&DB.driveCampos)||MODELOS_CAMPOS;
-  return d[c]||MODELOS_CAMPOS[c]||'';
+  // o dicionário embutido vem antes: um dicionário antigo importado no Gist
+  // não pode sobrepor descrições revistas; ele só cobre campos que faltem
+  return MODELOS_CAMPOS[c]||((DB&&DB.driveCampos)||{})[c]||'';
 }
-function modeloUrl(codigo){const m=driveMapa();return (m&&m.modelos&&m.modelos[codigo])||''}
+// Código → link. Ordem: mapa do Drive, com os códigos renomeados traduzidos
+// quando o mapa é anterior ao catálogo (o arquivo no Drive é o mesmo), e por
+// cima os links do catálogo importado. Refeito só quando um dos dois muda.
+let __modLinks=null,__modLinksChave='';
+function modelosLinks(){
+  const m=driveMapa(),c=DB&&DB.driveCatalogo;
+  const chave=(m?m.importadoEm+'|'+m.geradoEm:'')+'#'+(c?c.importadoEm+'|'+c.geradoEm:'');
+  if(__modLinks&&chave===__modLinksChave)return __modLinks;
+  const catalogoData=modelosCatalogoImportadoValido()?dataCatalogo(c.geradoEm):MODELOS_GERADO_EM;
+  const traduzir=(links,data)=>{
+    if(!data||data>=catalogoData)return links;
+    Object.entries(MODELOS_RENOMEADOS).forEach(([antes,depois])=>{
+      if(links[antes]){links[depois]=links[antes];delete links[antes];}
+    });
+    return links;
+  };
+  const links=traduzir({...((m&&m.modelos)||{})},m&&dataCatalogo(m.geradoEm));
+  if(c&&Array.isArray(c.modelos)){
+    const doCatalogo={};
+    c.modelos.forEach(x=>{if(linkModeloValido(x[7]))doCatalogo[x[0]]=x[7];});
+    Object.assign(links,traduzir(doCatalogo,dataCatalogo(c.geradoEm)));
+  }
+  __modLinks=links;__modLinksChave=chave;
+  return links;
+}
+function modeloUrl(codigo){return (DB&&modelosLinks()[codigo])||''}
 // "03 Contratos de Trabalho/Produção" → "Contratos de Trabalho › Produção"
 function modeloSubRotulo(s){return s.split('/').map(x=>x.replace(/^\d+\s+/,'')).join(' › ')}
 function modeloCasaBusca(m,q){
@@ -36,12 +70,12 @@ function renderModelos(){
   const todos=modelosCatalogo();
   const m=driveMapa();
   const comLink=todos.filter(x=>modeloUrl(x.codigo)).length;
-  document.getElementById('mod-sub').textContent=todos.length+' modelos · '+(m?comLink+' com link no Drive':'links do Drive ainda não importados');
+  document.getElementById('mod-sub').textContent=todos.length+' modelos · '+(comLink?comLink+' com link no Drive':'links do Drive ainda não importados');
   const btnPasta=document.getElementById('mod-pasta');
   btnPasta.style.display=m&&m.pastaModelos?'':'none';
-  document.getElementById('mod-aviso').innerHTML=!m
-    ?`<div class="mod-alerta"><i class="ti ti-plug-connected-x"></i><span>Os modelos aparecem desabilitados porque o mapa de links do Drive ainda não foi importado.</span><button class="det-add" onclick="abrirConfiguracoes()"><i class="ti ti-upload"></i> Importar mapa</button></div>`
-    :comLink<todos.length?`<div class="mod-alerta"><i class="ti ti-alert-triangle"></i><span>${todos.length-comLink} modelo${todos.length-comLink>1?'s':''} sem link: rode o gerador de links do Drive de novo e importe o mapa atualizado.</span></div>`:'';
+  document.getElementById('mod-aviso').innerHTML=!comLink
+    ?`<div class="mod-alerta"><i class="ti ti-plug-connected-x"></i><span>Os modelos aparecem desabilitados porque os links do Drive ainda não foram importados (mapa_links_drive.json ou catalogo_modelos.json).</span><button class="det-add" onclick="abrirConfiguracoes()"><i class="ti ti-upload"></i> Importar</button></div>`
+    :comLink<todos.length?`<div class="mod-alerta"><i class="ti ti-alert-triangle"></i><span>${todos.length-comLink} modelo${todos.length-comLink>1?'s':''} sem link: rode o gerador de links do Drive de novo e importe o catálogo ou o mapa atualizado.</span></div>`:'';
 
   // filtros por área, com a contagem do que casa com a busca
   const q=semAcento(modBusca.trim());
@@ -111,7 +145,7 @@ function cardModelo(x){
 }
 function abrirModelo(codigo){
   const url=modeloUrl(codigo);
-  if(!url){alert('Este modelo ainda não tem link.\n\nRode o gerador de links do Drive de novo e importe o mapa atualizado em Configurações → Google Drive.');return;}
+  if(!url){alert('Este modelo ainda não tem link.\n\nRode o gerador de links do Drive de novo e importe o catálogo ou o mapa atualizado em Configurações → Google Drive.');return;}
   abrirLinkExterno(url);
 }
 function abrirPastaModelos(){const m=driveMapa();if(m&&m.pastaModelos)abrirLinkExterno(m.pastaModelos);}

@@ -61,14 +61,24 @@ function compactarMapaDrive(m){
     clientes,modelos,
   };
 }
+// "22/10/2026" ou "2026-10-22T…" → "2026-10-22", para comparar catálogos e mapas
+function dataCatalogo(s){
+  const t=String(s||'');
+  const br=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(t);
+  return br?br[3]+'-'+br[2]+'-'+br[1]:(/^\d{4}-\d{2}-\d{2}/.test(t)?t.slice(0,10):'');
+}
+// só links do próprio Drive/Docs, em https
+function linkModeloValido(u){return /^https:\/\/(docs|drive)\.google\.com\//i.test(String(u||''))?u:''}
 function compactarCatalogo(c){
   return {
-    geradoEm:c.gerado_em||'',
-    // peca_de_origem fica de fora: aponta para a pasta de um cliente
+    geradoEm:dataCatalogo(c.gerado_em),importadoEm:Date.now(),
+    // peca_de_origem fica de fora: aponta para a pasta de um cliente. O link
+    // (url) entra: este registro vai para o Gist, nunca para o código.
     modelos:c.modelos.filter(m=>m&&m.codigo&&m.titulo).map(m=>[
       String(m.codigo),MODELOS_AREAS.indexOf(m.area),String(m.subpasta||'').replace(/\\/g,'/'),
       String(m.titulo),String(m.formato||''),(m.campos||[]).map(x=>String(x).replace(/^\{\{|\}\}$/g,'')),
       MODELOS_AREAS.includes(m.area)?'':String(m.area||''),
+      linkModeloValido(m.url),
     ]),
   };
 }
@@ -84,7 +94,7 @@ async function importarArquivosDrive(input){
         feitos.push('mapa do Drive ('+DB.driveMapa.clientes.length+' pastas de cliente, '+Object.keys(DB.driveMapa.modelos).length+' modelos com link)');
       }else if(j&&Array.isArray(j.modelos)){
         DB.driveCatalogo=compactarCatalogo(j);
-        feitos.push('catálogo ('+DB.driveCatalogo.modelos.length+' modelos)');
+        feitos.push('catálogo ('+DB.driveCatalogo.modelos.length+' modelos, '+DB.driveCatalogo.modelos.filter(x=>x[7]).length+' com link)');
       }else if(j&&typeof j==='object'&&Object.keys(j).length&&Object.keys(j).every(k=>/^\{\{\w+\}\}$/.test(k))){
         DB.driveCampos=Object.fromEntries(Object.entries(j).map(([k,v])=>[k.replace(/^\{\{|\}\}$/g,''),String(v)]));
         feitos.push('dicionário ('+Object.keys(DB.driveCampos).length+' campos)');
@@ -105,7 +115,7 @@ function renderConfigDrive(){
   const quando=s=>{const d=new Date(s);return isNaN(d)?'—':d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})};
   el.innerHTML=m
     ?`<i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Mapa gerado em ${quando(m.geradoEm)} e importado em ${quando(m.importadoEm)}${m.importadoPor?' por '+esc(m.importadoPor):''}: ${m.clientes.length} pastas de cliente e ${Object.keys(m.modelos).length} modelos com link.`
-      +(cat?`<br><i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Catálogo de modelos importado (${cat.modelos.length} modelos).`:'')
+      +(cat?`<br><i class="ti ti-circle-check" style="color:var(--green-hi)"></i> Catálogo de modelos importado (${cat.modelos.length} modelos${cat.geradoEm?', gerado em '+cat.geradoEm.split('-').reverse().join('/'):''})${modelosCatalogoImportadoValido()?'':': o catálogo embutido no sistema é mais novo e está sendo usado no lugar dele'}.`:'')
     :'<i class="ti ti-info-circle"></i> Nenhum mapa importado ainda. Sem ele, a sugestão de pastas e os links dos modelos ficam desligados.';
   const b=document.getElementById('cfg-drive-sugerir');
   if(b)b.disabled=!m;
