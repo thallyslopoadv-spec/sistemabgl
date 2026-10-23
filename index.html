@@ -4975,6 +4975,13 @@ function revEstadoLbl(t){
   if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
   return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
 }
+// Uma tarefa com revisão/aprovação pedida só pode ser concluída depois que
+// o outro sócio cumprir sua parte. Enquanto houver ação pendente, trava.
+function revBloqueiaConclusao(t){return !!(t&&t.revPede&&revProximaAcao(t))}
+function avisoRevConclusao(t){
+  const prox=revProximaAcao(t);
+  return 'Esta tarefa precisa ser '+(prox==='aprovar'?'aprovada':'revisada')+' por '+revisorDa(t)+' antes de ser concluída.';
+}
 function marcarRevisao(id,acao){
   const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
   const prox=revProximaAcao(t);
@@ -4986,19 +4993,32 @@ function marcarRevisao(id,acao){
   mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
 }
 // Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
-// lista) para o novo modelo de dois sócios. Roda uma vez por base (flag respV2).
+// lista) para o novo modelo de dois sócios, e limpa cobranças retroativas de
+// revisão/aprovação. A revisão/aprovação vale daqui para frente: nenhuma tarefa
+// antiga deve nascer pedindo aprovação (sobretudo as que já estavam concluídas).
 function migrarResponsaveis(){
-  if(!DB||DB.respV2)return;
-  (DB.tarefas||[]).forEach(t=>{
-    if(t.resp===RESP_DUPLA){                       // antes era execução conjunta
-      t.resp='Cecília';                            //   → Cecília conduz
-      if(!t.revPede){t.revPede='aprovar';}         //   → Thallys aprova
-    }else if(!RESP.includes(t.resp)){              // 'Escritório' e outros órfãos
-      t.resp='Thallys';
-    }
-  });
-  DB.respV2=true;
-  if(!MODO_OFFLINE)salvarDB();
+  if(!DB)return;
+  let mudou=false;
+  if(!DB.respV2){
+    (DB.tarefas||[]).forEach(t=>{
+      if(t.resp===RESP_DUPLA)t.resp='Cecília';       // execução conjunta → Cecília conduz
+      else if(!RESP.includes(t.resp))t.resp='Thallys'; // 'Escritório' e órfãos
+    });
+    DB.respV2=true;mudou=true;
+  }
+  // zera o acúmulo herdado: toda revisão/aprovação ainda pendente em tarefas
+  // existentes é dada por resolvida, para não aparecer coisa antiga para aprovar.
+  if(!DB.revBacklogV1){
+    (DB.tarefas||[]).forEach(t=>{
+      if(t.revPede&&revProximaAcao(t)){
+        t.revEstado=t.revPede==='revisar'?'revisado':'aprovado';
+        t.revEm=t.revEm||Date.now();
+        mudou=true;
+      }
+    });
+    DB.revBacklogV1=true;mudou=true;
+  }
+  if(mudou&&!MODO_OFFLINE)salvarDB();
 }
 // tipos de tarefa agora vivem em DB.tiposTarefa (editável em Configurações)
 function tiposTarefa(){return DB.tiposTarefa&&DB.tiposTarefa.length?DB.tiposTarefa:SEED_TIPOS_TAREFA}
@@ -8461,6 +8481,7 @@ function agRowHTML(t){
 // ─── AÇÕES RÁPIDAS ────────────────────────────────────────
 function concluirRapido(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  if(revBloqueiaConclusao(t)){mostrarToast(avisoRevConclusao(t));return;}
   const antes={status:t.status,concluidoEm:t.concluidoEm};
   aplicarStatusTarefa(t,'concluido');
   const row=document.getElementById('ag-'+id);
@@ -9028,7 +9049,9 @@ function renderDesempenhoRotina(){
 // ao entrar em "concluído" carimba a data de hoje; ao sair, apaga
 function cicloTarefa(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
-  aplicarStatusTarefa(t,t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente');
+  const proximo=t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente';
+  if(proximo==='concluido'&&revBloqueiaConclusao(t)){mostrarToast(avisoRevConclusao(t));return;}
+  aplicarStatusTarefa(t,proximo);
   salvarDB();refreshUI();
 }
 
@@ -9207,22 +9230,29 @@ function salvarTarefa(){
   if(dados.prazoFatal&&!dados.prazo)dados.prazo=internoPara(dados.prazoFatal);
   if(dados.prazoFatal&&dados.prazo>dados.prazoFatal&&!confirm('A data de entrega ('+fmtData(dados.prazo)+') ficou DEPOIS do prazo fatal ('+fmtData(dados.prazoFatal)+'). Salvar assim mesmo?'))return;
   if(dados.pid&&!dados.cid){const p=processoPorId(dados.pid);if(p&&p.cid)dados.cid=p.cid;}
+  // só conclui se a revisão/aprovação pedida já estiver cumprida pelo outro sócio
+  let statusFinal=mtCtx.status;
+  if(statusFinal==='concluido'){
+    const revEstadoAtual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}).revEstado:'';
+    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:revEstadoAtual};
+    if(revBloqueiaConclusao(checar)){alert(avisoRevConclusao(checar));return;}
+  }
   // concluída: vale a data informada no modal; em qualquer outro status a data sai
-  const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
+  const concluidoEm=statusFinal==='concluido'?document.getElementById('mt-conc').value:'';
   let t;
   if(mtCtx.id){
     t=DB.tarefas.find(x=>x.id===mtCtx.id);
     // empurrar a data para frente numa tarefa em aberto conta como adiamento
-    if(t.status!=='concluido'&&mtCtx.status!=='concluido'&&t.prazo&&dados.prazo&&dados.prazo>t.prazo)registrarAdiamento(t);
+    if(t.status!=='concluido'&&statusFinal!=='concluido'&&t.prazo&&dados.prazo&&dados.prazo>t.prazo)registrarAdiamento(t);
     Object.assign(t,dados);
     if(!t.prazoFatal)delete t.prazoFatal;
     if(!t.pid)delete t.pid;
     // sem pedido de revisão: limpa qualquer estado de revisão anterior
     if(!t.revPede){delete t.revPede;delete t.revEstado;delete t.revEm;delete t.revPorQuem;}
     if(t.conferir&&document.getElementById('mt-conferido').checked)marcarConferida(t);
-    aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
+    aplicarStatusTarefa(t,statusFinal,concluidoEm);
   }
-  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
+  else{t={id:uid(),...dados,status:statusFinal,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
   // acompanhamento de projeto + etapa atual (o carimbo de data/hora é automático)
   const marcado=document.getElementById('mt-proj').checked;
   aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);

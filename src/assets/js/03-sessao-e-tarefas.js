@@ -37,6 +37,13 @@ function revEstadoLbl(t){
   if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
   return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
 }
+// Uma tarefa com revisão/aprovação pedida só pode ser concluída depois que
+// o outro sócio cumprir sua parte. Enquanto houver ação pendente, trava.
+function revBloqueiaConclusao(t){return !!(t&&t.revPede&&revProximaAcao(t))}
+function avisoRevConclusao(t){
+  const prox=revProximaAcao(t);
+  return 'Esta tarefa precisa ser '+(prox==='aprovar'?'aprovada':'revisada')+' por '+revisorDa(t)+' antes de ser concluída.';
+}
 function marcarRevisao(id,acao){
   const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
   const prox=revProximaAcao(t);
@@ -48,19 +55,32 @@ function marcarRevisao(id,acao){
   mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
 }
 // Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
-// lista) para o novo modelo de dois sócios. Roda uma vez por base (flag respV2).
+// lista) para o novo modelo de dois sócios, e limpa cobranças retroativas de
+// revisão/aprovação. A revisão/aprovação vale daqui para frente: nenhuma tarefa
+// antiga deve nascer pedindo aprovação (sobretudo as que já estavam concluídas).
 function migrarResponsaveis(){
-  if(!DB||DB.respV2)return;
-  (DB.tarefas||[]).forEach(t=>{
-    if(t.resp===RESP_DUPLA){                       // antes era execução conjunta
-      t.resp='Cecília';                            //   → Cecília conduz
-      if(!t.revPede){t.revPede='aprovar';}         //   → Thallys aprova
-    }else if(!RESP.includes(t.resp)){              // 'Escritório' e outros órfãos
-      t.resp='Thallys';
-    }
-  });
-  DB.respV2=true;
-  if(!MODO_OFFLINE)salvarDB();
+  if(!DB)return;
+  let mudou=false;
+  if(!DB.respV2){
+    (DB.tarefas||[]).forEach(t=>{
+      if(t.resp===RESP_DUPLA)t.resp='Cecília';       // execução conjunta → Cecília conduz
+      else if(!RESP.includes(t.resp))t.resp='Thallys'; // 'Escritório' e órfãos
+    });
+    DB.respV2=true;mudou=true;
+  }
+  // zera o acúmulo herdado: toda revisão/aprovação ainda pendente em tarefas
+  // existentes é dada por resolvida, para não aparecer coisa antiga para aprovar.
+  if(!DB.revBacklogV1){
+    (DB.tarefas||[]).forEach(t=>{
+      if(t.revPede&&revProximaAcao(t)){
+        t.revEstado=t.revPede==='revisar'?'revisado':'aprovado';
+        t.revEm=t.revEm||Date.now();
+        mudou=true;
+      }
+    });
+    DB.revBacklogV1=true;mudou=true;
+  }
+  if(mudou&&!MODO_OFFLINE)salvarDB();
 }
 // tipos de tarefa agora vivem em DB.tiposTarefa (editável em Configurações)
 function tiposTarefa(){return DB.tiposTarefa&&DB.tiposTarefa.length?DB.tiposTarefa:SEED_TIPOS_TAREFA}

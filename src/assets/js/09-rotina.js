@@ -378,6 +378,7 @@ function agRowHTML(t){
 // ─── AÇÕES RÁPIDAS ────────────────────────────────────────
 function concluirRapido(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
+  if(revBloqueiaConclusao(t)){mostrarToast(avisoRevConclusao(t));return;}
   const antes={status:t.status,concluidoEm:t.concluidoEm};
   aplicarStatusTarefa(t,'concluido');
   const row=document.getElementById('ag-'+id);

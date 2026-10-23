@@ -427,7 +427,9 @@ function renderDesempenhoRotina(){
 // ao entrar em "concluído" carimba a data de hoje; ao sair, apaga
 function cicloTarefa(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
-  aplicarStatusTarefa(t,t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente');
+  const proximo=t.status==='pendente'?'andamento':t.status==='andamento'?'concluido':'pendente';
+  if(proximo==='concluido'&&revBloqueiaConclusao(t)){mostrarToast(avisoRevConclusao(t));return;}
+  aplicarStatusTarefa(t,proximo);
   salvarDB();refreshUI();
 }
 
@@ -606,22 +608,29 @@ function salvarTarefa(){
   if(dados.prazoFatal&&!dados.prazo)dados.prazo=internoPara(dados.prazoFatal);
   if(dados.prazoFatal&&dados.prazo>dados.prazoFatal&&!confirm('A data de entrega ('+fmtData(dados.prazo)+') ficou DEPOIS do prazo fatal ('+fmtData(dados.prazoFatal)+'). Salvar assim mesmo?'))return;
   if(dados.pid&&!dados.cid){const p=processoPorId(dados.pid);if(p&&p.cid)dados.cid=p.cid;}
+  // só conclui se a revisão/aprovação pedida já estiver cumprida pelo outro sócio
+  let statusFinal=mtCtx.status;
+  if(statusFinal==='concluido'){
+    const revEstadoAtual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}).revEstado:'';
+    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:revEstadoAtual};
+    if(revBloqueiaConclusao(checar)){alert(avisoRevConclusao(checar));return;}
+  }
   // concluída: vale a data informada no modal; em qualquer outro status a data sai
-  const concluidoEm=mtCtx.status==='concluido'?document.getElementById('mt-conc').value:'';
+  const concluidoEm=statusFinal==='concluido'?document.getElementById('mt-conc').value:'';
   let t;
   if(mtCtx.id){
     t=DB.tarefas.find(x=>x.id===mtCtx.id);
     // empurrar a data para frente numa tarefa em aberto conta como adiamento
-    if(t.status!=='concluido'&&mtCtx.status!=='concluido'&&t.prazo&&dados.prazo&&dados.prazo>t.prazo)registrarAdiamento(t);
+    if(t.status!=='concluido'&&statusFinal!=='concluido'&&t.prazo&&dados.prazo&&dados.prazo>t.prazo)registrarAdiamento(t);
     Object.assign(t,dados);
     if(!t.prazoFatal)delete t.prazoFatal;
     if(!t.pid)delete t.pid;
     // sem pedido de revisão: limpa qualquer estado de revisão anterior
     if(!t.revPede){delete t.revPede;delete t.revEstado;delete t.revEm;delete t.revPorQuem;}
     if(t.conferir&&document.getElementById('mt-conferido').checked)marcarConferida(t);
-    aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
+    aplicarStatusTarefa(t,statusFinal,concluidoEm);
   }
-  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
+  else{t={id:uid(),...dados,status:statusFinal,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
   // acompanhamento de projeto + etapa atual (o carimbo de data/hora é automático)
   const marcado=document.getElementById('mt-proj').checked;
   aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);
