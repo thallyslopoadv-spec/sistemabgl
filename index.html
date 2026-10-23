@@ -2075,10 +2075,20 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
 .rot-story-n{font-size:11px;color:var(--t3);font-weight:600;margin-top:-2px}
 
 /* ─── ROTINA: chip de revisão/aprovação nas linhas da agenda ─── */
+.ag-chip.rev-enviar{background:var(--navy);color:var(--cream);border:1px solid var(--navy);cursor:pointer}
+.ag-chip.rev-enviar:hover{background:var(--navy-deep)}
+.ag-chip.rev-aguarda{background:var(--surface3);color:var(--t3);border:1px solid var(--border-med)}
 .ag-chip.rev-pend{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.3)}
 .ag-chip.rev-pend.rev-eu{cursor:pointer}
 .ag-chip.rev-pend.rev-eu:hover{background:var(--amber);color:#fff}
 .ag-chip.rev-ok{background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.3)}
+
+/* ─── MODAL: etapa da revisão e botão de envio ─── */
+.mt-rev-estado{font-size:12.5px;font-weight:600;color:var(--t2);margin-top:10px;
+  padding:9px 12px;border-radius:var(--rs);background:var(--surface);border:1px solid var(--border)}
+.mt-rev-estado.aguarda{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.3)}
+.mt-rev-estado.ok{background:var(--green-bg);color:var(--green-hi);border-color:rgba(47,125,63,.3)}
+.mt-rev-enviar{margin-top:10px;width:100%;justify-content:center}
 
 /* ─── MODAL DE TAREFA: pills (responsável, revisão) e atalhos de data ─── */
 .mt-pills{display:flex;gap:8px;flex-wrap:wrap}
@@ -3357,6 +3367,8 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       </div>
       <input type="hidden" id="mt-rev">
       <div class="mt-conc-hint" id="mt-rev-hint"></div>
+      <div class="mt-rev-estado" id="mt-rev-estado" style="display:none"></div>
+      <button type="button" class="btn-sec mt-rev-enviar" id="mt-rev-enviar" style="display:none" onclick="mtEnviarRevisao()"><i class="ti ti-send"></i> Enviar para revisão/aprovação</button>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Cliente (opcional)</label>
@@ -4975,15 +4987,33 @@ function revEstadoLbl(t){
   if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
   return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
 }
+// FLUXO: em andamento → o responsável envia para revisão/aprovação → o outro
+// sócio revisa/aprova → só então a tarefa pode ser concluída.
+// A revisão/aprovação só fica disponível para o outro sócio DEPOIS do envio
+// (t.revEnviado); antes disso a tarefa ainda está com o responsável.
+function revEnviada(t){return !!(t&&t.revPede&&t.revEnviado)}
+// está na mesa do revisor? (pedida, já enviada e ainda falta ação dele)
+function revPendenteRevisor(t){return !!(t&&t.revPede&&t.revEnviado&&revProximaAcao(t))}
+// o responsável ainda precisa enviar para o outro sócio?
+function revAguardaEnvio(t){return !!(t&&t.revPede&&!t.revEnviado&&revProximaAcao(t))}
 // Uma tarefa com revisão/aprovação pedida só pode ser concluída depois que
 // o outro sócio cumprir sua parte. Enquanto houver ação pendente, trava.
 function revBloqueiaConclusao(t){return !!(t&&t.revPede&&revProximaAcao(t))}
 function avisoRevConclusao(t){
-  const prox=revProximaAcao(t);
-  return 'Esta tarefa precisa ser '+(prox==='aprovar'?'aprovada':'revisada')+' por '+revisorDa(t)+' antes de ser concluída.';
+  const prox=revProximaAcao(t), quem=revisorDa(t);
+  if(!t.revEnviado)return 'Envie esta tarefa para '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+' antes de concluí-la.';
+  return 'Esta tarefa aguarda '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+' antes de ser concluída.';
+}
+// o responsável termina sua parte e envia para o outro sócio
+function enviarParaRevisao(id){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede||!revProximaAcao(t))return;
+  t.revEnviado=true;t.revEnviadoEm=Date.now();
+  if(t.status==='pendente')aplicarStatusTarefa(t,'andamento');
+  salvarDB();refreshUI();
+  mostrarToast('Enviada para '+(revProximaAcao(t)==='aprovar'?'aprovação':'revisão')+' de '+revisorDa(t));
 }
 function marcarRevisao(id,acao){
-  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede||!t.revEnviado)return;
   const prox=revProximaAcao(t);
   if(acao!==prox)return;
   t.revEstado=acao==='aprovar'?'aprovado':'revisado';
@@ -4993,9 +5023,10 @@ function marcarRevisao(id,acao){
   mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
 }
 // Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
-// lista) para o novo modelo de dois sócios, e limpa cobranças retroativas de
-// revisão/aprovação. A revisão/aprovação vale daqui para frente: nenhuma tarefa
-// antiga deve nascer pedindo aprovação (sobretudo as que já estavam concluídas).
+// lista) para o novo modelo de dois sócios e zera qualquer revisão/aprovação
+// gravada em tarefas pré-existentes. Esse recurso é novo e vale só daqui para
+// frente: tudo o que havia foi acrescentado automaticamente pelas versões
+// anteriores (nunca escolhido pelo usuário), então a base começa limpa.
 function migrarResponsaveis(){
   if(!DB)return;
   let mudou=false;
@@ -5006,17 +5037,13 @@ function migrarResponsaveis(){
     });
     DB.respV2=true;mudou=true;
   }
-  // zera o acúmulo herdado: toda revisão/aprovação ainda pendente em tarefas
-  // existentes é dada por resolvida, para não aparecer coisa antiga para aprovar.
-  if(!DB.revBacklogV1){
+  if(!DB.revResetV1){
     (DB.tarefas||[]).forEach(t=>{
-      if(t.revPede&&revProximaAcao(t)){
-        t.revEstado=t.revPede==='revisar'?'revisado':'aprovado';
-        t.revEm=t.revEm||Date.now();
-        mudou=true;
-      }
+      ['revPede','revEstado','revEm','revPorQuem','revEnviado','revEnviadoEm'].forEach(k=>{
+        if(t[k]!==undefined){delete t[k];mudou=true;}
+      });
     });
-    DB.revBacklogV1=true;mudou=true;
+    DB.revResetV1=true;mudou=true;
   }
   if(mudou&&!MODO_OFFLINE)salvarDB();
 }
@@ -5222,7 +5249,7 @@ function tarefasAtrasadas(){
 function tarefasPendentesRevisao(quem){
   quem=quem||(EU&&EU.nome);
   if(!quem)return [];
-  return DB.tarefas.filter(t=>t.revPede&&revProximaAcao(t)&&revisorDa(t)===quem);
+  return DB.tarefas.filter(t=>revPendenteRevisor(t)&&revisorDa(t)===quem);
 }
 function renderSino(){
   const n=tarefasAtrasadas().length;
@@ -8173,7 +8200,7 @@ function filtroHorizonte(h){
 function tarefaDaPessoa(t,p){
   if(p==='todos'||t.resp===p)return true;
   if(t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys'))return true;  // dados legados
-  if(t.revPede&&revProximaAcao(t)&&revisorDa(t)===p)return true;
+  if(revPendenteRevisor(t)&&revisorDa(t)===p)return true;              // enviada para a revisão dele
   return false;
 }
 function tarefaCasaBusca(t,q){
@@ -8408,19 +8435,25 @@ function rotuloPrazoAgenda(t){
   if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
   return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
 }
-// chip de revisão/aprovação: mostra em quem está parado e deixa marcar com um clique
+// chip de revisão/aprovação: deixa claro em que etapa do fluxo a tarefa está
+//   em elaboração → o responsável envia → revisor revisa/aprova → concluída
 function revChipHTML(t){
-  if(!t||!t.revPede||t.status==='concluido'&&!t.revEstado)return '';
+  if(!t||!t.revPede)return '';
   const prox=revProximaAcao(t);
-  if(!prox){
+  if(!prox){   // já revisada/aprovada
     return `<span class="ag-chip rev-ok" title="${esc(revEstadoLbl(t))}"><i class="ti ti-circle-check" style="font-size:11px"></i> ${t.revEstado==='aprovado'?'aprovada':'revisada'}</span>`;
   }
-  const quem=revisorDa(t);
+  const quem=revisorDa(t), acaoLbl=prox==='aprovar'?'aprovação':'revisão';
+  if(!t.revEnviado){   // ainda com o responsável
+    if(EU&&EU.nome===t.resp)
+      return `<span class="ag-chip rev-enviar" onclick="event.stopPropagation();enviarParaRevisao('${t.id}')" title="Enviar para ${acaoLbl} de ${quem}"><i class="ti ti-send" style="font-size:11px"></i> enviar p/ ${acaoLbl}</span>`;
+    return `<span class="ag-chip rev-aguarda" title="${esc(t.resp)} ainda vai enviar para ${acaoLbl}"><i class="ti ti-hourglass-low" style="font-size:11px"></i> em elaboração</span>`;
+  }
+  // enviada: na mesa do revisor
   const souEu=EU&&EU.nome===quem;
-  const rotulo=prox==='aprovar'?'aprovar':'revisar';
-  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${rotulo} de ${quem}`;
-  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"` : '';
-  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?rotulo:'p/ '+quem}</span>`;
+  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"`:'';
+  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${acaoLbl} de ${quem}`;
+  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?(prox==='aprovar'?'aprovar':'revisar'):'p/ '+quem}</span>`;
 }
 function agRowHTML(t){
   const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
@@ -9138,10 +9171,32 @@ function mtAtualizarRevHint(){
   const v=document.getElementById('mt-rev').value;
   const hint=document.getElementById('mt-rev-hint');
   if(hint)hint.textContent=
-    v==='revisar'?outro+' confere a tarefa antes de ela ser dada por encerrada.'
-    :v==='aprovar'?outro+' precisa aprovar o que '+resp+' fizer.'
-    :v==='ambos'?outro+' revisa e, depois, aprova.'
+    v==='revisar'?'Ao terminar sua parte, '+resp+' envia para '+outro+' revisar; só então a tarefa pode ser concluída.'
+    :v==='aprovar'?'Ao terminar sua parte, '+resp+' envia para '+outro+' aprovar; só então a tarefa pode ser concluída.'
+    :v==='ambos'?'Ao terminar, '+resp+' envia para '+outro+' revisar e, depois, aprovar; só então a tarefa pode ser concluída.'
     :'A tarefa é de '+resp+' e não precisa passar pelo outro sócio.';
+  mtAtualizarEstadoRev();
+}
+// mostra, no modal, em que etapa do fluxo está a revisão/aprovação, e oferece
+// o botão de envio quando a tarefa (já salva) ainda está com o responsável.
+function mtAtualizarEstadoRev(){
+  const est=document.getElementById('mt-rev-estado');
+  const btn=document.getElementById('mt-rev-enviar');
+  if(!est||!btn)return;
+  const t=mtCtx.id?DB.tarefas.find(x=>x.id===mtCtx.id):null;
+  const pediu=document.getElementById('mt-rev').value;
+  // só faz sentido para uma tarefa já salva, com pedido de revisão gravado
+  if(!t||!t.revPede||t.revPede!==pediu){est.style.display='none';btn.style.display='none';return;}
+  const prox=revProximaAcao(t), quem=revisorDa(t);
+  est.style.display='block';
+  if(!prox){est.textContent=(t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'')+'.';est.className='mt-rev-estado ok';btn.style.display='none';return;}
+  if(!t.revEnviado){est.textContent='Ainda com '+t.resp+' (em elaboração). Envie quando terminar sua parte.';est.className='mt-rev-estado';btn.style.display='inline-flex';btn.innerHTML='<i class="ti ti-send"></i> Enviar para '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem;return;}
+  est.textContent='Enviada — aguarda '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+'.';est.className='mt-rev-estado aguarda';btn.style.display='none';
+}
+function mtEnviarRevisao(){
+  if(!mtCtx.id)return;
+  enviarParaRevisao(mtCtx.id);
+  fecharOverlay('overlay-tarefa');
 }
 // atalhos de data no campo Prazo (Hoje / Amanhã / próxima Sexta)
 function mtDataRapida(k){
@@ -9233,8 +9288,8 @@ function salvarTarefa(){
   // só conclui se a revisão/aprovação pedida já estiver cumprida pelo outro sócio
   let statusFinal=mtCtx.status;
   if(statusFinal==='concluido'){
-    const revEstadoAtual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}).revEstado:'';
-    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:revEstadoAtual};
+    const atual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}):{};
+    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:atual.revEstado,revEnviado:atual.revEnviado};
     if(revBloqueiaConclusao(checar)){alert(avisoRevConclusao(checar));return;}
   }
   // concluída: vale a data informada no modal; em qualquer outro status a data sai

@@ -70,10 +70,20 @@
 .rot-story-n{font-size:11px;color:var(--t3);font-weight:600;margin-top:-2px}
 
 /* ─── ROTINA: chip de revisão/aprovação nas linhas da agenda ─── */
+.ag-chip.rev-enviar{background:var(--navy);color:var(--cream);border:1px solid var(--navy);cursor:pointer}
+.ag-chip.rev-enviar:hover{background:var(--navy-deep)}
+.ag-chip.rev-aguarda{background:var(--surface3);color:var(--t3);border:1px solid var(--border-med)}
 .ag-chip.rev-pend{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.3)}
 .ag-chip.rev-pend.rev-eu{cursor:pointer}
 .ag-chip.rev-pend.rev-eu:hover{background:var(--amber);color:#fff}
 .ag-chip.rev-ok{background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.3)}
+
+/* ─── MODAL: etapa da revisão e botão de envio ─── */
+.mt-rev-estado{font-size:12.5px;font-weight:600;color:var(--t2);margin-top:10px;
+  padding:9px 12px;border-radius:var(--rs);background:var(--surface);border:1px solid var(--border)}
+.mt-rev-estado.aguarda{background:var(--amber-bg);color:var(--amber-hi);border-color:rgba(169,116,27,.3)}
+.mt-rev-estado.ok{background:var(--green-bg);color:var(--green-hi);border-color:rgba(47,125,63,.3)}
+.mt-rev-enviar{margin-top:10px;width:100%;justify-content:center}
 
 /* ─── MODAL DE TAREFA: pills (responsável, revisão) e atalhos de data ─── */
 .mt-pills{display:flex;gap:8px;flex-wrap:wrap}

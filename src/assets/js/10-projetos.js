@@ -516,10 +516,32 @@ function mtAtualizarRevHint(){
   const v=document.getElementById('mt-rev').value;
   const hint=document.getElementById('mt-rev-hint');
   if(hint)hint.textContent=
-    v==='revisar'?outro+' confere a tarefa antes de ela ser dada por encerrada.'
-    :v==='aprovar'?outro+' precisa aprovar o que '+resp+' fizer.'
-    :v==='ambos'?outro+' revisa e, depois, aprova.'
+    v==='revisar'?'Ao terminar sua parte, '+resp+' envia para '+outro+' revisar; só então a tarefa pode ser concluída.'
+    :v==='aprovar'?'Ao terminar sua parte, '+resp+' envia para '+outro+' aprovar; só então a tarefa pode ser concluída.'
+    :v==='ambos'?'Ao terminar, '+resp+' envia para '+outro+' revisar e, depois, aprovar; só então a tarefa pode ser concluída.'
     :'A tarefa é de '+resp+' e não precisa passar pelo outro sócio.';
+  mtAtualizarEstadoRev();
+}
+// mostra, no modal, em que etapa do fluxo está a revisão/aprovação, e oferece
+// o botão de envio quando a tarefa (já salva) ainda está com o responsável.
+function mtAtualizarEstadoRev(){
+  const est=document.getElementById('mt-rev-estado');
+  const btn=document.getElementById('mt-rev-enviar');
+  if(!est||!btn)return;
+  const t=mtCtx.id?DB.tarefas.find(x=>x.id===mtCtx.id):null;
+  const pediu=document.getElementById('mt-rev').value;
+  // só faz sentido para uma tarefa já salva, com pedido de revisão gravado
+  if(!t||!t.revPede||t.revPede!==pediu){est.style.display='none';btn.style.display='none';return;}
+  const prox=revProximaAcao(t), quem=revisorDa(t);
+  est.style.display='block';
+  if(!prox){est.textContent=(t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'')+'.';est.className='mt-rev-estado ok';btn.style.display='none';return;}
+  if(!t.revEnviado){est.textContent='Ainda com '+t.resp+' (em elaboração). Envie quando terminar sua parte.';est.className='mt-rev-estado';btn.style.display='inline-flex';btn.innerHTML='<i class="ti ti-send"></i> Enviar para '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem;return;}
+  est.textContent='Enviada — aguarda '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+'.';est.className='mt-rev-estado aguarda';btn.style.display='none';
+}
+function mtEnviarRevisao(){
+  if(!mtCtx.id)return;
+  enviarParaRevisao(mtCtx.id);
+  fecharOverlay('overlay-tarefa');
 }
 // atalhos de data no campo Prazo (Hoje / Amanhã / próxima Sexta)
 function mtDataRapida(k){
@@ -611,8 +633,8 @@ function salvarTarefa(){
   // só conclui se a revisão/aprovação pedida já estiver cumprida pelo outro sócio
   let statusFinal=mtCtx.status;
   if(statusFinal==='concluido'){
-    const revEstadoAtual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}).revEstado:'';
-    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:revEstadoAtual};
+    const atual=mtCtx.id?(DB.tarefas.find(x=>x.id===mtCtx.id)||{}):{};
+    const checar={resp:dados.resp,revPede:dados.revPede,revEstado:atual.revEstado,revEnviado:atual.revEnviado};
     if(revBloqueiaConclusao(checar)){alert(avisoRevConclusao(checar));return;}
   }
   // concluída: vale a data informada no modal; em qualquer outro status a data sai

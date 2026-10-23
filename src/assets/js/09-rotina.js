@@ -70,7 +70,7 @@ function filtroHorizonte(h){
 function tarefaDaPessoa(t,p){
   if(p==='todos'||t.resp===p)return true;
   if(t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys'))return true;  // dados legados
-  if(t.revPede&&revProximaAcao(t)&&revisorDa(t)===p)return true;
+  if(revPendenteRevisor(t)&&revisorDa(t)===p)return true;              // enviada para a revisão dele
   return false;
 }
 function tarefaCasaBusca(t,q){
@@ -305,19 +305,25 @@ function rotuloPrazoAgenda(t){
   if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
   return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
 }
-// chip de revisão/aprovação: mostra em quem está parado e deixa marcar com um clique
+// chip de revisão/aprovação: deixa claro em que etapa do fluxo a tarefa está
+//   em elaboração → o responsável envia → revisor revisa/aprova → concluída
 function revChipHTML(t){
-  if(!t||!t.revPede||t.status==='concluido'&&!t.revEstado)return '';
+  if(!t||!t.revPede)return '';
   const prox=revProximaAcao(t);
-  if(!prox){
+  if(!prox){   // já revisada/aprovada
     return `<span class="ag-chip rev-ok" title="${esc(revEstadoLbl(t))}"><i class="ti ti-circle-check" style="font-size:11px"></i> ${t.revEstado==='aprovado'?'aprovada':'revisada'}</span>`;
   }
-  const quem=revisorDa(t);
+  const quem=revisorDa(t), acaoLbl=prox==='aprovar'?'aprovação':'revisão';
+  if(!t.revEnviado){   // ainda com o responsável
+    if(EU&&EU.nome===t.resp)
+      return `<span class="ag-chip rev-enviar" onclick="event.stopPropagation();enviarParaRevisao('${t.id}')" title="Enviar para ${acaoLbl} de ${quem}"><i class="ti ti-send" style="font-size:11px"></i> enviar p/ ${acaoLbl}</span>`;
+    return `<span class="ag-chip rev-aguarda" title="${esc(t.resp)} ainda vai enviar para ${acaoLbl}"><i class="ti ti-hourglass-low" style="font-size:11px"></i> em elaboração</span>`;
+  }
+  // enviada: na mesa do revisor
   const souEu=EU&&EU.nome===quem;
-  const rotulo=prox==='aprovar'?'aprovar':'revisar';
-  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${rotulo} de ${quem}`;
-  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"` : '';
-  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?rotulo:'p/ '+quem}</span>`;
+  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"`:'';
+  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${acaoLbl} de ${quem}`;
+  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?(prox==='aprovar'?'aprovar':'revisar'):'p/ '+quem}</span>`;
 }
 function agRowHTML(t){
   const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);

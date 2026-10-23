@@ -37,15 +37,33 @@ function revEstadoLbl(t){
   if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
   return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
 }
+// FLUXO: em andamento → o responsável envia para revisão/aprovação → o outro
+// sócio revisa/aprova → só então a tarefa pode ser concluída.
+// A revisão/aprovação só fica disponível para o outro sócio DEPOIS do envio
+// (t.revEnviado); antes disso a tarefa ainda está com o responsável.
+function revEnviada(t){return !!(t&&t.revPede&&t.revEnviado)}
+// está na mesa do revisor? (pedida, já enviada e ainda falta ação dele)
+function revPendenteRevisor(t){return !!(t&&t.revPede&&t.revEnviado&&revProximaAcao(t))}
+// o responsável ainda precisa enviar para o outro sócio?
+function revAguardaEnvio(t){return !!(t&&t.revPede&&!t.revEnviado&&revProximaAcao(t))}
 // Uma tarefa com revisão/aprovação pedida só pode ser concluída depois que
 // o outro sócio cumprir sua parte. Enquanto houver ação pendente, trava.
 function revBloqueiaConclusao(t){return !!(t&&t.revPede&&revProximaAcao(t))}
 function avisoRevConclusao(t){
-  const prox=revProximaAcao(t);
-  return 'Esta tarefa precisa ser '+(prox==='aprovar'?'aprovada':'revisada')+' por '+revisorDa(t)+' antes de ser concluída.';
+  const prox=revProximaAcao(t), quem=revisorDa(t);
+  if(!t.revEnviado)return 'Envie esta tarefa para '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+' antes de concluí-la.';
+  return 'Esta tarefa aguarda '+(prox==='aprovar'?'aprovação':'revisão')+' de '+quem+' antes de ser concluída.';
+}
+// o responsável termina sua parte e envia para o outro sócio
+function enviarParaRevisao(id){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede||!revProximaAcao(t))return;
+  t.revEnviado=true;t.revEnviadoEm=Date.now();
+  if(t.status==='pendente')aplicarStatusTarefa(t,'andamento');
+  salvarDB();refreshUI();
+  mostrarToast('Enviada para '+(revProximaAcao(t)==='aprovar'?'aprovação':'revisão')+' de '+revisorDa(t));
 }
 function marcarRevisao(id,acao){
-  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede||!t.revEnviado)return;
   const prox=revProximaAcao(t);
   if(acao!==prox)return;
   t.revEstado=acao==='aprovar'?'aprovado':'revisado';
@@ -55,9 +73,10 @@ function marcarRevisao(id,acao){
   mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
 }
 // Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
-// lista) para o novo modelo de dois sócios, e limpa cobranças retroativas de
-// revisão/aprovação. A revisão/aprovação vale daqui para frente: nenhuma tarefa
-// antiga deve nascer pedindo aprovação (sobretudo as que já estavam concluídas).
+// lista) para o novo modelo de dois sócios e zera qualquer revisão/aprovação
+// gravada em tarefas pré-existentes. Esse recurso é novo e vale só daqui para
+// frente: tudo o que havia foi acrescentado automaticamente pelas versões
+// anteriores (nunca escolhido pelo usuário), então a base começa limpa.
 function migrarResponsaveis(){
   if(!DB)return;
   let mudou=false;
@@ -68,17 +87,13 @@ function migrarResponsaveis(){
     });
     DB.respV2=true;mudou=true;
   }
-  // zera o acúmulo herdado: toda revisão/aprovação ainda pendente em tarefas
-  // existentes é dada por resolvida, para não aparecer coisa antiga para aprovar.
-  if(!DB.revBacklogV1){
+  if(!DB.revResetV1){
     (DB.tarefas||[]).forEach(t=>{
-      if(t.revPede&&revProximaAcao(t)){
-        t.revEstado=t.revPede==='revisar'?'revisado':'aprovado';
-        t.revEm=t.revEm||Date.now();
-        mudou=true;
-      }
+      ['revPede','revEstado','revEm','revPorQuem','revEnviado','revEnviadoEm'].forEach(k=>{
+        if(t[k]!==undefined){delete t[k];mudou=true;}
+      });
     });
-    DB.revBacklogV1=true;mudou=true;
+    DB.revResetV1=true;mudou=true;
   }
   if(mudou&&!MODO_OFFLINE)salvarDB();
 }
@@ -284,7 +299,7 @@ function tarefasAtrasadas(){
 function tarefasPendentesRevisao(quem){
   quem=quem||(EU&&EU.nome);
   if(!quem)return [];
-  return DB.tarefas.filter(t=>t.revPede&&revProximaAcao(t)&&revisorDa(t)===quem);
+  return DB.tarefas.filter(t=>revPendenteRevisor(t)&&revisorDa(t)===quem);
 }
 function renderSino(){
   const n=tarefasAtrasadas().length;
