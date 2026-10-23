@@ -1,13 +1,67 @@
 // ─── TAREFAS / ROTINA ─────────────────────────────────────
-// "Cecília e Thallys" é usado quando a execução é conjunta (projetos a quatro mãos).
-// RESP_CONTEUDO mantém o comercial exatamente como era: pauta de conteúdo continua
-// tendo um único dono.
-const RESP_DUPLA='Cecília e Thallys';
-const RESP=['Cecília','Thallys',RESP_DUPLA,'Escritório'];
-const RESP_CONTEUDO=['Cecília','Thallys','Escritório'];
-// cor e sigla do avatar de um responsável (o do escritório tem ícone próprio)
+// O escritório tem dois sócios: Cecília e Thallys. Toda tarefa tem UM
+// responsável (quem executa) e, opcionalmente, pede que o OUTRO sócio
+// revise e/ou aprove. Não há mais "Dupla" nem "Escritório" como opções:
+// RESP_DUPLA e 'Escritório' permanecem só para ler dados antigos até a
+// migração (migrarResponsaveis) convertê-los.
+const RESP_DUPLA='Cecília e Thallys';          // legado (dados anteriores à migração)
+const RESP=['Cecília','Thallys'];
+const RESP_CONTEUDO=['Cecília','Thallys','Escritório'];  // comercial: pauta de conteúdo, não mexida aqui
+// o outro sócio (a quem cabe revisar/aprovar a tarefa do primeiro)
+function outroSocio(r){return r==='Cecília'?'Thallys':r==='Thallys'?'Cecília':''}
+// cor e sigla do avatar de um responsável (ícones próprios para os valores legados)
 function corResp(r){return r==='Escritório'?['#e6eaf2','#16243d']:r===RESP_DUPLA?['#efe6f3','#5c3f7e']:corDe(r)}
 function avatarResp(r){return r==='Escritório'?'<i class="ti ti-building"></i>':r===RESP_DUPLA?'C+T':iniciais(r)}
+
+// ─── REVISÃO / APROVAÇÃO PELO OUTRO SÓCIO ──────────────────
+// Campos na tarefa:
+//   t.revPede    '' | 'revisar' | 'aprovar' | 'ambos'  (o que se pede do outro sócio)
+//   t.revEstado  '' | 'revisado' | 'aprovado'          (até onde já foi)
+//   t.revEm      timestamp da última ação  · t.revPorQuem quem a fez
+// O revisor é sempre o outro sócio — com apenas duas pessoas, não há o que escolher.
+const REV_PEDE_LBL={revisar:'Revisar',aprovar:'Aprovar',ambos:'Revisar e aprovar'};
+function revisorDa(t){return outroSocio(t.resp)}
+// próxima ação que ainda falta do revisor ('revisar' | 'aprovar' | '' = nada pendente)
+function revProximaAcao(t){
+  if(!t||!t.revPede)return '';
+  if(t.revPede==='revisar')return t.revEstado==='revisado'?'':'revisar';
+  if(t.revPede==='aprovar')return t.revEstado==='aprovado'?'':'aprovar';
+  // 'ambos': primeiro revisar, depois aprovar
+  if(t.revEstado==='aprovado')return '';
+  return t.revEstado==='revisado'?'aprovar':'revisar';
+}
+function revEstadoLbl(t){
+  if(!t||!t.revPede)return '';
+  const quem=revisorDa(t);
+  const prox=revProximaAcao(t);
+  if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
+  return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
+}
+function marcarRevisao(id,acao){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
+  const prox=revProximaAcao(t);
+  if(acao!==prox)return;
+  t.revEstado=acao==='aprovar'?'aprovado':'revisado';
+  t.revEm=Date.now();
+  t.revPorQuem=EU&&RESP.includes(EU.nome)?EU.nome:revisorDa(t);
+  salvarDB();refreshUI();
+  mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
+}
+// Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
+// lista) para o novo modelo de dois sócios. Roda uma vez por base (flag respV2).
+function migrarResponsaveis(){
+  if(!DB||DB.respV2)return;
+  (DB.tarefas||[]).forEach(t=>{
+    if(t.resp===RESP_DUPLA){                       // antes era execução conjunta
+      t.resp='Cecília';                            //   → Cecília conduz
+      if(!t.revPede){t.revPede='aprovar';}         //   → Thallys aprova
+    }else if(!RESP.includes(t.resp)){              // 'Escritório' e outros órfãos
+      t.resp='Thallys';
+    }
+  });
+  DB.respV2=true;
+  if(!MODO_OFFLINE)salvarDB();
+}
 // tipos de tarefa agora vivem em DB.tiposTarefa (editável em Configurações)
 function tiposTarefa(){return DB.tiposTarefa&&DB.tiposTarefa.length?DB.tiposTarefa:SEED_TIPOS_TAREFA}
 function tipoInfo(key){return tiposTarefa().find(x=>x.key===key)||{key,lbl:key||'—',cor:'#828b9c'}}
@@ -205,22 +259,46 @@ function prazoInfo(t){
 function tarefasAtrasadas(){
   return DB.tarefas.filter(t=>t.status!=='concluido'&&t.prazo&&t.prazo<hojeISO());
 }
+// tarefas que aguardam a revisão/aprovação de uma pessoa (o revisor é o outro sócio).
+// Sem argumento, usa o sócio logado (EU) — é "o que está na mesa de cada um".
+function tarefasPendentesRevisao(quem){
+  quem=quem||(EU&&EU.nome);
+  if(!quem)return [];
+  return DB.tarefas.filter(t=>t.revPede&&revProximaAcao(t)&&revisorDa(t)===quem);
+}
 function renderSino(){
   const n=tarefasAtrasadas().length;
+  const nRev=tarefasPendentesRevisao().length;   // pendentes da aprovação/revisão do sócio logado
   const nb=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.textContent=v>99?'99+':v;el.style.display=v>0?'inline-flex':'none';};
   nb('nav-rotina-badge',n);
   nb('nav-processos-badge',typeof pubsAnalisar==='function'&&DB?pubsAnalisar().length:0);
   const b=document.getElementById('sino-badge');
   if(!b)return;
-  if(n>0){b.textContent=n>99?'99+':n;b.style.display='flex';}
+  const total=n+nRev;
+  if(total>0){b.textContent=total>99?'99+':total;b.style.display='flex';}
   else{b.style.display='none';}
 }
 function abrirNotificacoes(){
   const atrasadas=tarefasAtrasadas().sort((a,b)=>a.prazo<b.prazo?-1:1);
-  document.getElementById('notif-sub').innerHTML=atrasadas.length
-    ?'<i class="ti ti-alert-triangle"></i> '+atrasadas.length+' tarefa'+(atrasadas.length>1?'s':'')+' com prazo vencido.'
-    :'Nenhuma tarefa atrasada no momento.';
-  document.getElementById('notif-lista').innerHTML=atrasadas.length?atrasadas.map(t=>{
+  const revisar=tarefasPendentesRevisao().sort((a,b)=>(a.prazo||'9999')<(b.prazo||'9999')?-1:1);
+  const avisos=[];
+  if(revisar.length)avisos.push('<i class="ti ti-eye-check"></i> '+revisar.length+' tarefa'+(revisar.length>1?'s':'')+' pendente'+(revisar.length>1?'s':'')+' da sua aprovação ou revisão.');
+  if(atrasadas.length)avisos.push('<i class="ti ti-alert-triangle"></i> '+atrasadas.length+' tarefa'+(atrasadas.length>1?'s':'')+' com prazo vencido.');
+  document.getElementById('notif-sub').innerHTML=avisos.length?avisos.join('<br>'):'Nada pendente no momento.';
+  // bloco de aprovação/revisão do sócio logado, acima das atrasadas
+  const blocoRev=revisar.length?('<div class="notif-sec">Para você revisar ou aprovar</div>'+revisar.map(t=>{
+    const prox=revProximaAcao(t);
+    const cli=t.cid?DB.clientes.find(c=>c.id===t.cid):null;
+    const pi=prazoInfo(t);
+    return `<div class="pend-row">
+      <span class="resp-chip" title="Responsável">${esc(t.resp)}</span>
+      <span class="pend-titulo">${esc(t.titulo)}${cli?' · <span style="color:var(--t3)">'+esc(cli.nome)+'</span>':''}</span>
+      <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
+      <button class="btn-sec" onclick="marcarRevisao('${t.id}','${prox}');abrirNotificacoes();" title="${prox==='aprovar'?'Aprovar':'Revisar'}">${prox==='aprovar'?'Aprovar':'Revisar'}</button>
+      <button class="btn-ico" onclick="fecharOverlay('overlay-notif');abrirModalTarefa('${t.id}',null)" title="Abrir tarefa"><i class="ti ti-pencil"></i></button>
+    </div>`;
+  }).join('')):'';
+  const blocoAtras=atrasadas.length?((revisar.length?'<div class="notif-sec">Prazos vencidos</div>':'')+atrasadas.map(t=>{
     const pi=prazoInfo(t);
     const cli=t.cid?DB.clientes.find(c=>c.id===t.cid):null;
     const stCls=t.status==='andamento'?'st-andamento':'st-pendente';
@@ -231,7 +309,8 @@ function abrirNotificacoes(){
       <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
       <button class="btn-ico" onclick="fecharOverlay('overlay-notif');abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>
     </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nenhuma tarefa atrasada. Tudo em dia.</p>';
+  }).join('')):'';
+  document.getElementById('notif-lista').innerHTML=(blocoRev+blocoAtras)||'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nada pendente. Tudo em dia.</p>';
   abrirOverlay('overlay-notif');
 }
 function verificarAvisoDiario(){
@@ -453,6 +532,7 @@ function entrarApp(){
   carregarLeadsCivel();
   garantirEstruturaProcessos();
   garantirContratos();   // cópia offline / backup restaurado não passam pela migração do Gist
+  migrarResponsaveis();  // converte 'Dupla'/'Escritório' para o modelo de dois sócios
   if(reprocessarPublicacoesPendentes())salvarDB();
   aplicarIconeOlho();
   refreshUITudo();

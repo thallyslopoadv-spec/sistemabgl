@@ -65,10 +65,13 @@ function filtroHorizonte(h){
   if(rotinaModo()!=='agenda'){rotinaPref.modo='agenda';salvarPrefRotina();}
   renderRotina();
 }
-// tarefa conjunta (Cecília e Thallys) aparece para os dois
+// a tarefa aparece para o responsável; também para o outro sócio quando está
+// aguardando a revisão/aprovação dele (fica "na mesa" dos dois)
 function tarefaDaPessoa(t,p){
   if(p==='todos'||t.resp===p)return true;
-  return t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys');
+  if(t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys'))return true;  // dados legados
+  if(t.revPede&&revProximaAcao(t)&&revisorDa(t)===p)return true;
+  return false;
 }
 function tarefaCasaBusca(t,q){
   if(!q)return true;
@@ -128,6 +131,7 @@ function renderRotina(){
       r30.comPrazo?r30.dentroDoPrazo+' de '+r30.comPrazo+' no prazo'+(r30.adiadas?' · '+r30.adiadas+' adiada'+(r30.adiadas>1?'s':''):''):'nenhuma conclusão com prazo',false,
       `<div class="rp-meter"><span style="width:${pct||0}%;background:${corPct}"></span></div>`);
 
+  renderFataisSemana();
   renderAvisosRotina(pessoa);
   renderPessoasRotina(pessoa,hoje);
   renderRapidaRotina(pessoa);
@@ -160,18 +164,47 @@ function renderAvisosRotina(pessoa){
   }
   el.innerHTML=h;
 }
+// Seletor de pessoas em "stories" (círculos): clicar filtra a rotina para as
+// tarefas daquela pessoa — inclusive as que ela precisa revisar/aprovar.
 function renderPessoasRotina(pessoa,hoje){
   const el=document.getElementById('rot-pessoas');
   if(!el)return;
   const abertas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido');
   const atras=p=>abertas.filter(t=>tarefaDaPessoa(t,p)&&t.prazo&&t.prazo<hoje).length;
-  el.innerHTML=`<button class="rot-pessoa todos ${pessoa==='todos'?'on':''}" onclick="mudarPessoaRotina('todos')">Todos</button>`+
-    RESP.map(r=>{
-      const av=corResp(r),n=abertas.filter(t=>tarefaDaPessoa(t,r)).length,a=atras(r);
-      return `<button class="rot-pessoa ${pessoa===r?'on':''}" onclick="mudarPessoaRotina('${r}')" title="${esc(r)}: ${n} em aberto${a?' · '+a+' atrasada'+(a>1?'s':''):''}">
-        <span class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</span>${esc(r==='Escritório'?'Escritório':r===RESP_DUPLA?'Dupla':r)}
-        <span class="n">${n}</span>${a?`<span class="nav-badge" style="margin-left:0">${a}</span>`:''}</button>`;
-    }).join('');
+  const story=(key,sel,conteudo,bg,cor,n,a)=>`
+    <button type="button" class="rot-story ${sel?'on':''}" onclick="mudarPessoaRotina('${key}')" title="${a?a+' atrasada'+(a>1?'s':''):'nenhuma atrasada'}">
+      <span class="rot-story-ring${a?' alerta':''}"><span class="rot-story-av" style="background:${bg};color:${cor}">${conteudo}</span>${a?'<span class="rot-story-dot"></span>':''}</span>
+      <span class="rot-story-nm">${key==='todos'?'Todos':esc(key)}</span>
+      <span class="rot-story-n">${n}</span>
+    </button>`;
+  el.className='rot-stories';
+  el.innerHTML=
+    story('todos',pessoa==='todos','<i class="ti ti-users"></i>','var(--navy)','var(--cream)',abertas.length,0)+
+    RESP.map(r=>{const av=corResp(r);return story(r,pessoa===r,avatarResp(r),av[0],av[1],abertas.filter(t=>tarefaDaPessoa(t,r)).length,atras(r));}).join('');
+}
+// Linha do tempo horizontal dos prazos fatais da semana (próximos 7 dias).
+function renderFataisSemana(){
+  const el=document.getElementById('rot-fatais');
+  if(!el)return;
+  const hoje=hojeISO(), fim=isoAdd(hoje,7);
+  const fatais=DB.tarefas
+    .filter(t=>t.status!=='concluido'&&t.prazoFatal&&t.prazoFatal>=hoje&&t.prazoFatal<=fim)
+    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:a.prazoFatal>b.prazoFatal?1:0);
+  if(!fatais.length){
+    el.innerHTML=`<div class="rot-fatais-vazio"><i class="ti ti-shield-check"></i> Nenhum prazo fatal nos próximos 7 dias.</div>`;
+    return;
+  }
+  const pts=fatais.slice(0,6).map((t,i)=>{
+    const dd=diasEntreISO(hoje,t.prazoFatal);
+    const sel=i===0;
+    return `<button type="button" class="rot-fatal-pt ${sel?'urg':''}" onclick="abrirModalTarefa('${t.id}',null)" title="${esc(t.titulo)}">
+      <span class="rfp-marca"></span>
+      <span class="rfp-dia">${(+t.prazoFatal.slice(8,10))}<small>${diaSemanaCurto(t.prazoFatal)}</small></span>
+      <span class="rfp-tt">${esc(t.titulo)}</span>
+      <span class="rfp-sub">${dd===0?'hoje':dd===1?'amanhã':'em '+dd+' dias'}${nomeCliente(t.cid)?' · '+esc(nomeCliente(t.cid)):''}</span>
+    </button>`;
+  }).join('<span class="rot-fatal-liga"></span>');
+  el.innerHTML=`<div class="rot-fatais-head">Prazos fatais da semana</div><div class="rot-fatais-trilha">${pts}</div>`;
 }
 
 // ─── CRIAÇÃO RÁPIDA ───────────────────────────────────────
@@ -186,7 +219,7 @@ function renderRapidaRotina(pessoa){
   if(!sel)return;
   if(sel.options.length!==RESP.length)sel.innerHTML=RESP.map(r=>`<option>${esc(r)}</option>`).join('');
   if(!__rrIniciado){
-    sel.value=pessoa!=='todos'?pessoa:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+    sel.value=pessoa!=='todos'?pessoa:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
     rrMarcarAtalho('hoje');
     __rrIniciado=true;
   }
@@ -272,6 +305,20 @@ function rotuloPrazoAgenda(t){
   if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
   return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
 }
+// chip de revisão/aprovação: mostra em quem está parado e deixa marcar com um clique
+function revChipHTML(t){
+  if(!t||!t.revPede||t.status==='concluido'&&!t.revEstado)return '';
+  const prox=revProximaAcao(t);
+  if(!prox){
+    return `<span class="ag-chip rev-ok" title="${esc(revEstadoLbl(t))}"><i class="ti ti-circle-check" style="font-size:11px"></i> ${t.revEstado==='aprovado'?'aprovada':'revisada'}</span>`;
+  }
+  const quem=revisorDa(t);
+  const souEu=EU&&EU.nome===quem;
+  const rotulo=prox==='aprovar'?'aprovar':'revisar';
+  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${rotulo} de ${quem}`;
+  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"` : '';
+  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?rotulo:'p/ '+quem}</span>`;
+}
 function agRowHTML(t){
   const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
   const done=t.status==='concluido', and=t.status==='andamento';
@@ -294,6 +341,7 @@ function agRowHTML(t){
   const chips=[
     `<span class="ag-tipo"><i style="background:${tp.cor}"></i>${esc(tp.lbl)}</span>`,
     `<span class="ag-av" style="background:${av[0]};color:${av[1]}" title="${esc(t.resp)}">${avatarResp(t.resp)}</span>`,
+    revChipHTML(t),
     and?'<span class="ag-chip andamento">em andamento</span>':'',
     t.conferir?`<span class="ag-chip conferir" onclick="abrirModalTarefa('${t.id}',null)" title="Lido automaticamente do DJEN — confira"><i class="ti ti-alert-triangle" style="font-size:11px"></i> conferir</span>`:'',
     p?`<span class="ag-chip proc" onclick="irParaProcesso('${p.id}')" title="${esc(rotuloProcesso(p))}">${esc(p.numCNJ||p.num)}</span>`:'',

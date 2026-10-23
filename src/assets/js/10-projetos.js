@@ -492,6 +492,41 @@ function aplicarProjetoTarefa(t,marcado,tocado){
   if(marcado===ehProjetoAuto(t))delete t.projeto;
   else t.projeto=marcado;
 }
+// responsável em "pills": guarda o valor num input oculto e reflete nos botões.
+// Ao trocar o responsável, o texto do bloco de revisão aponta para o outro sócio.
+function mtSetResp(r){
+  if(!RESP.includes(r))r='Cecília';
+  document.getElementById('mt-resp').value=r;
+  document.querySelectorAll('#mt-resp-pills button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+  mtAtualizarRevHint();
+}
+function mtSetRev(v){
+  if(!['','revisar','aprovar','ambos'].includes(v))v='';
+  document.getElementById('mt-rev').value=v;
+  document.querySelectorAll('#mt-rev-pills button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  mtAtualizarRevHint();
+}
+function mtAtualizarRevHint(){
+  const resp=document.getElementById('mt-resp').value||'Cecília';
+  const outro=outroSocio(resp)||'o outro sócio';
+  const porEl=document.getElementById('mt-rev-por');
+  if(porEl)porEl.textContent='(cabe a '+outro+')';
+  const v=document.getElementById('mt-rev').value;
+  const hint=document.getElementById('mt-rev-hint');
+  if(hint)hint.textContent=
+    v==='revisar'?outro+' confere a tarefa antes de ela ser dada por encerrada.'
+    :v==='aprovar'?outro+' precisa aprovar o que '+resp+' fizer.'
+    :v==='ambos'?outro+' revisa e, depois, aprova.'
+    :'A tarefa é de '+resp+' e não precisa passar pelo outro sócio.';
+}
+// atalhos de data no campo Prazo (Hoje / Amanhã / próxima Sexta)
+function mtDataRapida(k){
+  const h=hojeISO();
+  const v=k==='hoje'?h:k==='amanha'?isoAdd(h,1):k==='sexta'?proximaSexta():h;
+  const el=document.getElementById('mt-prazo');
+  el.value=v;
+  mtAtualizarHintConclusao();mtAtualizarHintFatal();
+}
 function abrirModalTarefa(id,respOuCid){
   mtCtx={id,status:'pendente',projTocado:false};
   const selCli=document.getElementById('mt-cli');
@@ -513,7 +548,8 @@ function abrirModalTarefa(id,respOuCid){
     const t=tAtual;
     document.getElementById('mt-titulo').textContent='Editar tarefa';
     document.getElementById('mt-titulo-in').value=t.titulo;
-    document.getElementById('mt-resp').value=t.resp;
+    mtSetResp(RESP.includes(t.resp)?t.resp:'Cecília');
+    mtSetRev(t.revPede||'');
     document.getElementById('mt-tipo').value=t.tipo;
     selCli.value=t.cid||'';
     document.getElementById('mt-prazo').value=t.prazo||'';
@@ -533,8 +569,8 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-titulo').textContent='Nova tarefa';
     document.getElementById('mt-titulo-in').value='';
     // respOuCid: se for um responsável conhecido, pré-seleciona; se for id de cliente, vincula
-    if(RESP.includes(respOuCid))document.getElementById('mt-resp').value=respOuCid;
-    else document.getElementById('mt-resp').value='Cecília';
+    mtSetResp(RESP.includes(respOuCid)?respOuCid:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'));
+    mtSetRev('');
     document.getElementById('mt-tipo').value='peticao';
     selCli.value=(respOuCid&&!RESP.includes(respOuCid))?respOuCid:'';
     document.getElementById('mt-prazo').value='';
@@ -559,6 +595,7 @@ function salvarTarefa(){
   const dados={
     titulo,
     resp:document.getElementById('mt-resp').value,
+    revPede:document.getElementById('mt-rev').value,
     tipo:document.getElementById('mt-tipo').value,
     cid:document.getElementById('mt-cli').value||null,
     prazo:document.getElementById('mt-prazo').value,
@@ -579,10 +616,12 @@ function salvarTarefa(){
     Object.assign(t,dados);
     if(!t.prazoFatal)delete t.prazoFatal;
     if(!t.pid)delete t.pid;
+    // sem pedido de revisão: limpa qualquer estado de revisão anterior
+    if(!t.revPede){delete t.revPede;delete t.revEstado;delete t.revEm;delete t.revPorQuem;}
     if(t.conferir&&document.getElementById('mt-conferido').checked)marcarConferida(t);
     aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
   }
-  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};DB.tarefas.push(t);}
+  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
   // acompanhamento de projeto + etapa atual (o carimbo de data/hora é automático)
   const marcado=document.getElementById('mt-proj').checked;
   aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);

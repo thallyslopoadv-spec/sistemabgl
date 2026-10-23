@@ -131,6 +131,12 @@
         <p class="greeting-verse" id="greeting-verse"></p>
       </div>
 
+      <!-- destaque: próximo prazo fatal (vem antes do calendário) -->
+      <div id="dash-prazo-fatal"></div>
+
+      <!-- o que está pendente da sua revisão/aprovação (escondido quando vazio) -->
+      <div id="dash-aprovar" style="display:none"></div>
+
       <div class="modulo-card agenda-destaque" style="margin-bottom:20px">
         <div class="card-head">
           <h3><i class="ti ti-gavel" style="margin-right:7px"></i>Agenda de audiências e prazos</h3>
@@ -837,6 +843,12 @@
         <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
       </div>
 
+      <!-- linha do tempo horizontal dos prazos fatais da semana -->
+      <div class="rot-fatais" id="rot-fatais"></div>
+
+      <!-- stories: um círculo por sócio; clicar filtra a rotina para as tarefas dele -->
+      <div class="rot-stories" id="rot-pessoas"></div>
+
       <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
       <div class="rot-placar" id="rotina-stats"></div>
 
@@ -859,7 +871,6 @@
           <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
           <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
         </div>
-        <div class="rot-pessoas" id="rot-pessoas"></div>
         <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
       </div>
 
@@ -1084,7 +1095,7 @@
     <div class="fg-row">
       <div class="fg"><label>Área</label><select id="mp-area"></select></div>
       <div class="fg"><label>Responsável</label>
-        <select id="mp-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+        <select id="mp-resp"><option>Cecília</option><option>Thallys</option></select>
       </div>
     </div>
     <div class="fg-row">
@@ -1216,11 +1227,26 @@
     </div>
     <div class="fg-row">
       <div class="fg"><label>Responsável</label>
-        <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+        <div class="mt-pills" id="mt-resp-pills">
+          <button type="button" data-r="Cecília" onclick="mtSetResp('Cecília')">Cecília</button>
+          <button type="button" data-r="Thallys" onclick="mtSetResp('Thallys')">Thallys</button>
+        </div>
+        <input type="hidden" id="mt-resp">
       </div>
       <div class="fg"><label>Tipo</label>
         <select id="mt-tipo" onchange="mtRecalcProjetoAuto();mtAtualizarHintFatal()"></select>
       </div>
+    </div>
+    <div class="fg mt-rev-bloco">
+      <label>Revisão ou aprovação <span class="mt-rev-por" id="mt-rev-por"></span></label>
+      <div class="mt-pills mt-pills-rev" id="mt-rev-pills">
+        <button type="button" data-v="" onclick="mtSetRev('')">Não precisa</button>
+        <button type="button" data-v="revisar" onclick="mtSetRev('revisar')">Revisar</button>
+        <button type="button" data-v="aprovar" onclick="mtSetRev('aprovar')">Aprovar</button>
+        <button type="button" data-v="ambos" onclick="mtSetRev('ambos')">Revisar e aprovar</button>
+      </div>
+      <input type="hidden" id="mt-rev">
+      <div class="mt-conc-hint" id="mt-rev-hint"></div>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Cliente (opcional)</label>
@@ -1231,7 +1257,14 @@
       </div>
     </div>
     <div class="fg-row">
-      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()"></div>
+      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label>
+        <div class="mt-datas">
+          <button type="button" onclick="mtDataRapida('hoje')">Hoje</button>
+          <button type="button" onclick="mtDataRapida('amanha')">Amanhã</button>
+          <button type="button" onclick="mtDataRapida('sexta')">Sexta</button>
+        </div>
+        <input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()">
+      </div>
       <div class="fg"><label>Hora</label><input type="time" id="mt-hora"></div>
     </div>
     <div class="fg" id="mt-fatal-wrap">
@@ -1304,7 +1337,7 @@
       <div class="fg"><label>Entregar até (interno)</label><input type="date" id="mpz-interno"></div>
     </div>
     <div class="fg"><label>Responsável</label>
-      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option></select>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-prazo')">Cancelar</button>

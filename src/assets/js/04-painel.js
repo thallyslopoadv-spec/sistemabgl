@@ -2,7 +2,64 @@
 // ═══════════════════════════════════════════════════════════
 //  DASHBOARD
 // ═══════════════════════════════════════════════════════════
+// Card de destaque da tela inicial: o próximo prazo fatal em aberto.
+// Fica no topo, antes do calendário, para responder de cara "o que não pode passar".
+function renderPrazoFatalHero(){
+  const el=document.getElementById('dash-prazo-fatal');
+  if(!el)return;
+  const hoje=hojeISO();
+  const prox=DB.tarefas
+    .filter(t=>t.status!=='concluido'&&t.prazoFatal&&t.prazoFatal>=hoje)
+    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:a.prazoFatal>b.prazoFatal?1:0)[0];
+  if(!prox){
+    el.innerHTML=`<div class="pf-hero vazio"><div class="pf-ico"><i class="ti ti-shield-check"></i></div>
+      <div><div class="pf-lbl">Próximo prazo fatal</div><div class="pf-vazio-txt">Nenhum prazo fatal em aberto. Tudo sob controle.</div></div></div>`;
+    return;
+  }
+  const dd=diasEntreISO(hoje,prox.prazoFatal);
+  const p=processoPorId(prox.pid), cli=nomeCliente(prox.cid);
+  const ctx=p?esc(rotuloProcesso(p)):(cli?esc(cli):'');
+  const urg=dd<=2?'urg':dd<=5?'alerta':'';
+  el.innerHTML=`<div class="pf-hero ${urg}" onclick="navegarPara('rotina')" title="Abrir a Rotina">
+    <div class="pf-contagem"><span class="pf-num">${dd}</span><span class="pf-dias">${dd===1?'dia':'dias'}</span></div>
+    <div class="pf-sep"></div>
+    <div class="pf-corpo">
+      <div class="pf-lbl">Próximo prazo fatal</div>
+      <div class="pf-tit">${esc(prox.titulo)}</div>
+      <div class="pf-meta">${ctx?ctx+' · ':''}${fmtDataSem(prox.prazoFatal)}${prox.resp?' · '+esc(prox.resp):''}</div>
+    </div>
+    <i class="ti ti-chevron-right pf-ir"></i>
+  </div>`;
+}
+// Card da visão geral com o que aguarda a revisão/aprovação do sócio logado.
+// Fica logo abaixo do próximo prazo fatal e some quando não há nada pendente.
+function renderAprovacoesHero(){
+  const el=document.getElementById('dash-aprovar');
+  if(!el)return;
+  const lista=(typeof tarefasPendentesRevisao==='function'?tarefasPendentesRevisao():[])
+    .sort((a,b)=>(a.prazo||'9999')<(b.prazo||'9999')?-1:1);
+  if(!lista.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='';
+  el.innerHTML=`<div class="aprov-card">
+    <div class="aprov-head"><span class="aprov-tit"><i class="ti ti-eye-check"></i> Para você revisar ou aprovar</span><span class="aprov-ct">${lista.length}</span></div>
+    <div class="aprov-lista">${lista.map(aprovRowHTML).join('')}</div>
+  </div>`;
+}
+function aprovRowHTML(t){
+  const prox=revProximaAcao(t);
+  const cli=nomeCliente(t.cid);
+  const pi=prazoInfo(t);
+  return `<div class="aprov-row">
+    <div class="aprov-main" onclick="abrirModalTarefa('${t.id}',null)">
+      <div class="aprov-nm">${esc(t.titulo)}</div>
+      <div class="aprov-sub">${esc(t.resp)}${cli?' · '+esc(cli):''} · <span class="prazo-badge ${pi.cls}">${pi.txt}</span></div>
+    </div>
+    <button class="aprov-btn" onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')">${prox==='aprovar'?'Aprovar':'Revisar'}</button>
+  </div>`;
+}
 function renderDashboard(){
+  renderPrazoFatalHero();
+  renderAprovacoesHero();
   const ativosExt=DB.clientes.filter(c=>c.tipo==='externo'&&c.status==='Ativo');
   const arq=DB.clientes.filter(c=>c.status==='Arquivado');
   const socios=DB.clientes.filter(c=>c.tipo==='pessoal');

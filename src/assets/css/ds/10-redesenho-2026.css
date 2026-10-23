@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════════════════════
+   REDESENHO 2026 — destaque de prazo fatal, stories da rotina,
+   linha do tempo semanal e pills do modal de tarefa.
+   Carregado por último: tem prioridade sobre as camadas anteriores.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── TELA INICIAL: card do próximo prazo fatal ─── */
+.pf-hero{display:flex;align-items:center;gap:20px;margin-bottom:20px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:var(--cream);
+  border-radius:var(--r);padding:20px 24px;box-shadow:var(--shadow-card);cursor:pointer;
+  border:1px solid var(--navy-line);transition:transform .18s,box-shadow .18s}
+.pf-hero:hover{transform:translateY(-1px);box-shadow:0 10px 26px -14px rgba(8,16,30,.55)}
+.pf-hero.alerta{background:linear-gradient(135deg,#6a3a12,#3f2610)}
+.pf-hero.urg{background:linear-gradient(135deg,#7a2626,#431515)}
+.pf-contagem{display:flex;flex-direction:column;align-items:center;line-height:1;min-width:76px}
+.pf-num{font-family:var(--font-serif);font-size:56px;font-weight:600}
+.pf-dias{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.75;margin-top:2px}
+.pf-sep{width:1px;align-self:stretch;background:rgba(244,239,230,.22)}
+.pf-corpo{flex:1;min-width:0}
+.pf-lbl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.72;margin-bottom:6px}
+.pf-tit{font-family:var(--font-serif);font-size:22px;font-weight:600;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-meta{font-size:13px;opacity:.82;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-ir{font-size:22px;opacity:.6;flex-shrink:0}
+.pf-hero.vazio{background:var(--surface);color:var(--t2);border:1px solid var(--border);cursor:default}
+.pf-hero.vazio:hover{transform:none;box-shadow:var(--shadow-card)}
+.pf-ico{width:46px;height:46px;border-radius:50%;background:var(--green-bg);color:var(--green-hi);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.pf-vazio-txt{font-size:14px;color:var(--t2);margin-top:3px}
+
+/* ─── ROTINA: linha do tempo horizontal dos prazos fatais da semana ─── */
+.rot-fatais{margin-bottom:18px}
+.rot-fatais-head{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);
+  font-weight:600;margin-bottom:12px}
+.rot-fatais-trilha{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px}
+.rot-fatal-pt{flex:1 1 0;min-width:120px;position:relative;background:none;border:none;cursor:pointer;
+  text-align:left;padding:0 14px 0 0;display:flex;flex-direction:column;gap:3px}
+.rfp-marca{width:13px;height:13px;border-radius:50%;background:var(--surface);
+  border:2px solid var(--silver);margin-bottom:9px}
+.rot-fatal-pt.urg .rfp-marca{background:var(--red);border-color:var(--red)}
+.rot-fatal-liga{flex:0 0 18px;height:2px;background:var(--border-med);margin-top:5px;align-self:flex-start}
+.rfp-dia{font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--navy);line-height:1}
+.rfp-dia small{font-family:var(--font-sans);font-size:11px;font-weight:600;color:var(--t3);
+  text-transform:uppercase;margin-left:5px;letter-spacing:.05em}
+.rot-fatal-pt.urg .rfp-dia{color:var(--red-hi)}
+.rfp-tt{font-size:13px;font-weight:600;color:var(--t);line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rfp-sub{font-size:11.5px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rot-fatais-vazio{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--t3);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px}
+.rot-fatais-vazio i{color:var(--green-hi);font-size:17px}
+
+/* ─── ROTINA: stories (seletor de pessoas em círculos) ─── */
+.rot-stories{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.rot-story{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;padding:0;width:72px}
+.rot-story-ring{width:62px;height:62px;border-radius:50%;padding:3px;display:flex;
+  align-items:center;justify-content:center;position:relative;
+  background:var(--border-med);transition:transform .15s}
+.rot-story.on .rot-story-ring{background:linear-gradient(135deg,var(--navy),var(--navy-soft))}
+.rot-story-ring.alerta{background:linear-gradient(135deg,var(--red),var(--amber))}
+.rot-story:hover .rot-story-ring{transform:scale(1.04)}
+.rot-story-av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:19px;font-weight:700;border:3px solid var(--cream)}
+.rot-story-dot{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;
+  background:var(--red);border:2px solid var(--cream)}
+.rot-story-nm{font-size:12.5px;font-weight:600;color:var(--t);max-width:72px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rot-story.on .rot-story-nm{color:var(--navy)}
+.rot-story-n{font-size:11px;color:var(--t3);font-weight:600;margin-top:-2px}
+
+/* ─── ROTINA: chip de revisão/aprovação nas linhas da agenda ─── */
+.ag-chip.rev-pend{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.3)}
+.ag-chip.rev-pend.rev-eu{cursor:pointer}
+.ag-chip.rev-pend.rev-eu:hover{background:var(--amber);color:#fff}
+.ag-chip.rev-ok{background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.3)}
+
+/* ─── MODAL DE TAREFA: pills (responsável, revisão) e atalhos de data ─── */
+.mt-pills{display:flex;gap:8px;flex-wrap:wrap}
+.mt-pills button{flex:1 1 auto;min-width:92px;padding:10px 14px;border-radius:var(--rs);
+  border:1px solid var(--border-hi);background:var(--surface);color:var(--t2);
+  font-family:var(--font-sans);font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s}
+.mt-pills button:hover{border-color:var(--navy);color:var(--navy)}
+.mt-pills button.on{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.mt-pills-rev button{flex:1 1 auto;min-width:0}
+.mt-pills-rev button.on{background:var(--navy-soft);border-color:var(--navy-soft)}
+.mt-rev-bloco{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:16px}
+.mt-rev-por{font-weight:500;color:var(--t3);font-size:12px;text-transform:none;letter-spacing:0}
+.mt-datas{display:flex;gap:6px;margin-bottom:8px}
+.mt-datas button{padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--border-hi);
+  background:var(--surface);color:var(--t2);font-family:var(--font-sans);font-size:12.5px;
+  font-weight:600;cursor:pointer;transition:.15s}
+.mt-datas button:hover{border-color:var(--navy);color:var(--navy)}
+
+/* ─── VISÃO GERAL: card "para revisar ou aprovar" ─── */
+.aprov-card{margin-bottom:20px;background:var(--surface);border:1px solid rgba(169,116,27,.32);
+  border-left:3px solid var(--amber);border-radius:var(--r);box-shadow:var(--shadow-card);overflow:hidden}
+.aprov-head{display:flex;align-items:center;gap:10px;padding:13px 18px;background:var(--amber-bg);
+  border-bottom:1px solid rgba(169,116,27,.2)}
+.aprov-tit{font-weight:600;font-size:13.5px;color:var(--amber-hi);display:flex;align-items:center;gap:7px}
+.aprov-tit i{font-size:16px}
+.aprov-ct{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--amber);
+  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.aprov-lista{display:flex;flex-direction:column}
+.aprov-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--border)}
+.aprov-row:first-child{border-top:none}
+.aprov-main{flex:1;min-width:0;cursor:pointer}
+.aprov-nm{font-size:14px;font-weight:600;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aprov-sub{font-size:12px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aprov-btn{flex-shrink:0;padding:8px 16px;border-radius:var(--rs);border:1px solid var(--amber);
+  background:var(--amber);color:#fff;font-family:var(--font-sans);font-size:13px;font-weight:600;
+  cursor:pointer;transition:.15s}
+.aprov-btn:hover{background:var(--amber-hi);border-color:var(--amber-hi)}
+
+/* ─── NOTIFICAÇÕES: títulos de seção ─── */
+.notif-sec{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);
+  font-weight:600;margin:14px 0 6px}
+.notif-sec:first-child{margin-top:0}
+
+/* ─── RESPONSIVO (celular) ─── */
+@media(max-width:720px){
+  .pf-hero{gap:14px;padding:16px 18px}
+  .pf-num{font-size:44px}
+  .pf-tit{font-size:18px}
+  .pf-contagem{min-width:60px}
+  .rot-stories{gap:14px;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .rot-story{width:64px;flex:0 0 auto}
+  .rot-story-ring{width:56px;height:56px}
+  .rot-fatal-pt{min-width:108px}
+  .mt-pills button{min-width:0;flex:1 1 40%}
+  .mt-pills-rev{flex-wrap:wrap}
+  .mt-pills-rev button{flex:1 1 45%}
+  .aprov-row{flex-wrap:wrap}
+  .aprov-btn{flex:1 1 100%}
+}

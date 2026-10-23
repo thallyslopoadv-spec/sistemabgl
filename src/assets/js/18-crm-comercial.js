@@ -979,7 +979,7 @@ function registrarContratoDoLead(lead,mod,objeto){
     };
     DB.clientes.push(c);
   }
-  DB.tarefas.push({id:uid(),cid:c.id,titulo:existente?'Elaborar contrato — '+objeto:'Elaborar contrato e petição inicial',tipo:'inicial',resp:'Escritório',status:'pendente',prazo:''});
+  DB.tarefas.push({id:uid(),cid:c.id,titulo:existente?'Elaborar contrato — '+objeto:'Elaborar contrato e petição inicial',tipo:'inicial',resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'),status:'pendente',prazo:''});
   return {c,existente:!!existente};
 }
 function fecharContrato(){

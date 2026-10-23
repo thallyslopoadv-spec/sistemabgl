@@ -290,7 +290,7 @@ function novaTarefaProcesso(pid){
   const p=processoPorId(pid);if(!p)return;
   abrirModalTarefa(null,p.cid||null);
   document.getElementById('mt-proc').value=pid;
-  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  if(p.resp&&RESP.includes(p.resp))mtSetResp(p.resp);
   mtAtualizarHintFatal();
 }
 function novaAudienciaProcesso(pid){
@@ -298,7 +298,7 @@ function novaAudienciaProcesso(pid){
   abrirNovaAudiencia(hojeISO());
   document.getElementById('mt-proc').value=pid;
   if(p.cid)document.getElementById('mt-cli').value=p.cid;
-  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  if(p.resp&&RESP.includes(p.resp))mtSetResp(p.resp);
   document.getElementById('mt-prazo').value='';
   document.getElementById('mt-titulo-in').value='Audiência — '+(p.ativo||'')+' × '+(p.passivo||'');
   mtAtualizarHintFatal();
@@ -384,7 +384,7 @@ function abrirModalPrazo(o){
   document.getElementById('mpz-ato').value=rg?rg.ato:(pub?'Manifestação':'');
   document.getElementById('mpz-disp').value=pub?pub.data:hojeISO();
   document.getElementById('mpz-dias').value=rg?rg.dias:(pub?5:'');
-  document.getElementById('mpz-resp').value=tAuto&&RESP.includes(tAuto.resp)?tAuto.resp:pub?respDaPublicacao(p,pub):(p&&p.resp&&RESP.includes(p.resp))?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.getElementById('mpz-resp').value=tAuto&&RESP.includes(tAuto.resp)?tAuto.resp:pub?respDaPublicacao(p,pub):(p&&p.resp&&RESP.includes(p.resp))?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
   document.querySelector('#overlay-prazo h3').textContent=o.ajustar?'Ajustar prazo calculado':'Novo prazo';
   document.querySelector('#overlay-prazo .btn-confirm').textContent=o.ajustar?'Salvar prazo corrigido':'Criar prazo na Rotina';
   mpzContagem(rg&&rg.contagem==='corridos'?'corridos':'uteis');
@@ -620,7 +620,7 @@ function oabsDaPub(x){
 function respDaPublicacao(p,pub){
   if(p&&p.resp&&RESP.includes(p.resp))return p.resp;
   for(const k of oabsDaPub(pub)){const s=socioDaOab(k);if(s)return s;}
-  return 'Escritório';
+  return EU&&RESP.includes(EU.nome)?EU.nome:'Cecília';
 }
 
 // ─── PARTES A PARTIR DO TEXTO ─────────────────────────────

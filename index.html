@@ -2003,6 +2003,142 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
 @media (prefers-reduced-motion:reduce){
   .mod-chev{transition:none}
 }
+/* ═══════════════════════════════════════════════════════════
+   REDESENHO 2026 — destaque de prazo fatal, stories da rotina,
+   linha do tempo semanal e pills do modal de tarefa.
+   Carregado por último: tem prioridade sobre as camadas anteriores.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── TELA INICIAL: card do próximo prazo fatal ─── */
+.pf-hero{display:flex;align-items:center;gap:20px;margin-bottom:20px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:var(--cream);
+  border-radius:var(--r);padding:20px 24px;box-shadow:var(--shadow-card);cursor:pointer;
+  border:1px solid var(--navy-line);transition:transform .18s,box-shadow .18s}
+.pf-hero:hover{transform:translateY(-1px);box-shadow:0 10px 26px -14px rgba(8,16,30,.55)}
+.pf-hero.alerta{background:linear-gradient(135deg,#6a3a12,#3f2610)}
+.pf-hero.urg{background:linear-gradient(135deg,#7a2626,#431515)}
+.pf-contagem{display:flex;flex-direction:column;align-items:center;line-height:1;min-width:76px}
+.pf-num{font-family:var(--font-serif);font-size:56px;font-weight:600}
+.pf-dias{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.75;margin-top:2px}
+.pf-sep{width:1px;align-self:stretch;background:rgba(244,239,230,.22)}
+.pf-corpo{flex:1;min-width:0}
+.pf-lbl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.72;margin-bottom:6px}
+.pf-tit{font-family:var(--font-serif);font-size:22px;font-weight:600;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-meta{font-size:13px;opacity:.82;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-ir{font-size:22px;opacity:.6;flex-shrink:0}
+.pf-hero.vazio{background:var(--surface);color:var(--t2);border:1px solid var(--border);cursor:default}
+.pf-hero.vazio:hover{transform:none;box-shadow:var(--shadow-card)}
+.pf-ico{width:46px;height:46px;border-radius:50%;background:var(--green-bg);color:var(--green-hi);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.pf-vazio-txt{font-size:14px;color:var(--t2);margin-top:3px}
+
+/* ─── ROTINA: linha do tempo horizontal dos prazos fatais da semana ─── */
+.rot-fatais{margin-bottom:18px}
+.rot-fatais-head{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);
+  font-weight:600;margin-bottom:12px}
+.rot-fatais-trilha{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px}
+.rot-fatal-pt{flex:1 1 0;min-width:120px;position:relative;background:none;border:none;cursor:pointer;
+  text-align:left;padding:0 14px 0 0;display:flex;flex-direction:column;gap:3px}
+.rfp-marca{width:13px;height:13px;border-radius:50%;background:var(--surface);
+  border:2px solid var(--silver);margin-bottom:9px}
+.rot-fatal-pt.urg .rfp-marca{background:var(--red);border-color:var(--red)}
+.rot-fatal-liga{flex:0 0 18px;height:2px;background:var(--border-med);margin-top:5px;align-self:flex-start}
+.rfp-dia{font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--navy);line-height:1}
+.rfp-dia small{font-family:var(--font-sans);font-size:11px;font-weight:600;color:var(--t3);
+  text-transform:uppercase;margin-left:5px;letter-spacing:.05em}
+.rot-fatal-pt.urg .rfp-dia{color:var(--red-hi)}
+.rfp-tt{font-size:13px;font-weight:600;color:var(--t);line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rfp-sub{font-size:11.5px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rot-fatais-vazio{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--t3);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px}
+.rot-fatais-vazio i{color:var(--green-hi);font-size:17px}
+
+/* ─── ROTINA: stories (seletor de pessoas em círculos) ─── */
+.rot-stories{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.rot-story{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;padding:0;width:72px}
+.rot-story-ring{width:62px;height:62px;border-radius:50%;padding:3px;display:flex;
+  align-items:center;justify-content:center;position:relative;
+  background:var(--border-med);transition:transform .15s}
+.rot-story.on .rot-story-ring{background:linear-gradient(135deg,var(--navy),var(--navy-soft))}
+.rot-story-ring.alerta{background:linear-gradient(135deg,var(--red),var(--amber))}
+.rot-story:hover .rot-story-ring{transform:scale(1.04)}
+.rot-story-av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:19px;font-weight:700;border:3px solid var(--cream)}
+.rot-story-dot{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;
+  background:var(--red);border:2px solid var(--cream)}
+.rot-story-nm{font-size:12.5px;font-weight:600;color:var(--t);max-width:72px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rot-story.on .rot-story-nm{color:var(--navy)}
+.rot-story-n{font-size:11px;color:var(--t3);font-weight:600;margin-top:-2px}
+
+/* ─── ROTINA: chip de revisão/aprovação nas linhas da agenda ─── */
+.ag-chip.rev-pend{background:var(--amber-bg);color:var(--amber-hi);border:1px solid rgba(169,116,27,.3)}
+.ag-chip.rev-pend.rev-eu{cursor:pointer}
+.ag-chip.rev-pend.rev-eu:hover{background:var(--amber);color:#fff}
+.ag-chip.rev-ok{background:var(--green-bg);color:var(--green-hi);border:1px solid rgba(47,125,63,.3)}
+
+/* ─── MODAL DE TAREFA: pills (responsável, revisão) e atalhos de data ─── */
+.mt-pills{display:flex;gap:8px;flex-wrap:wrap}
+.mt-pills button{flex:1 1 auto;min-width:92px;padding:10px 14px;border-radius:var(--rs);
+  border:1px solid var(--border-hi);background:var(--surface);color:var(--t2);
+  font-family:var(--font-sans);font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s}
+.mt-pills button:hover{border-color:var(--navy);color:var(--navy)}
+.mt-pills button.on{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.mt-pills-rev button{flex:1 1 auto;min-width:0}
+.mt-pills-rev button.on{background:var(--navy-soft);border-color:var(--navy-soft)}
+.mt-rev-bloco{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:16px}
+.mt-rev-por{font-weight:500;color:var(--t3);font-size:12px;text-transform:none;letter-spacing:0}
+.mt-datas{display:flex;gap:6px;margin-bottom:8px}
+.mt-datas button{padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--border-hi);
+  background:var(--surface);color:var(--t2);font-family:var(--font-sans);font-size:12.5px;
+  font-weight:600;cursor:pointer;transition:.15s}
+.mt-datas button:hover{border-color:var(--navy);color:var(--navy)}
+
+/* ─── VISÃO GERAL: card "para revisar ou aprovar" ─── */
+.aprov-card{margin-bottom:20px;background:var(--surface);border:1px solid rgba(169,116,27,.32);
+  border-left:3px solid var(--amber);border-radius:var(--r);box-shadow:var(--shadow-card);overflow:hidden}
+.aprov-head{display:flex;align-items:center;gap:10px;padding:13px 18px;background:var(--amber-bg);
+  border-bottom:1px solid rgba(169,116,27,.2)}
+.aprov-tit{font-weight:600;font-size:13.5px;color:var(--amber-hi);display:flex;align-items:center;gap:7px}
+.aprov-tit i{font-size:16px}
+.aprov-ct{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--amber);
+  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.aprov-lista{display:flex;flex-direction:column}
+.aprov-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--border)}
+.aprov-row:first-child{border-top:none}
+.aprov-main{flex:1;min-width:0;cursor:pointer}
+.aprov-nm{font-size:14px;font-weight:600;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aprov-sub{font-size:12px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aprov-btn{flex-shrink:0;padding:8px 16px;border-radius:var(--rs);border:1px solid var(--amber);
+  background:var(--amber);color:#fff;font-family:var(--font-sans);font-size:13px;font-weight:600;
+  cursor:pointer;transition:.15s}
+.aprov-btn:hover{background:var(--amber-hi);border-color:var(--amber-hi)}
+
+/* ─── NOTIFICAÇÕES: títulos de seção ─── */
+.notif-sec{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);
+  font-weight:600;margin:14px 0 6px}
+.notif-sec:first-child{margin-top:0}
+
+/* ─── RESPONSIVO (celular) ─── */
+@media(max-width:720px){
+  .pf-hero{gap:14px;padding:16px 18px}
+  .pf-num{font-size:44px}
+  .pf-tit{font-size:18px}
+  .pf-contagem{min-width:60px}
+  .rot-stories{gap:14px;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .rot-story{width:64px;flex:0 0 auto}
+  .rot-story-ring{width:56px;height:56px}
+  .rot-fatal-pt{min-width:108px}
+  .mt-pills button{min-width:0;flex:1 1 40%}
+  .mt-pills-rev{flex-wrap:wrap}
+  .mt-pills-rev button{flex:1 1 45%}
+  .aprov-row{flex-wrap:wrap}
+  .aprov-btn{flex:1 1 100%}
+}
 </style>
 </head>
 <body>
@@ -2104,6 +2240,12 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
         <p id="greeting-p">Resumo do escritório</p>
         <p class="greeting-verse" id="greeting-verse"></p>
       </div>
+
+      <!-- destaque: próximo prazo fatal (vem antes do calendário) -->
+      <div id="dash-prazo-fatal"></div>
+
+      <!-- o que está pendente da sua revisão/aprovação (escondido quando vazio) -->
+      <div id="dash-aprovar" style="display:none"></div>
 
       <div class="modulo-card agenda-destaque" style="margin-bottom:20px">
         <div class="card-head">
@@ -2811,6 +2953,12 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
         <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
       </div>
 
+      <!-- linha do tempo horizontal dos prazos fatais da semana -->
+      <div class="rot-fatais" id="rot-fatais"></div>
+
+      <!-- stories: um círculo por sócio; clicar filtra a rotina para as tarefas dele -->
+      <div class="rot-stories" id="rot-pessoas"></div>
+
       <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
       <div class="rot-placar" id="rotina-stats"></div>
 
@@ -2833,7 +2981,6 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
           <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
           <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
         </div>
-        <div class="rot-pessoas" id="rot-pessoas"></div>
         <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
       </div>
 
@@ -3058,7 +3205,7 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
     <div class="fg-row">
       <div class="fg"><label>Área</label><select id="mp-area"></select></div>
       <div class="fg"><label>Responsável</label>
-        <select id="mp-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+        <select id="mp-resp"><option>Cecília</option><option>Thallys</option></select>
       </div>
     </div>
     <div class="fg-row">
@@ -3190,11 +3337,26 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
     </div>
     <div class="fg-row">
       <div class="fg"><label>Responsável</label>
-        <select id="mt-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+        <div class="mt-pills" id="mt-resp-pills">
+          <button type="button" data-r="Cecília" onclick="mtSetResp('Cecília')">Cecília</button>
+          <button type="button" data-r="Thallys" onclick="mtSetResp('Thallys')">Thallys</button>
+        </div>
+        <input type="hidden" id="mt-resp">
       </div>
       <div class="fg"><label>Tipo</label>
         <select id="mt-tipo" onchange="mtRecalcProjetoAuto();mtAtualizarHintFatal()"></select>
       </div>
+    </div>
+    <div class="fg mt-rev-bloco">
+      <label>Revisão ou aprovação <span class="mt-rev-por" id="mt-rev-por"></span></label>
+      <div class="mt-pills mt-pills-rev" id="mt-rev-pills">
+        <button type="button" data-v="" onclick="mtSetRev('')">Não precisa</button>
+        <button type="button" data-v="revisar" onclick="mtSetRev('revisar')">Revisar</button>
+        <button type="button" data-v="aprovar" onclick="mtSetRev('aprovar')">Aprovar</button>
+        <button type="button" data-v="ambos" onclick="mtSetRev('ambos')">Revisar e aprovar</button>
+      </div>
+      <input type="hidden" id="mt-rev">
+      <div class="mt-conc-hint" id="mt-rev-hint"></div>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Cliente (opcional)</label>
@@ -3205,7 +3367,14 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       </div>
     </div>
     <div class="fg-row">
-      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label><input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()"></div>
+      <div class="fg"><label id="mt-prazo-lbl">Prazo (data de entrega)</label>
+        <div class="mt-datas">
+          <button type="button" onclick="mtDataRapida('hoje')">Hoje</button>
+          <button type="button" onclick="mtDataRapida('amanha')">Amanhã</button>
+          <button type="button" onclick="mtDataRapida('sexta')">Sexta</button>
+        </div>
+        <input type="date" id="mt-prazo" onchange="mtAtualizarHintConclusao();mtAtualizarHintFatal()">
+      </div>
       <div class="fg"><label>Hora</label><input type="time" id="mt-hora"></div>
     </div>
     <div class="fg" id="mt-fatal-wrap">
@@ -3278,7 +3447,7 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       <div class="fg"><label>Entregar até (interno)</label><input type="date" id="mpz-interno"></div>
     </div>
     <div class="fg"><label>Responsável</label>
-      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option><option>Cecília e Thallys</option><option>Escritório</option></select>
+      <select id="mpz-resp"><option>Cecília</option><option>Thallys</option></select>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fecharOverlay('overlay-prazo')">Cancelar</button>
@@ -4768,15 +4937,69 @@ function fecharOverlay(id){document.getElementById(id).classList.remove('open')}
 function abrirOverlay(id){document.getElementById(id).classList.add('open')}
 
 // ─── TAREFAS / ROTINA ─────────────────────────────────────
-// "Cecília e Thallys" é usado quando a execução é conjunta (projetos a quatro mãos).
-// RESP_CONTEUDO mantém o comercial exatamente como era: pauta de conteúdo continua
-// tendo um único dono.
-const RESP_DUPLA='Cecília e Thallys';
-const RESP=['Cecília','Thallys',RESP_DUPLA,'Escritório'];
-const RESP_CONTEUDO=['Cecília','Thallys','Escritório'];
-// cor e sigla do avatar de um responsável (o do escritório tem ícone próprio)
+// O escritório tem dois sócios: Cecília e Thallys. Toda tarefa tem UM
+// responsável (quem executa) e, opcionalmente, pede que o OUTRO sócio
+// revise e/ou aprove. Não há mais "Dupla" nem "Escritório" como opções:
+// RESP_DUPLA e 'Escritório' permanecem só para ler dados antigos até a
+// migração (migrarResponsaveis) convertê-los.
+const RESP_DUPLA='Cecília e Thallys';          // legado (dados anteriores à migração)
+const RESP=['Cecília','Thallys'];
+const RESP_CONTEUDO=['Cecília','Thallys','Escritório'];  // comercial: pauta de conteúdo, não mexida aqui
+// o outro sócio (a quem cabe revisar/aprovar a tarefa do primeiro)
+function outroSocio(r){return r==='Cecília'?'Thallys':r==='Thallys'?'Cecília':''}
+// cor e sigla do avatar de um responsável (ícones próprios para os valores legados)
 function corResp(r){return r==='Escritório'?['#e6eaf2','#16243d']:r===RESP_DUPLA?['#efe6f3','#5c3f7e']:corDe(r)}
 function avatarResp(r){return r==='Escritório'?'<i class="ti ti-building"></i>':r===RESP_DUPLA?'C+T':iniciais(r)}
+
+// ─── REVISÃO / APROVAÇÃO PELO OUTRO SÓCIO ──────────────────
+// Campos na tarefa:
+//   t.revPede    '' | 'revisar' | 'aprovar' | 'ambos'  (o que se pede do outro sócio)
+//   t.revEstado  '' | 'revisado' | 'aprovado'          (até onde já foi)
+//   t.revEm      timestamp da última ação  · t.revPorQuem quem a fez
+// O revisor é sempre o outro sócio — com apenas duas pessoas, não há o que escolher.
+const REV_PEDE_LBL={revisar:'Revisar',aprovar:'Aprovar',ambos:'Revisar e aprovar'};
+function revisorDa(t){return outroSocio(t.resp)}
+// próxima ação que ainda falta do revisor ('revisar' | 'aprovar' | '' = nada pendente)
+function revProximaAcao(t){
+  if(!t||!t.revPede)return '';
+  if(t.revPede==='revisar')return t.revEstado==='revisado'?'':'revisar';
+  if(t.revPede==='aprovar')return t.revEstado==='aprovado'?'':'aprovar';
+  // 'ambos': primeiro revisar, depois aprovar
+  if(t.revEstado==='aprovado')return '';
+  return t.revEstado==='revisado'?'aprovar':'revisar';
+}
+function revEstadoLbl(t){
+  if(!t||!t.revPede)return '';
+  const quem=revisorDa(t);
+  const prox=revProximaAcao(t);
+  if(!prox)return (t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+t.revPorQuem:'');
+  return (prox==='aprovar'?'Aguarda aprovação de ':'Aguarda revisão de ')+quem;
+}
+function marcarRevisao(id,acao){
+  const t=DB.tarefas.find(x=>x.id===id);if(!t||!t.revPede)return;
+  const prox=revProximaAcao(t);
+  if(acao!==prox)return;
+  t.revEstado=acao==='aprovar'?'aprovado':'revisado';
+  t.revEm=Date.now();
+  t.revPorQuem=EU&&RESP.includes(EU.nome)?EU.nome:revisorDa(t);
+  salvarDB();refreshUI();
+  mostrarToast((acao==='aprovar'?'Aprovada':'Revisada')+': '+t.titulo);
+}
+// Converte dados antigos (resp 'Dupla'/'Escritório' e quaisquer valores fora da
+// lista) para o novo modelo de dois sócios. Roda uma vez por base (flag respV2).
+function migrarResponsaveis(){
+  if(!DB||DB.respV2)return;
+  (DB.tarefas||[]).forEach(t=>{
+    if(t.resp===RESP_DUPLA){                       // antes era execução conjunta
+      t.resp='Cecília';                            //   → Cecília conduz
+      if(!t.revPede){t.revPede='aprovar';}         //   → Thallys aprova
+    }else if(!RESP.includes(t.resp)){              // 'Escritório' e outros órfãos
+      t.resp='Thallys';
+    }
+  });
+  DB.respV2=true;
+  if(!MODO_OFFLINE)salvarDB();
+}
 // tipos de tarefa agora vivem em DB.tiposTarefa (editável em Configurações)
 function tiposTarefa(){return DB.tiposTarefa&&DB.tiposTarefa.length?DB.tiposTarefa:SEED_TIPOS_TAREFA}
 function tipoInfo(key){return tiposTarefa().find(x=>x.key===key)||{key,lbl:key||'—',cor:'#828b9c'}}
@@ -4974,22 +5197,46 @@ function prazoInfo(t){
 function tarefasAtrasadas(){
   return DB.tarefas.filter(t=>t.status!=='concluido'&&t.prazo&&t.prazo<hojeISO());
 }
+// tarefas que aguardam a revisão/aprovação de uma pessoa (o revisor é o outro sócio).
+// Sem argumento, usa o sócio logado (EU) — é "o que está na mesa de cada um".
+function tarefasPendentesRevisao(quem){
+  quem=quem||(EU&&EU.nome);
+  if(!quem)return [];
+  return DB.tarefas.filter(t=>t.revPede&&revProximaAcao(t)&&revisorDa(t)===quem);
+}
 function renderSino(){
   const n=tarefasAtrasadas().length;
+  const nRev=tarefasPendentesRevisao().length;   // pendentes da aprovação/revisão do sócio logado
   const nb=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.textContent=v>99?'99+':v;el.style.display=v>0?'inline-flex':'none';};
   nb('nav-rotina-badge',n);
   nb('nav-processos-badge',typeof pubsAnalisar==='function'&&DB?pubsAnalisar().length:0);
   const b=document.getElementById('sino-badge');
   if(!b)return;
-  if(n>0){b.textContent=n>99?'99+':n;b.style.display='flex';}
+  const total=n+nRev;
+  if(total>0){b.textContent=total>99?'99+':total;b.style.display='flex';}
   else{b.style.display='none';}
 }
 function abrirNotificacoes(){
   const atrasadas=tarefasAtrasadas().sort((a,b)=>a.prazo<b.prazo?-1:1);
-  document.getElementById('notif-sub').innerHTML=atrasadas.length
-    ?'<i class="ti ti-alert-triangle"></i> '+atrasadas.length+' tarefa'+(atrasadas.length>1?'s':'')+' com prazo vencido.'
-    :'Nenhuma tarefa atrasada no momento.';
-  document.getElementById('notif-lista').innerHTML=atrasadas.length?atrasadas.map(t=>{
+  const revisar=tarefasPendentesRevisao().sort((a,b)=>(a.prazo||'9999')<(b.prazo||'9999')?-1:1);
+  const avisos=[];
+  if(revisar.length)avisos.push('<i class="ti ti-eye-check"></i> '+revisar.length+' tarefa'+(revisar.length>1?'s':'')+' pendente'+(revisar.length>1?'s':'')+' da sua aprovação ou revisão.');
+  if(atrasadas.length)avisos.push('<i class="ti ti-alert-triangle"></i> '+atrasadas.length+' tarefa'+(atrasadas.length>1?'s':'')+' com prazo vencido.');
+  document.getElementById('notif-sub').innerHTML=avisos.length?avisos.join('<br>'):'Nada pendente no momento.';
+  // bloco de aprovação/revisão do sócio logado, acima das atrasadas
+  const blocoRev=revisar.length?('<div class="notif-sec">Para você revisar ou aprovar</div>'+revisar.map(t=>{
+    const prox=revProximaAcao(t);
+    const cli=t.cid?DB.clientes.find(c=>c.id===t.cid):null;
+    const pi=prazoInfo(t);
+    return `<div class="pend-row">
+      <span class="resp-chip" title="Responsável">${esc(t.resp)}</span>
+      <span class="pend-titulo">${esc(t.titulo)}${cli?' · <span style="color:var(--t3)">'+esc(cli.nome)+'</span>':''}</span>
+      <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
+      <button class="btn-sec" onclick="marcarRevisao('${t.id}','${prox}');abrirNotificacoes();" title="${prox==='aprovar'?'Aprovar':'Revisar'}">${prox==='aprovar'?'Aprovar':'Revisar'}</button>
+      <button class="btn-ico" onclick="fecharOverlay('overlay-notif');abrirModalTarefa('${t.id}',null)" title="Abrir tarefa"><i class="ti ti-pencil"></i></button>
+    </div>`;
+  }).join('')):'';
+  const blocoAtras=atrasadas.length?((revisar.length?'<div class="notif-sec">Prazos vencidos</div>':'')+atrasadas.map(t=>{
     const pi=prazoInfo(t);
     const cli=t.cid?DB.clientes.find(c=>c.id===t.cid):null;
     const stCls=t.status==='andamento'?'st-andamento':'st-pendente';
@@ -5000,7 +5247,8 @@ function abrirNotificacoes(){
       <span class="prazo-badge ${pi.cls}">${pi.txt}</span>
       <button class="btn-ico" onclick="fecharOverlay('overlay-notif');abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>
     </div>`;
-  }).join(''):'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nenhuma tarefa atrasada. Tudo em dia.</p>';
+  }).join('')):'';
+  document.getElementById('notif-lista').innerHTML=(blocoRev+blocoAtras)||'<p style="font-size:13.5px;color:var(--t3);padding:4px 0 8px">Nada pendente. Tudo em dia.</p>';
   abrirOverlay('overlay-notif');
 }
 function verificarAvisoDiario(){
@@ -5222,6 +5470,7 @@ function entrarApp(){
   carregarLeadsCivel();
   garantirEstruturaProcessos();
   garantirContratos();   // cópia offline / backup restaurado não passam pela migração do Gist
+  migrarResponsaveis();  // converte 'Dupla'/'Escritório' para o modelo de dois sócios
   if(reprocessarPublicacoesPendentes())salvarDB();
   aplicarIconeOlho();
   refreshUITudo();
@@ -5338,7 +5587,64 @@ function navegarPara(id){
 // ═══════════════════════════════════════════════════════════
 //  DASHBOARD
 // ═══════════════════════════════════════════════════════════
+// Card de destaque da tela inicial: o próximo prazo fatal em aberto.
+// Fica no topo, antes do calendário, para responder de cara "o que não pode passar".
+function renderPrazoFatalHero(){
+  const el=document.getElementById('dash-prazo-fatal');
+  if(!el)return;
+  const hoje=hojeISO();
+  const prox=DB.tarefas
+    .filter(t=>t.status!=='concluido'&&t.prazoFatal&&t.prazoFatal>=hoje)
+    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:a.prazoFatal>b.prazoFatal?1:0)[0];
+  if(!prox){
+    el.innerHTML=`<div class="pf-hero vazio"><div class="pf-ico"><i class="ti ti-shield-check"></i></div>
+      <div><div class="pf-lbl">Próximo prazo fatal</div><div class="pf-vazio-txt">Nenhum prazo fatal em aberto. Tudo sob controle.</div></div></div>`;
+    return;
+  }
+  const dd=diasEntreISO(hoje,prox.prazoFatal);
+  const p=processoPorId(prox.pid), cli=nomeCliente(prox.cid);
+  const ctx=p?esc(rotuloProcesso(p)):(cli?esc(cli):'');
+  const urg=dd<=2?'urg':dd<=5?'alerta':'';
+  el.innerHTML=`<div class="pf-hero ${urg}" onclick="navegarPara('rotina')" title="Abrir a Rotina">
+    <div class="pf-contagem"><span class="pf-num">${dd}</span><span class="pf-dias">${dd===1?'dia':'dias'}</span></div>
+    <div class="pf-sep"></div>
+    <div class="pf-corpo">
+      <div class="pf-lbl">Próximo prazo fatal</div>
+      <div class="pf-tit">${esc(prox.titulo)}</div>
+      <div class="pf-meta">${ctx?ctx+' · ':''}${fmtDataSem(prox.prazoFatal)}${prox.resp?' · '+esc(prox.resp):''}</div>
+    </div>
+    <i class="ti ti-chevron-right pf-ir"></i>
+  </div>`;
+}
+// Card da visão geral com o que aguarda a revisão/aprovação do sócio logado.
+// Fica logo abaixo do próximo prazo fatal e some quando não há nada pendente.
+function renderAprovacoesHero(){
+  const el=document.getElementById('dash-aprovar');
+  if(!el)return;
+  const lista=(typeof tarefasPendentesRevisao==='function'?tarefasPendentesRevisao():[])
+    .sort((a,b)=>(a.prazo||'9999')<(b.prazo||'9999')?-1:1);
+  if(!lista.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='';
+  el.innerHTML=`<div class="aprov-card">
+    <div class="aprov-head"><span class="aprov-tit"><i class="ti ti-eye-check"></i> Para você revisar ou aprovar</span><span class="aprov-ct">${lista.length}</span></div>
+    <div class="aprov-lista">${lista.map(aprovRowHTML).join('')}</div>
+  </div>`;
+}
+function aprovRowHTML(t){
+  const prox=revProximaAcao(t);
+  const cli=nomeCliente(t.cid);
+  const pi=prazoInfo(t);
+  return `<div class="aprov-row">
+    <div class="aprov-main" onclick="abrirModalTarefa('${t.id}',null)">
+      <div class="aprov-nm">${esc(t.titulo)}</div>
+      <div class="aprov-sub">${esc(t.resp)}${cli?' · '+esc(cli):''} · <span class="prazo-badge ${pi.cls}">${pi.txt}</span></div>
+    </div>
+    <button class="aprov-btn" onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')">${prox==='aprovar'?'Aprovar':'Revisar'}</button>
+  </div>`;
+}
 function renderDashboard(){
+  renderPrazoFatalHero();
+  renderAprovacoesHero();
   const ativosExt=DB.clientes.filter(c=>c.tipo==='externo'&&c.status==='Ativo');
   const arq=DB.clientes.filter(c=>c.status==='Arquivado');
   const socios=DB.clientes.filter(c=>c.tipo==='pessoal');
@@ -5821,7 +6127,7 @@ function novaTarefaProcesso(pid){
   const p=processoPorId(pid);if(!p)return;
   abrirModalTarefa(null,p.cid||null);
   document.getElementById('mt-proc').value=pid;
-  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  if(p.resp&&RESP.includes(p.resp))mtSetResp(p.resp);
   mtAtualizarHintFatal();
 }
 function novaAudienciaProcesso(pid){
@@ -5829,7 +6135,7 @@ function novaAudienciaProcesso(pid){
   abrirNovaAudiencia(hojeISO());
   document.getElementById('mt-proc').value=pid;
   if(p.cid)document.getElementById('mt-cli').value=p.cid;
-  if(p.resp&&RESP.includes(p.resp))document.getElementById('mt-resp').value=p.resp;
+  if(p.resp&&RESP.includes(p.resp))mtSetResp(p.resp);
   document.getElementById('mt-prazo').value='';
   document.getElementById('mt-titulo-in').value='Audiência — '+(p.ativo||'')+' × '+(p.passivo||'');
   mtAtualizarHintFatal();
@@ -5915,7 +6221,7 @@ function abrirModalPrazo(o){
   document.getElementById('mpz-ato').value=rg?rg.ato:(pub?'Manifestação':'');
   document.getElementById('mpz-disp').value=pub?pub.data:hojeISO();
   document.getElementById('mpz-dias').value=rg?rg.dias:(pub?5:'');
-  document.getElementById('mpz-resp').value=tAuto&&RESP.includes(tAuto.resp)?tAuto.resp:pub?respDaPublicacao(p,pub):(p&&p.resp&&RESP.includes(p.resp))?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.getElementById('mpz-resp').value=tAuto&&RESP.includes(tAuto.resp)?tAuto.resp:pub?respDaPublicacao(p,pub):(p&&p.resp&&RESP.includes(p.resp))?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
   document.querySelector('#overlay-prazo h3').textContent=o.ajustar?'Ajustar prazo calculado':'Novo prazo';
   document.querySelector('#overlay-prazo .btn-confirm').textContent=o.ajustar?'Salvar prazo corrigido':'Criar prazo na Rotina';
   mpzContagem(rg&&rg.contagem==='corridos'?'corridos':'uteis');
@@ -6151,7 +6457,7 @@ function oabsDaPub(x){
 function respDaPublicacao(p,pub){
   if(p&&p.resp&&RESP.includes(p.resp))return p.resp;
   for(const k of oabsDaPub(pub)){const s=socioDaOab(k);if(s)return s;}
-  return 'Escritório';
+  return EU&&RESP.includes(EU.nome)?EU.nome:'Cecília';
 }
 
 // ─── PARTES A PARTIR DO TEXTO ─────────────────────────────
@@ -7842,10 +8148,13 @@ function filtroHorizonte(h){
   if(rotinaModo()!=='agenda'){rotinaPref.modo='agenda';salvarPrefRotina();}
   renderRotina();
 }
-// tarefa conjunta (Cecília e Thallys) aparece para os dois
+// a tarefa aparece para o responsável; também para o outro sócio quando está
+// aguardando a revisão/aprovação dele (fica "na mesa" dos dois)
 function tarefaDaPessoa(t,p){
   if(p==='todos'||t.resp===p)return true;
-  return t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys');
+  if(t.resp===RESP_DUPLA&&(p==='Cecília'||p==='Thallys'))return true;  // dados legados
+  if(t.revPede&&revProximaAcao(t)&&revisorDa(t)===p)return true;
+  return false;
 }
 function tarefaCasaBusca(t,q){
   if(!q)return true;
@@ -7905,6 +8214,7 @@ function renderRotina(){
       r30.comPrazo?r30.dentroDoPrazo+' de '+r30.comPrazo+' no prazo'+(r30.adiadas?' · '+r30.adiadas+' adiada'+(r30.adiadas>1?'s':''):''):'nenhuma conclusão com prazo',false,
       `<div class="rp-meter"><span style="width:${pct||0}%;background:${corPct}"></span></div>`);
 
+  renderFataisSemana();
   renderAvisosRotina(pessoa);
   renderPessoasRotina(pessoa,hoje);
   renderRapidaRotina(pessoa);
@@ -7937,18 +8247,47 @@ function renderAvisosRotina(pessoa){
   }
   el.innerHTML=h;
 }
+// Seletor de pessoas em "stories" (círculos): clicar filtra a rotina para as
+// tarefas daquela pessoa — inclusive as que ela precisa revisar/aprovar.
 function renderPessoasRotina(pessoa,hoje){
   const el=document.getElementById('rot-pessoas');
   if(!el)return;
   const abertas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido');
   const atras=p=>abertas.filter(t=>tarefaDaPessoa(t,p)&&t.prazo&&t.prazo<hoje).length;
-  el.innerHTML=`<button class="rot-pessoa todos ${pessoa==='todos'?'on':''}" onclick="mudarPessoaRotina('todos')">Todos</button>`+
-    RESP.map(r=>{
-      const av=corResp(r),n=abertas.filter(t=>tarefaDaPessoa(t,r)).length,a=atras(r);
-      return `<button class="rot-pessoa ${pessoa===r?'on':''}" onclick="mudarPessoaRotina('${r}')" title="${esc(r)}: ${n} em aberto${a?' · '+a+' atrasada'+(a>1?'s':''):''}">
-        <span class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</span>${esc(r==='Escritório'?'Escritório':r===RESP_DUPLA?'Dupla':r)}
-        <span class="n">${n}</span>${a?`<span class="nav-badge" style="margin-left:0">${a}</span>`:''}</button>`;
-    }).join('');
+  const story=(key,sel,conteudo,bg,cor,n,a)=>`
+    <button type="button" class="rot-story ${sel?'on':''}" onclick="mudarPessoaRotina('${key}')" title="${a?a+' atrasada'+(a>1?'s':''):'nenhuma atrasada'}">
+      <span class="rot-story-ring${a?' alerta':''}"><span class="rot-story-av" style="background:${bg};color:${cor}">${conteudo}</span>${a?'<span class="rot-story-dot"></span>':''}</span>
+      <span class="rot-story-nm">${key==='todos'?'Todos':esc(key)}</span>
+      <span class="rot-story-n">${n}</span>
+    </button>`;
+  el.className='rot-stories';
+  el.innerHTML=
+    story('todos',pessoa==='todos','<i class="ti ti-users"></i>','var(--navy)','var(--cream)',abertas.length,0)+
+    RESP.map(r=>{const av=corResp(r);return story(r,pessoa===r,avatarResp(r),av[0],av[1],abertas.filter(t=>tarefaDaPessoa(t,r)).length,atras(r));}).join('');
+}
+// Linha do tempo horizontal dos prazos fatais da semana (próximos 7 dias).
+function renderFataisSemana(){
+  const el=document.getElementById('rot-fatais');
+  if(!el)return;
+  const hoje=hojeISO(), fim=isoAdd(hoje,7);
+  const fatais=DB.tarefas
+    .filter(t=>t.status!=='concluido'&&t.prazoFatal&&t.prazoFatal>=hoje&&t.prazoFatal<=fim)
+    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:a.prazoFatal>b.prazoFatal?1:0);
+  if(!fatais.length){
+    el.innerHTML=`<div class="rot-fatais-vazio"><i class="ti ti-shield-check"></i> Nenhum prazo fatal nos próximos 7 dias.</div>`;
+    return;
+  }
+  const pts=fatais.slice(0,6).map((t,i)=>{
+    const dd=diasEntreISO(hoje,t.prazoFatal);
+    const sel=i===0;
+    return `<button type="button" class="rot-fatal-pt ${sel?'urg':''}" onclick="abrirModalTarefa('${t.id}',null)" title="${esc(t.titulo)}">
+      <span class="rfp-marca"></span>
+      <span class="rfp-dia">${(+t.prazoFatal.slice(8,10))}<small>${diaSemanaCurto(t.prazoFatal)}</small></span>
+      <span class="rfp-tt">${esc(t.titulo)}</span>
+      <span class="rfp-sub">${dd===0?'hoje':dd===1?'amanhã':'em '+dd+' dias'}${nomeCliente(t.cid)?' · '+esc(nomeCliente(t.cid)):''}</span>
+    </button>`;
+  }).join('<span class="rot-fatal-liga"></span>');
+  el.innerHTML=`<div class="rot-fatais-head">Prazos fatais da semana</div><div class="rot-fatais-trilha">${pts}</div>`;
 }
 
 // ─── CRIAÇÃO RÁPIDA ───────────────────────────────────────
@@ -7963,7 +8302,7 @@ function renderRapidaRotina(pessoa){
   if(!sel)return;
   if(sel.options.length!==RESP.length)sel.innerHTML=RESP.map(r=>`<option>${esc(r)}</option>`).join('');
   if(!__rrIniciado){
-    sel.value=pessoa!=='todos'?pessoa:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+    sel.value=pessoa!=='todos'?pessoa:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
     rrMarcarAtalho('hoje');
     __rrIniciado=true;
   }
@@ -8049,6 +8388,20 @@ function rotuloPrazoAgenda(t){
   if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
   return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
 }
+// chip de revisão/aprovação: mostra em quem está parado e deixa marcar com um clique
+function revChipHTML(t){
+  if(!t||!t.revPede||t.status==='concluido'&&!t.revEstado)return '';
+  const prox=revProximaAcao(t);
+  if(!prox){
+    return `<span class="ag-chip rev-ok" title="${esc(revEstadoLbl(t))}"><i class="ti ti-circle-check" style="font-size:11px"></i> ${t.revEstado==='aprovado'?'aprovada':'revisada'}</span>`;
+  }
+  const quem=revisorDa(t);
+  const souEu=EU&&EU.nome===quem;
+  const rotulo=prox==='aprovar'?'aprovar':'revisar';
+  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${rotulo} de ${quem}`;
+  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"` : '';
+  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?rotulo:'p/ '+quem}</span>`;
+}
 function agRowHTML(t){
   const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
   const done=t.status==='concluido', and=t.status==='andamento';
@@ -8071,6 +8424,7 @@ function agRowHTML(t){
   const chips=[
     `<span class="ag-tipo"><i style="background:${tp.cor}"></i>${esc(tp.lbl)}</span>`,
     `<span class="ag-av" style="background:${av[0]};color:${av[1]}" title="${esc(t.resp)}">${avatarResp(t.resp)}</span>`,
+    revChipHTML(t),
     and?'<span class="ag-chip andamento">em andamento</span>':'',
     t.conferir?`<span class="ag-chip conferir" onclick="abrirModalTarefa('${t.id}',null)" title="Lido automaticamente do DJEN — confira"><i class="ti ti-alert-triangle" style="font-size:11px"></i> conferir</span>`:'',
     p?`<span class="ag-chip proc" onclick="irParaProcesso('${p.id}')" title="${esc(rotuloProcesso(p))}">${esc(p.numCNJ||p.num)}</span>`:'',
@@ -8739,6 +9093,41 @@ function aplicarProjetoTarefa(t,marcado,tocado){
   if(marcado===ehProjetoAuto(t))delete t.projeto;
   else t.projeto=marcado;
 }
+// responsável em "pills": guarda o valor num input oculto e reflete nos botões.
+// Ao trocar o responsável, o texto do bloco de revisão aponta para o outro sócio.
+function mtSetResp(r){
+  if(!RESP.includes(r))r='Cecília';
+  document.getElementById('mt-resp').value=r;
+  document.querySelectorAll('#mt-resp-pills button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+  mtAtualizarRevHint();
+}
+function mtSetRev(v){
+  if(!['','revisar','aprovar','ambos'].includes(v))v='';
+  document.getElementById('mt-rev').value=v;
+  document.querySelectorAll('#mt-rev-pills button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  mtAtualizarRevHint();
+}
+function mtAtualizarRevHint(){
+  const resp=document.getElementById('mt-resp').value||'Cecília';
+  const outro=outroSocio(resp)||'o outro sócio';
+  const porEl=document.getElementById('mt-rev-por');
+  if(porEl)porEl.textContent='(cabe a '+outro+')';
+  const v=document.getElementById('mt-rev').value;
+  const hint=document.getElementById('mt-rev-hint');
+  if(hint)hint.textContent=
+    v==='revisar'?outro+' confere a tarefa antes de ela ser dada por encerrada.'
+    :v==='aprovar'?outro+' precisa aprovar o que '+resp+' fizer.'
+    :v==='ambos'?outro+' revisa e, depois, aprova.'
+    :'A tarefa é de '+resp+' e não precisa passar pelo outro sócio.';
+}
+// atalhos de data no campo Prazo (Hoje / Amanhã / próxima Sexta)
+function mtDataRapida(k){
+  const h=hojeISO();
+  const v=k==='hoje'?h:k==='amanha'?isoAdd(h,1):k==='sexta'?proximaSexta():h;
+  const el=document.getElementById('mt-prazo');
+  el.value=v;
+  mtAtualizarHintConclusao();mtAtualizarHintFatal();
+}
 function abrirModalTarefa(id,respOuCid){
   mtCtx={id,status:'pendente',projTocado:false};
   const selCli=document.getElementById('mt-cli');
@@ -8760,7 +9149,8 @@ function abrirModalTarefa(id,respOuCid){
     const t=tAtual;
     document.getElementById('mt-titulo').textContent='Editar tarefa';
     document.getElementById('mt-titulo-in').value=t.titulo;
-    document.getElementById('mt-resp').value=t.resp;
+    mtSetResp(RESP.includes(t.resp)?t.resp:'Cecília');
+    mtSetRev(t.revPede||'');
     document.getElementById('mt-tipo').value=t.tipo;
     selCli.value=t.cid||'';
     document.getElementById('mt-prazo').value=t.prazo||'';
@@ -8780,8 +9170,8 @@ function abrirModalTarefa(id,respOuCid){
     document.getElementById('mt-titulo').textContent='Nova tarefa';
     document.getElementById('mt-titulo-in').value='';
     // respOuCid: se for um responsável conhecido, pré-seleciona; se for id de cliente, vincula
-    if(RESP.includes(respOuCid))document.getElementById('mt-resp').value=respOuCid;
-    else document.getElementById('mt-resp').value='Cecília';
+    mtSetResp(RESP.includes(respOuCid)?respOuCid:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'));
+    mtSetRev('');
     document.getElementById('mt-tipo').value='peticao';
     selCli.value=(respOuCid&&!RESP.includes(respOuCid))?respOuCid:'';
     document.getElementById('mt-prazo').value='';
@@ -8806,6 +9196,7 @@ function salvarTarefa(){
   const dados={
     titulo,
     resp:document.getElementById('mt-resp').value,
+    revPede:document.getElementById('mt-rev').value,
     tipo:document.getElementById('mt-tipo').value,
     cid:document.getElementById('mt-cli').value||null,
     prazo:document.getElementById('mt-prazo').value,
@@ -8826,10 +9217,12 @@ function salvarTarefa(){
     Object.assign(t,dados);
     if(!t.prazoFatal)delete t.prazoFatal;
     if(!t.pid)delete t.pid;
+    // sem pedido de revisão: limpa qualquer estado de revisão anterior
+    if(!t.revPede){delete t.revPede;delete t.revEstado;delete t.revEm;delete t.revPorQuem;}
     if(t.conferir&&document.getElementById('mt-conferido').checked)marcarConferida(t);
     aplicarStatusTarefa(t,mtCtx.status,concluidoEm);
   }
-  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};DB.tarefas.push(t);}
+  else{t={id:uid(),...dados,status:mtCtx.status,concluidoEm};if(!t.revPede)delete t.revPede;DB.tarefas.push(t);}
   // acompanhamento de projeto + etapa atual (o carimbo de data/hora é automático)
   const marcado=document.getElementById('mt-proj').checked;
   aplicarProjetoTarefa(t,marcado,mtCtx.projTocado);
@@ -9766,7 +10159,7 @@ function sincronizarTarefaConferencia(c,f){
     existente.prazo=f.dataPrevistaRecebimento;
   }else{
     // conferência de recebimento é controle administrativo: não é projeto
-    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:'Escritório',status:'pendente',prazo:f.dataPrevistaRecebimento,projeto:false};
+    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'),status:'pendente',prazo:f.dataPrevistaRecebimento,projeto:false};
     DB.tarefas.push(nova);
     f.tarefaConferenciaId=nova.id;
   }
@@ -9841,7 +10234,7 @@ function abrirModalProc(pid,cid){
   // área sugerida: a aba aberta na tela de Processos
   document.getElementById('mp-area').value=p?(p.area||''):(typeof procArea==='string'&&areaInfo(procArea)?procArea:'');
   document.getElementById('mp-fase').value=faseAtual;
-  document.getElementById('mp-resp').value=p&&p.resp&&RESP.includes(p.resp)?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.getElementById('mp-resp').value=p&&p.resp&&RESP.includes(p.resp)?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
   document.getElementById('mp-orgao').value=p?(p.orgao||''):'';
   document.getElementById('mp-obs').value=p?(p.obs||''):'';
   document.getElementById('mp-tese-titulo').value=p?(p.teseTitulo||''):'';
@@ -11431,7 +11824,7 @@ function registrarContratoDoLead(lead,mod,objeto){
     };
     DB.clientes.push(c);
   }
-  DB.tarefas.push({id:uid(),cid:c.id,titulo:existente?'Elaborar contrato — '+objeto:'Elaborar contrato e petição inicial',tipo:'inicial',resp:'Escritório',status:'pendente',prazo:''});
+  DB.tarefas.push({id:uid(),cid:c.id,titulo:existente?'Elaborar contrato — '+objeto:'Elaborar contrato e petição inicial',tipo:'inicial',resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'),status:'pendente',prazo:''});
   return {c,existente:!!existente};
 }
 function fecharContrato(){

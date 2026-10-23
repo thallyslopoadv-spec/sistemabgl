@@ -297,7 +297,7 @@ function sincronizarTarefaConferencia(c,f){
     existente.prazo=f.dataPrevistaRecebimento;
   }else{
     // conferência de recebimento é controle administrativo: não é projeto
-    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:'Escritório',status:'pendente',prazo:f.dataPrevistaRecebimento,projeto:false};
+    const nova={id:uid(),cid:c.id,titulo,tipo:'prazo',resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília'),status:'pendente',prazo:f.dataPrevistaRecebimento,projeto:false};
     DB.tarefas.push(nova);
     f.tarefaConferenciaId=nova.id;
   }

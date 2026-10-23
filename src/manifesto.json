@@ -19,7 +19,8 @@
     "ds/06-login.css",
     "ds/07-paleta.css",
     "ds/08-responsivo.css",
-    "ds/09-drive-e-modelos.css"
+    "ds/09-drive-e-modelos.css",
+    "ds/10-redesenho-2026.css"
   ],
   "js": [
     "00-sementes.js",

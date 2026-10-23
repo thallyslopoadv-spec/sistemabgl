@@ -36,7 +36,7 @@ function abrirModalProc(pid,cid){
   // área sugerida: a aba aberta na tela de Processos
   document.getElementById('mp-area').value=p?(p.area||''):(typeof procArea==='string'&&areaInfo(procArea)?procArea:'');
   document.getElementById('mp-fase').value=faseAtual;
-  document.getElementById('mp-resp').value=p&&p.resp&&RESP.includes(p.resp)?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Escritório');
+  document.getElementById('mp-resp').value=p&&p.resp&&RESP.includes(p.resp)?p.resp:(EU&&RESP.includes(EU.nome)?EU.nome:'Cecília');
   document.getElementById('mp-orgao').value=p?(p.orgao||''):'';
   document.getElementById('mp-obs').value=p?(p.obs||''):'';
   document.getElementById('mp-tese-titulo').value=p?(p.teseTitulo||''):'';
