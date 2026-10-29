@@ -41,6 +41,8 @@ function contarDados(d){
     leadsTrabalhista:n(d.leads), leadsCivel:n(d.leadsCivel),
     custosFixos:n(d.custosFixos), lancamentosDeCaixa:n(d.lancamentos),
     aportesDoFundo:n(d.fundoAportes), conteudos:n(d.conteudos),
+    assessorias:n(d.assessorias),
+    consultasDeAssessoria:(Array.isArray(d.assessorias)?d.assessorias:[]).reduce((a,x)=>a+n(x.consultas),0),
     mensagensChatGeral:n(d.chatGeral), usuarios:n(d.usuarios),
   };
 }
@@ -305,6 +307,8 @@ function gerarRelatorioHTML(){
     ['Lançamentos de caixa',String(t.lancamentosDeCaixa)],
     ['Aportes no fundo do escritório',String(t.aportesDoFundo)],
     ['Pautas de conteúdo',String(t.conteudos)],
+    ['Assessorias mensais',String(t.assessorias)],
+    ['Consultas de assessoria',String(t.consultasDeAssessoria)],
     ['<b>Total de registros</b>','<b>'+totalRegistros(t)+'</b>'],
   ]));
 
@@ -373,6 +377,29 @@ function gerarRelatorioHTML(){
         esc(x.prazo?fmtData(x.prazo):''),esc(ST_LBL[x.status]||x.status||''),
         esc(ci&&ci.data?fmtData(ci.data):''),esc(ci?CONC_CAT_LBL[ci.cat]+(ci.cat==='atrasada'?' ('+plural(ci.dias,'')+')':ci.cat==='antecipada'?' ('+plural(-ci.dias,'')+')':''):'')];
     })));
+
+  // ── assessorias ──
+  const ass=Array.isArray(DB.assessorias)?DB.assessorias:[];
+  S.push('<h2>Assessorias mensais</h2>');
+  S.push(ass.length?relTabela(['Cliente','Objeto','Situação','Responsável','Consultas/mês','Mensalidade','Início','Usadas no mês','Parcelas pagas','Em aberto'],
+    ass.map(a=>{
+      const k=seguro(()=>cotaAssessoria(a),{usadas:0,cota:0});
+      const ps=seguro(()=>parcelasDaAssessoria(a),[]);
+      const pagas=ps.filter(f=>f.t==='alc');
+      const aberto=ps.filter(f=>f.t!=='alc').reduce((x,f)=>x+(f.v||0),0);
+      return [esc(nomeCliente(a.cid)||''),esc(a.titulo||''),esc(a.status||''),esc(a.resp||''),
+        esc(a.consultasCiclo?String(a.consultasCiclo):'—'),esc(a.valor?fmt(a.valor):'—'),esc(a.inicio?fmtData(a.inicio):''),
+        esc(k.cota?k.usadas+' de '+k.cota:String(k.usadas)),esc(pagas.length+' de '+ps.length),esc(fmt(aberto))];
+    })):'<p class="vazio">Nenhuma assessoria cadastrada.</p>');
+  const comConsultas=ass.filter(a=>(a.consultas||[]).length);
+  if(comConsultas.length){
+    S.push('<h3>Consultas e pedidos</h3>');
+    S.push(relTabela(['Cliente','Pedido','Tipo','Quem pediu','Competência','Pedida em','Prazo','Situação','Entregue em'],
+      comConsultas.flatMap(a=>(a.consultas||[]).map(c=>[
+        esc(nomeCliente(a.cid)||''),esc(c.titulo||''),esc(seguro(()=>tipoConsulta(c.tipo).lbl,'')),esc(c.solicitante||''),
+        esc(seguro(()=>fmtComp(c.competencia),'')),esc(c.solicitadoEm?fmtData(c.solicitadoEm):''),
+        esc(c.prazo?fmtData(c.prazo):''),esc(ST_CONSULTA[c.status]||c.status||''),esc(c.entregaEm?fmtData(c.entregaEm):'')]))));
+  }
 
   // ── funil ──
   S.push('<h2>Funil de vendas (CRM)</h2>');

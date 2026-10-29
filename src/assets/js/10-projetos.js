@@ -1,4 +1,3 @@
-}
 // ═══════════════════════════════════════════════════════════
 //  PROJETOS EM ANDAMENTO (painel da aba Rotina)
 // ═══════════════════════════════════════════════════════════
@@ -208,7 +207,9 @@ function irParaProjeto(id){
   blocosRecolhidos['projetos:painel']=false;
   blocosRecolhidos['projetos:tipo:'+(t.tipo||'outro')]=false;
   try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
-  renderProjetos();
+  // a rotina virou painel de comando: projetos ocupam o centro quando escolhidos
+  if(typeof mudarVisaoRotina==='function')mudarVisaoRotina('projetos');
+  else renderProjetos();
   setTimeout(()=>{
     const card=document.getElementById('proj-card-'+id);
     if(!card)return;

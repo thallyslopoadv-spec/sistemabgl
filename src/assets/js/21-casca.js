@@ -5,7 +5,7 @@
 // comercial). No computador ela pode ser recolhida só para os ícones; no
 // celular vira uma gaveta que abre pelo botão de menu do cabeçalho.
 const LS_SIDEBAR='bgl_sidebar_recolhida';
-const TITULO_TELA={dash:'Visão geral',rotina:'Rotina',processos:'Processos',arquivados:'Arquivados',
+const TITULO_TELA={dash:'Visão geral',rotina:'Rotina',assessorias:'Assessorias',processos:'Processos',arquivados:'Arquivados',
   crm:'Clientes',fin:'Financeiro',trab:'Atendimento',comercial:'Comercial',modelos:'Modelos'};
 
 function prepararCasca(){

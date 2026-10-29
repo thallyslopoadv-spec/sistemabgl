@@ -80,6 +80,7 @@
       <button class="sb-item active" id="nav-dash" onclick="navegarPara('dash')" title="Visão geral"><i class="ti ti-layout-dashboard"></i><span class="sb-rot">Visão geral</span></button>
       <div class="sb-grupo"><span>Operação</span></div>
       <button class="sb-item" id="nav-rotina" onclick="navegarPara('rotina')" title="Rotina"><i class="ti ti-checklist"></i><span class="sb-rot">Rotina</span><span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
+      <button class="sb-item" id="nav-assessorias" onclick="navegarPara('assessorias')" title="Assessorias"><i class="ti ti-briefcase"></i><span class="sb-rot">Assessorias</span><span class="nav-badge" id="nav-assessorias-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-processos" onclick="navegarPara('processos')" title="Processos"><i class="ti ti-gavel"></i><span class="sb-rot">Processos</span><span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-arquivados" onclick="navegarPara('arquivados')" title="Arquivados"><i class="ti ti-archive"></i><span class="sb-rot">Arquivados</span></button>
       <button class="sb-item" id="nav-modelos" onclick="navegarPara('modelos')" title="Modelos"><i class="ti ti-file-text"></i><span class="sb-rot">Modelos</span></button>
@@ -837,80 +838,108 @@
     </div>
 
     <!-- ─── VIEW: ROTINA ─── -->
+    <!-- Painel de comando: visões salvas à esquerda, tabela densa no centro e
+         detalhe da tarefa à direita. Cumprimento de prazos, projetos e recados
+         deixaram o rodapé e viraram painéis acionados pelo menu da esquerda. -->
     <div class="view" id="view-rotina">
-      <div class="page-head">
-        <h1>Rotina do Escritório</h1>
-        <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
-      </div>
-
-      <!-- linha do tempo horizontal dos prazos fatais da semana -->
-      <div class="rot-fatais" id="rot-fatais"></div>
-
-      <!-- stories: um círculo por sócio; clicar filtra a rotina para as tarefas dele -->
-      <div class="rot-stories" id="rot-pessoas"></div>
-
-      <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
-      <div class="rot-placar" id="rotina-stats"></div>
-
-      <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
-      <div id="rotina-avisos"></div>
-
-      <!-- criação rápida: título + responsável + prazo, Enter grava -->
-      <div class="rot-rapida">
-        <i class="ti ti-plus"></i>
-        <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
-        <select id="rr-resp" title="Responsável"></select>
-        <div class="rr-datas" id="rr-datas"></div>
-        <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
-        <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
-        <button class="btn-sec" onclick="abrirModalTarefa(null,null)" title="Abrir o formulário completo"><i class="ti ti-adjustments-horizontal"></i></button>
-      </div>
-
-      <div class="rot-toolbar">
-        <div class="seg rot-modo">
-          <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
-          <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
+      <div class="rot-top">
+        <h1>Rotina</h1>
+        <span class="rot-crumb" id="rot-crumb"></span>
+        <div class="rot-top-dir">
+          <span class="rot-tool" id="rot-agrupar-wrap" title="Como as linhas são agrupadas">
+            <i class="ti ti-layout-rows"></i>Agrupar:
+            <select id="rot-agrupar" onchange="mudarAgruparRotina(this.value)">
+              <option value="prazo">Prazo</option>
+              <option value="tipo">Tipo</option>
+              <option value="resp">Sócio</option>
+              <option value="etapa">Etapa</option>
+            </select>
+          </span>
+          <input class="search-inp rot-busca-top" id="rot-busca" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
+          <button class="btn-nova-tarefa" onclick="abrirModalTarefa(null,null)"><i class="ti ti-plus"></i>Nova tarefa</button>
         </div>
-        <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
       </div>
 
-      <div class="rotina-chips rot-status-chips" id="rot-status-chips" style="display:none">
-        <button class="chip active" data-f="todos" onclick="filtroRotina('todos',this)">Todas</button>
-        <button class="chip" data-f="pendente" onclick="filtroRotina('pendente',this)">Pendentes</button>
-        <button class="chip" data-f="andamento" onclick="filtroRotina('andamento',this)">Em andamento</button>
-        <button class="chip" data-f="concluido" onclick="filtroRotina('concluido',this)">Concluídas</button>
-      </div>
-      <div id="rotina-agenda"></div>
-      <div class="rotina-board" id="rotina-board"></div>
+      <div class="rot-grid">
+        <!-- visões: cada recorte vira um item nomeado, com contador -->
+        <nav class="rot-views" id="rot-views"></nav>
 
-      <!-- cumprimento de prazos: o que foi concluído, quando, e com quantos dias de atraso -->
-      <div class="modulo-card" style="margin-top:20px">
-        <div class="card-head">
-          <h3>Cumprimento de prazos</h3>
-          <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
-        </div>
-        <div class="card-body">
-          <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
-            <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
-            <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
-            <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
-            <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+        <section class="rot-centro">
+          <!-- placar: o que está em jogo hoje. Os blocos trocam a visão ativa -->
+          <div class="rot-placar" id="rotina-stats"></div>
+
+          <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
+          <div id="rotina-avisos"></div>
+
+          <!-- criação rápida: título + responsável + prazo, Enter grava -->
+          <div class="rot-rapida">
+            <i class="ti ti-plus"></i>
+            <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
+            <select id="rr-resp" title="Responsável"></select>
+            <div class="rr-datas" id="rr-datas"></div>
+            <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
+            <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
           </div>
-          <div id="rotina-desempenho"></div>
-        </div>
+
+          <div class="rot-tabela" id="rotina-tabela"></div>
+
+          <!-- painéis: ocupam o centro quando escolhidos no menu da esquerda -->
+          <div class="rot-painel" id="rotina-painel">
+            <div id="painel-desempenho">
+              <div class="modulo-card">
+                <div class="card-head">
+                  <h3>Cumprimento de prazos</h3>
+                  <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
+                </div>
+                <div class="card-body">
+                  <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
+                    <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
+                    <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
+                    <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
+                    <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+                  </div>
+                  <div id="rotina-desempenho"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- projetos em andamento: puxa as rotinas de elaboração em aberto,
+                 agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
+            <div id="painel-projetos"><div class="proj-panel recolhida" id="proj-panel"></div></div>
+
+            <div id="painel-recados">
+              <div class="chat-panel">
+                <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
+                <div class="chat-list" id="rotina-chat-list"></div>
+                <div class="chat-input-row">
+                  <input type="text" class="chat-input" id="rotina-chat-input" placeholder="Deixe um recado para o outro sócio…" onkeydown="if(event.key==='Enter')enviarChatGeral()">
+                  <button class="chat-send-btn" onclick="enviarChatGeral()" title="Enviar"><i class="ti ti-send"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- detalhe da tarefa selecionada -->
+        <aside class="rot-detalhe" id="rot-detalhe"></aside>
+      </div>
+    </div>
+
+    <!-- ─── VIEW: ASSESSORIAS ─── -->
+    <!-- Contratos de assessoria mensal: lista à esquerda, detalhe à direita.
+         As parcelas são lançamentos do próprio cliente (cliente.fin) marcados
+         com assessoriaId — por isso aparecem também no Financeiro e na ficha. -->
+    <div class="view" id="view-assessorias">
+      <div class="page-head">
+        <h1>Assessorias</h1>
+        <p>Contratos mensais · consultas entregues ao cliente e parcelas da mensalidade</p>
       </div>
 
-      <!-- projetos em andamento: puxa automaticamente as rotinas de elaboração
-           em aberto, agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
-      <div class="proj-panel recolhida" id="proj-panel"></div>
+      <div class="ass-nums" id="ass-stats" style="margin-bottom:18px"></div>
 
-      <div class="chat-panel" style="margin-top:20px">
-        <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
-        <div class="chat-list" id="rotina-chat-list"></div>
-        <div class="chat-input-row">
-          <input type="text" class="chat-input" id="rotina-chat-input" placeholder="Deixe um recado para o outro sócio…" onkeydown="if(event.key==='Enter')enviarChatGeral()">
-          <button class="chat-send-btn" onclick="enviarChatGeral()" title="Enviar"><i class="ti ti-send"></i></button>
-        </div>
+      <div class="ass-grid">
+        <aside class="ass-lista" id="ass-lista"></aside>
+        <section class="ass-det" id="ass-det"></section>
       </div>
     </div>
 
@@ -1212,6 +1241,109 @@
       <button class="btn-del" id="mct-del" onclick="excluirContrato()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn-cancel" onclick="fecharOverlay('overlay-contrato')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarContrato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-assessoria">
+  <div class="modal">
+    <h3 id="ma-titulo">Nova assessoria</h3>
+    <div class="fg"><label>Cliente</label><select id="ma-cliente"></select>
+      <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">O cliente precisa estar cadastrado em Clientes. As mensalidades entram na ficha dele e no Financeiro.</span></div>
+    <div class="fg"><label>Objeto do contrato</label><input type="text" id="ma-objeto" placeholder="Ex.: Assessoria jurídica mensal"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Início da vigência</label><input type="date" id="ma-inicio"></div>
+      <div class="fg"><label>Fim (opcional)</label><input type="date" id="ma-fim"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Responsável</label><select id="ma-resp"></select></div>
+      <div class="fg"><label>Situação</label>
+        <div class="seg">
+          <button type="button" id="ma-st-ativa" onclick="maStatus('Ativa')">Ativa</button>
+          <button type="button" id="ma-st-suspensa" onclick="maStatus('Suspensa')">Suspensa</button>
+          <button type="button" id="ma-st-encerrada" onclick="maStatus('Encerrada')">Encerrada</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Consultas por mês</label><input type="number" id="ma-consultas" min="0" max="99" placeholder="Ex.: 4">
+        <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Quantas o cliente tem direito por mês. Deixe 0 para não controlar cota.</span></div>
+      <div class="fg"><label>O que não foi usado acumula?</label>
+        <div class="seg">
+          <button type="button" id="ma-ac-nao" onclick="maAcumula(false)">Não acumula</button>
+          <button type="button" id="ma-ac-sim" onclick="maAcumula(true)">Acumula</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Mensalidade (R$)</label><input type="text" id="ma-valor" inputmode="decimal" placeholder="Ex.: 2.500,00"></div>
+      <div class="fg"><label>Dia de vencimento</label><input type="number" id="ma-dia" min="1" max="31" placeholder="Ex.: 10"></div>
+    </div>
+    <div class="fg"><label>Escopo — o que está incluído</label><textarea id="ma-escopo" rows="3" placeholder="Ex.: consultas por WhatsApp e e-mail, análise de contratos, uma reunião mensal. Não inclui atuação em processos judiciais."></textarea></div>
+    <div class="fg"><label>Observações</label><textarea id="ma-obs" rows="2" placeholder="Reajuste, forma de pagamento, contato do cliente…"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-del" id="ma-del" onclick="excluirAssessoria()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-assessoria')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarAssessoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONSULTA DA ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-consulta">
+  <div class="modal">
+    <h3 id="mco-titulo">Registrar consulta</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-6px 0 16px">Cliente: <b id="mco-cliente-nome" style="color:var(--t2)"></b></p>
+    <div class="fg"><label>O que o cliente pediu</label><input type="text" id="mco-obj" placeholder="Ex.: Análise do contrato de locação da filial"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Tipo</label><select id="mco-tipo"></select></div>
+      <div class="fg"><label>Como chegou</label><select id="mco-canal"></select></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Quem pediu</label><input type="text" id="mco-solicitante" placeholder="Ex.: Dr. Ricardo, setor de compras"></div>
+      <div class="fg"><label>Responsável pela entrega</label><select id="mco-resp"></select></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Data do pedido</label><input type="date" id="mco-data"></div>
+      <div class="fg"><label>Prazo de entrega</label><input type="date" id="mco-prazo"></div>
+    </div>
+    <div class="fg"><label>Competência — de qual mês desconta</label><input type="month" id="mco-comp" onchange="mcoAvisoCota()">
+      <span class="mco-cota" id="mco-cota"></span></div>
+    <div class="fg"><label>Situação</label>
+      <div class="seg">
+        <button type="button" id="mco-st-aberta" onclick="mcoStatus('aberta')">Aberta</button>
+        <button type="button" id="mco-st-andamento" onclick="mcoStatus('andamento')">Em andamento</button>
+        <button type="button" id="mco-st-concluida" onclick="mcoStatus('concluida')">Concluída</button>
+        <button type="button" id="mco-st-cancelada" onclick="mcoStatus('cancelada')">Cancelada</button>
+      </div>
+    </div>
+    <div class="fg"><label>Detalhes / resposta dada</label><textarea id="mco-desc" rows="3" placeholder="Resumo do que foi pedido e do que foi entregue."></textarea></div>
+    <label class="mco-check" id="mco-tarefa-wrap"><input type="checkbox" id="mco-tarefa">
+      <span>Criar também uma tarefa na Rotina, com este prazo e responsável</span></label>
+    <div class="modal-btns">
+      <button class="btn-del" id="mco-del" onclick="excluirConsulta()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-consulta')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarConsulta()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: GERAR PARCELAS DA ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-parcelas">
+  <div class="modal" style="max-width:520px">
+    <h3>Gerar parcelas da mensalidade</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-6px 0 16px">Cliente: <b id="mpc-cliente-nome" style="color:var(--t2)"></b> · os lançamentos entram como “a receber” na ficha dele.</p>
+    <div class="fg-row">
+      <div class="fg"><label>Quantas parcelas</label><input type="number" id="mpc-qtd" min="1" max="36" oninput="mpcPrevia()"></div>
+      <div class="fg"><label>Valor de cada uma (R$)</label><input type="text" id="mpc-valor" inputmode="decimal" placeholder="Ex.: 2.500,00" oninput="mpcPrevia()"></div>
+    </div>
+    <div class="fg"><label>Primeiro vencimento</label><input type="date" id="mpc-venc" onchange="mpcPrevia()"></div>
+    <p class="mpc-previa" id="mpc-previa"></p>
+    <p style="font-size:11.5px;color:var(--t3);line-height:1.5">Competências que já tiverem parcela gerada são puladas, então dá para rodar de novo sem duplicar.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-parcelas')">Cancelar</button>
+      <button class="btn-confirm" onclick="gerarParcelasAssessoria()">Gerar parcelas</button>
     </div>
   </div>
 </div>
