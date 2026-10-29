@@ -6,7 +6,7 @@
 // diferença de maiúsculas, por qualquer pedaço do nome, do número do
 // processo, das partes, do telefone ou das demandas.
 const PALETA_TELAS=[
-  {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},
+  {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},{id:'assessorias',t:'Assessorias',i:'ti-briefcase'},
   {id:'processos',t:'Processos',i:'ti-gavel'},{id:'arquivados',t:'Arquivados',i:'ti-archive'},
   {id:'modelos',t:'Modelos',i:'ti-file-text'},
   {id:'crm',t:'Clientes',i:'ti-users'},{id:'fin',t:'Financeiro',i:'ti-wallet'},
@@ -18,6 +18,7 @@ const PALETA_ACOES=[
   {t:'Novo lançamento financeiro',d:'Recebido, previsto ou saída',i:'ti-cash',fn:()=>abrirModalFin(null,null)},
   {t:'Novo cliente',d:'Carteira',i:'ti-user-plus',fn:()=>{navegarPara('crm');abrirModalCliente(null);}},
   {t:'Novo processo',d:'Processos',i:'ti-file-plus',fn:()=>abrirModalProc(null,null)},
+  {t:'Nova assessoria',d:'Contrato de assessoria mensal',i:'ti-briefcase',fn:()=>{navegarPara('assessorias');abrirModalAssessoria(null);}},
   {t:'Novo lead trabalhista',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('trab');}},
   {t:'Novo lead cível',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('civel');}},
   {t:'Metas do mês',d:'Faturamento, honorários e contratos',i:'ti-target-arrow',fn:()=>abrirDetalheMetaContratos()},

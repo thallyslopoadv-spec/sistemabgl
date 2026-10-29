@@ -2149,6 +2149,423 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
   .aprov-row{flex-wrap:wrap}
   .aprov-btn{flex:1 1 100%}
 }
+/* ═══════════════════════════════════════════════════════════
+   ROTINA — PAINEL DE COMANDO (redesenho 2026, opção B)
+   Três colunas: visões salvas à esquerda, tabela densa no centro e
+   painel da tarefa selecionada à direita. A tela deixou de ser uma
+   pilha de blocos rolável: cada recorte virou um item nomeado no menu
+   e os antigos blocos do rodapé (cumprimento, projetos, recados)
+   viraram painéis que ocupam o centro quando escolhidos.
+   Carrega depois de legacy/06-rotina.css: reaproveita placar, criação
+   rápida, avisos, menu de adiar e toast, e sobrepõe o resto.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── cabeçalho da tela ─── */
+.rot-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:12px;margin-bottom:16px}
+.rot-top h1{font-family:var(--font-serif);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+.rot-crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--t3);min-width:0;overflow:hidden;white-space:nowrap}
+.rot-crumb i{font-size:15px}
+.rot-crumb b{color:var(--t2);font-weight:600}
+.rot-top-dir{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.rot-top-dir .btn-nova-tarefa{white-space:nowrap;flex-shrink:0}
+.rot-tool{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;
+  border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:600;color:var(--t2);cursor:pointer}
+.rot-tool i{font-size:15px;color:var(--t3)}
+.rot-tool select{border:none;background:transparent;font-family:var(--font-sans);font-size:12px;font-weight:700;
+  color:var(--navy);cursor:pointer;outline:none;padding:0}
+.rot-tool.chave{border-style:dashed}
+.rot-tool.chave.on{border-style:solid;border-color:var(--navy);color:var(--navy);background:var(--surface3)}
+.rot-busca-top{min-width:176px;max-width:250px}
+
+/* ─── grade de três colunas ─── */
+.rot-grid{display:grid;grid-template-columns:206px minmax(0,1fr) 304px;gap:16px;align-items:start}
+.rot-centro{min-width:0}
+
+/* ─── menu de visões ─── */
+.rot-views{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);padding:10px 8px;position:sticky;top:16px}
+.rv-grupo{font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--t3);padding:13px 8px 5px}
+.rv-grupo:first-child{padding-top:2px}
+.rv{display:flex;align-items:center;gap:8px;width:100%;height:31px;padding:0 8px;border:none;border-radius:7px;
+  background:transparent;font-family:var(--font-sans);font-size:12.5px;font-weight:500;color:var(--t2);
+  cursor:pointer;text-align:left;transition:background .12s}
+.rv i.ti{font-size:15px;color:var(--t3);flex-shrink:0}
+.rv .rv-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0;margin:0 4px}
+.rv .rv-av{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:8.5px;font-weight:700;flex-shrink:0}
+.rv .rv-tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv .rv-n{font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0}
+.rv:hover{background:var(--surface2)}
+.rv.on{background:var(--surface3);color:var(--navy);font-weight:700}
+.rv.on i.ti{color:var(--navy)}
+.rv.alerta .rv-n{background:var(--red);color:#fff;border-radius:9px;padding:1px 6px;min-width:19px;text-align:center}
+.rv.ambar .rv-n{background:var(--amber-bg);color:var(--amber-hi);border-radius:9px;padding:1px 6px}
+.rv.sumida{opacity:.5}
+
+/* placar: quatro blocos em vez de cinco */
+.rot-grid .rot-placar{grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.rot-grid .rp-box{padding:11px 13px 10px}
+.rot-grid .rp-val{font-size:25px}
+
+/* criação rápida mais discreta dentro do painel */
+.rot-grid .rot-rapida{padding:6px 7px 6px 12px;margin-bottom:12px;gap:7px;flex-wrap:nowrap}
+.rot-grid .rot-rapida input[type=text]{flex:1 1 170px;font-size:13.5px;padding:6px 2px}
+.rot-grid .rot-rapida select{max-width:98px;padding:6px 6px}
+.rot-grid .rot-rapida input[type=date]{width:124px;font-size:11.5px;padding:6px}
+.rot-grid .rr-datas{gap:3px}
+.rot-grid .rr-datas button{padding:5px 8px;font-size:11.5px}
+.rot-grid .rot-rapida .btn-nova-tarefa{padding:7px 13px;font-size:12.5px;white-space:nowrap}
+
+/* ─── tabela ─── */
+.rot-tabela{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);overflow:hidden}
+.rt-head,.rt-row{display:grid;grid-template-columns:24px minmax(0,1fr) 100px 34px 136px 106px 28px;
+  align-items:center;gap:9px;padding:0 11px}
+.rt-head{height:32px;background:var(--surface2);border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.rt-head .dir{text-align:right}
+.rt-grupo{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 12px;background:var(--surface2);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;width:100%;font-family:var(--font-sans)}
+.rt-grupo .barra{width:3px;height:12px;border-radius:2px;background:var(--c,var(--border-hi));flex-shrink:0}
+.rt-grupo .tt{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t)}
+.rt-grupo .n{font-size:10.5px;font-weight:700;color:var(--t3);background:var(--surface3);
+  border:1px solid var(--border);border-radius:8px;padding:0 6px}
+.rt-grupo .dica{font-size:11px;color:var(--t3);font-style:italic}
+.rt-grupo .chev{margin-left:auto;font-size:15px;color:var(--t3);transition:transform .15s}
+.rt-grupo.fechado .chev{transform:rotate(-90deg)}
+.rt-corpo{display:block}
+.rt-grupo.fechado+.rt-corpo{display:none}
+
+.rt-row{min-height:46px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s}
+.rt-corpo .rt-row:first-child{border-top:none}
+.rt-row:hover{background:var(--surface2)}
+.rt-row.sel{background:rgba(47,93,148,.055);box-shadow:inset 2px 0 0 var(--navy)}
+.rt-row.feita .rt-nome b{color:var(--t3);text-decoration:line-through}
+.rt-row.saindo{opacity:0;transform:translateX(14px);transition:.2s}
+.rt-ck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border-hi);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;color:transparent;font-size:11px;cursor:pointer;padding:0}
+.rt-ck:hover{border-color:var(--green);color:var(--green)}
+.rt-ck.on{background:var(--green);border-color:var(--green);color:#fff}
+.rt-nome{min-width:0}
+.rt-nome b{display:block;font-size:13.5px;font-weight:600;line-height:1.2;color:var(--t);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-nome span{display:block;font-size:11px;color:var(--t3);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-tipo{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--t2);min-width:0}
+.rt-tipo i{width:7px;height:7px;border-radius:2px;background:var(--c);flex-shrink:0}
+.rt-tipo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700}
+.rt-etapa{display:flex;min-width:0}
+.et{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;border-radius:6px;
+  padding:2.5px 7px;border:1px solid var(--border);background:var(--surface3);color:var(--t3);
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.et i{font-size:11px}
+.et.acao{cursor:pointer}
+.et.enviar{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.et.enviar:hover{background:var(--navy-deep)}
+.et.revisar{background:var(--amber-bg);border-color:rgba(169,116,27,.3);color:var(--amber-hi)}
+.et.revisar.acao:hover{background:var(--amber);color:#fff}
+.et.conferir{background:var(--amber-bg);border-color:rgba(169,116,27,.3);color:var(--amber-hi)}
+.et.ok{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.et.andamento{background:var(--blue-bg);border-color:rgba(47,93,148,.3);color:var(--blue-hi)}
+.rt-prazo{text-align:right;min-width:0}
+.rt-prazo b{display:block;font-size:12.5px;font-weight:700;color:var(--t2);white-space:nowrap}
+.rt-prazo b.late{color:var(--red-hi)}
+.rt-prazo b.soon{color:var(--amber-hi)}
+.rt-prazo b.ok{color:var(--green-hi)}
+.rt-prazo span{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:10.5px;
+  font-weight:600;color:var(--red-hi);margin-top:1px;white-space:nowrap}
+.rt-prazo span.neutro{color:var(--t3);font-weight:500}
+.rt-prazo input[type=date]{font-family:var(--font-sans);font-size:11.5px;padding:4px 6px;border-radius:7px;
+  border:1px dashed var(--border-hi);background:var(--surface2);color:var(--t2);width:100%}
+.rt-acoes{display:flex;justify-content:center;color:var(--t3)}
+.rt-acoes .btn-ico{width:26px;height:26px;font-size:15px}
+.rt-vazio{padding:38px 20px;text-align:center;color:var(--t3);font-size:13.5px}
+.rt-vazio i{font-size:28px;display:block;margin-bottom:8px;color:var(--green)}
+.rt-mais{display:block;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface2);
+  padding:9px;font-family:var(--font-sans);font-size:12px;font-weight:600;color:var(--t2);cursor:pointer}
+.rt-mais:hover{color:var(--navy)}
+
+/* ─── painel de detalhe ─── */
+.rot-detalhe{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);overflow:hidden;position:sticky;top:16px}
+.rd-head{padding:13px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.rd-k{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)}
+.rd-head h3{font-family:var(--font-serif);font-size:16.5px;font-weight:600;line-height:1.25;margin-top:5px;color:var(--t)}
+.rd-body{padding:13px 14px}
+.rd-lin{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.rd-lin:last-of-type{border-bottom:none}
+.rd-lin .k{width:78px;flex-shrink:0;color:var(--t3);font-size:11px}
+.rd-lin .v{color:var(--t);font-weight:600;min-width:0;display:flex;align-items:center;gap:6px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-lin .v.link{cursor:pointer}
+.rd-lin .v.link:hover{color:var(--navy);text-decoration:underline}
+.rd-lin .v .rt-av{width:18px;height:18px;font-size:8.5px}
+.rd-alerta{display:flex;gap:8px;border-radius:9px;padding:9px 10px;margin:11px 0;
+  background:var(--red-bg);border:1px solid rgba(178,59,59,.25)}
+.rd-alerta i{font-size:16px;color:var(--red-hi);flex-shrink:0;margin-top:1px}
+.rd-alerta b{display:block;font-size:12px;color:var(--red-hi)}
+.rd-alerta span{font-size:11px;color:var(--t2);line-height:1.4}
+.rd-alerta.ambar{background:var(--amber-bg);border-color:rgba(169,116,27,.25)}
+.rd-alerta.ambar i,.rd-alerta.ambar b{color:var(--amber-hi)}
+.rd-alerta.verde{background:var(--green-bg);border-color:rgba(47,125,63,.25)}
+.rd-alerta.verde i,.rd-alerta.verde b{color:var(--green-hi)}
+.rd-acoes{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.rd-acoes .dupla{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.rd-b1,.rd-b2{display:flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;
+  font-family:var(--font-sans);font-weight:700;cursor:pointer;border:1px solid}
+.rd-b1{height:34px;background:var(--navy);border-color:var(--navy);color:var(--cream);font-size:12.5px}
+.rd-b1:hover{background:var(--navy-deep)}
+.rd-b2{height:32px;background:var(--surface);border-color:var(--border-med);color:var(--t2);font-size:12px;font-weight:600}
+.rd-b2:hover{border-color:var(--border-hi);color:var(--navy)}
+.rd-hist{margin-top:14px;border-top:1px solid var(--border);padding-top:11px}
+.rd-hi{display:flex;gap:8px;font-size:11.5px;color:var(--t2);padding:4px 0;line-height:1.4}
+.rd-hi>i{width:6px;height:6px;border-radius:50%;background:var(--border-hi);margin-top:5px;flex-shrink:0}
+.rd-hi time{display:block;color:var(--t3);font-size:10.5px}
+
+/* painel sem seleção: o que exige decisão agora */
+.rd-fatal{background:linear-gradient(135deg,#7a2626,#431515);color:var(--cream);padding:15px 16px}
+.rd-fatal .k{font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;opacity:.75;font-weight:700}
+.rd-fatal .num{font-family:var(--font-serif);font-size:38px;font-weight:600;line-height:1;margin:5px 0 2px}
+.rd-fatal .tt{font-family:var(--font-serif);font-size:15.5px;font-weight:600;line-height:1.25;margin-top:8px}
+.rd-fatal .mt{font-size:11.5px;opacity:.82;margin-top:4px}
+.rd-fatal.calmo{background:var(--surface);color:var(--t2);border-bottom:1px solid var(--border)}
+.rd-fatal.calmo .k{color:var(--t3);opacity:1}
+.rd-fatal.calmo .num{color:var(--green-hi);font-size:26px}
+.rd-triagem{display:flex;flex-direction:column;gap:8px;padding:13px 14px}
+.rd-tr{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:9px;
+  padding:9px 10px;background:var(--surface2);cursor:pointer;text-align:left;width:100%;font-family:var(--font-sans)}
+.rd-tr:hover{border-color:var(--border-hi)}
+.rd-tr>i{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;background:var(--surface3);color:var(--t2)}
+.rd-tr.amb>i{background:var(--amber-bg);color:var(--amber-hi)}
+.rd-tr.nav>i{background:rgba(22,36,61,.08);color:var(--navy)}
+.rd-tr .tx{min-width:0;flex:1}
+.rd-tr .tx b{display:block;font-size:12.5px;font-weight:700;color:var(--t)}
+.rd-tr .tx span{font-size:11px;color:var(--t3)}
+.rd-tr .ir{color:var(--t3);font-size:15px}
+.rd-lista{padding:0 14px 14px}
+.rd-lista .k{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.rd-mini{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-top:1px solid var(--border);
+  cursor:pointer;width:100%;background:none;border-left:none;border-right:none;border-bottom:none;
+  text-align:left;font-family:var(--font-sans)}
+.rd-mini .pt{width:10px;height:10px;border-radius:50%;border:2px solid var(--silver);background:var(--surface);
+  flex-shrink:0;margin-top:3px}
+.rd-mini.urg .pt{background:var(--red);border-color:var(--red)}
+.rd-mini .tx{flex:1;min-width:0}
+.rd-mini .tx b{display:block;font-size:12px;font-weight:600;line-height:1.25;color:var(--t)}
+.rd-mini .tx span{font-size:10.5px;color:var(--t3)}
+.rd-mini .d{font-size:11px;font-weight:700;color:var(--t2);white-space:nowrap}
+.rd-mini.urg .d{color:var(--red-hi)}
+
+/* ─── painéis que ocupam o centro (cumprimento, projetos, recados) ─── */
+.rot-painel{display:none}
+.rot-painel.on{display:block}
+.rot-painel>div{display:none}
+.rot-painel>div.on{display:block}
+.rot-painel .modulo-card,.rot-painel .proj-panel,.rot-painel .chat-panel{margin-top:0}
+
+/* ─── responsivo ─── */
+@media (max-width:1340px){
+  .rot-grid{grid-template-columns:186px minmax(0,1fr)}
+  .rot-detalhe{display:none}
+}
+@media (max-width:1500px) and (min-width:1041px){
+  .rt-head span:nth-child(3),.rt-row .rt-tipo span{display:none}
+  .rt-head,.rt-row{grid-template-columns:24px minmax(0,1fr) 14px 34px 132px 104px 28px}
+}
+@media (max-width:1040px){
+  .rot-grid{grid-template-columns:minmax(0,1fr)}
+  .rot-views{position:static;display:flex;flex-wrap:wrap;gap:4px;padding:8px}
+  .rv-grupo{width:100%;padding:8px 6px 2px}
+  .rv{width:auto;height:28px;border:1px solid var(--border);border-radius:16px;padding:0 10px}
+  .rot-grid .rot-placar{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .rt-head{display:none}
+  .rt-row{grid-template-columns:22px minmax(0,1fr) 96px;row-gap:4px;padding:10px 12px}
+  .rt-row .rt-tipo,.rt-row .rt-av,.rt-row .rt-acoes{display:none}
+  .rt-row .rt-etapa{grid-column:2;justify-self:start}
+  .rt-row .rt-prazo{grid-column:3;grid-row:1}
+}
+/* ═══════════════════════════════════════════════════════════
+   ASSESSORIAS — contratos de assessoria mensal
+   Lista à esquerda (uma linha por contrato), detalhe à direita, no
+   mesmo padrão da aba Clientes. O detalhe reúne as três coisas que
+   precisam de controle: a cota de consultas do mês, as consultas e
+   pedidos em si, e as parcelas da mensalidade.
+   ═══════════════════════════════════════════════════════════ */
+
+.ass-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+
+/* ─── lista ─── */
+.ass-lista{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);overflow:hidden;position:sticky;top:16px}
+.ass-lista-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);
+  background:var(--surface2)}
+.ass-lista-head b{font-size:12.5px;font-weight:700}
+.ass-lista-head .n{font-size:11px;font-weight:700;color:var(--t3);background:var(--surface3);
+  border:1px solid var(--border);border-radius:9px;padding:1px 7px}
+.ass-lista-head .btn-nova-tarefa{margin-left:auto;padding:6px 11px;font-size:12px}
+.ass-item{display:block;width:100%;text-align:left;border:none;border-top:1px solid var(--border);
+  background:transparent;padding:12px 14px;cursor:pointer;font-family:var(--font-sans);transition:background .12s}
+.ass-item:first-of-type{border-top:none}
+.ass-item:hover{background:var(--surface2)}
+.ass-item.on{background:rgba(47,93,148,.06);box-shadow:inset 3px 0 0 var(--navy)}
+.ass-item .l1{display:flex;align-items:center;gap:8px}
+.ass-item .nome{font-size:14px;font-weight:600;color:var(--t);min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ass-item .l2{font-size:11.5px;color:var(--t3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ass-item .l3{display:flex;align-items:center;gap:6px;margin-top:8px}
+.ass-vazio{padding:34px 18px;text-align:center;color:var(--t3);font-size:13px;line-height:1.5}
+.ass-vazio i{font-size:30px;display:block;margin-bottom:10px;color:var(--border-hi)}
+
+/* etiquetas de estado */
+.ass-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;border-radius:6px;
+  padding:2px 7px;border:1px solid var(--border);background:var(--surface3);color:var(--t3);white-space:nowrap}
+.ass-tag i{font-size:12px}
+.ass-tag.ativa{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.ass-tag.suspensa{background:var(--amber-bg);border-color:rgba(169,116,27,.3);color:var(--amber-hi)}
+.ass-tag.encerrada{background:var(--surface3);color:var(--t3)}
+.ass-tag.alerta{background:var(--red-bg);border-color:rgba(178,59,59,.3);color:var(--red-hi)}
+.ass-tag.cota{background:var(--blue-bg);border-color:rgba(47,93,148,.3);color:var(--blue-hi)}
+
+/* ─── medidor de cota ─── */
+.cota{display:flex;align-items:center;gap:5px}
+.cota i{width:13px;height:7px;border-radius:2px;background:var(--border-med);display:inline-block}
+.cota i.usada{background:var(--navy)}
+.cota i.extra{background:var(--red)}
+.cota .txt{font-size:11px;color:var(--t3);margin-left:3px}
+
+/* ─── detalhe ─── */
+.ass-det{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ass-capa{background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:var(--cream);
+  border-radius:var(--r);padding:18px 20px;display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.ass-capa .tx{flex:1;min-width:220px}
+.ass-capa .k{font-size:10px;letter-spacing:.17em;text-transform:uppercase;opacity:.7;font-weight:700}
+.ass-capa h2{font-family:var(--font-serif);font-size:23px;font-weight:600;line-height:1.2;margin:5px 0 4px}
+.ass-capa .cli{font-size:13px;opacity:.85;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.ass-capa .cli:hover{text-decoration:underline}
+.ass-capa .meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;opacity:.85}
+.ass-capa .meta span{display:flex;align-items:center;gap:5px}
+.ass-capa .acoes{display:flex;gap:7px;flex-wrap:wrap}
+.ass-capa .ab{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;
+  background:rgba(244,239,230,.13);border:1px solid rgba(244,239,230,.22);color:var(--cream);
+  font-family:var(--font-sans);font-size:12.5px;font-weight:600;cursor:pointer}
+.ass-capa .ab:hover{background:rgba(244,239,230,.22)}
+.ass-capa .ab.forte{background:var(--cream);border-color:var(--cream);color:var(--navy);font-weight:700}
+
+.ass-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ass-num{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);padding:13px 15px;position:relative;overflow:hidden}
+.ass-num::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--border-hi))}
+.ass-num .l{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3)}
+.ass-num .v{font-family:var(--font-serif);font-size:26px;font-weight:600;line-height:1.1;margin:4px 0 2px;color:var(--c,var(--navy))}
+.ass-num .s{font-size:11.5px;color:var(--t3);line-height:1.35}
+.ass-num .barra{height:6px;border-radius:4px;background:var(--surface3);margin-top:8px;overflow:hidden;display:flex}
+.ass-num .barra i{display:block;height:100%}
+
+/* ─── blocos (consultas / financeiro) ─── */
+.ass-bloco{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-card);overflow:hidden}
+.ass-bloco-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--border);
+  background:var(--surface2);flex-wrap:wrap}
+.ass-bloco-head h3{font-size:14px;font-weight:700}
+.ass-bloco-head .sub{font-size:11.5px;color:var(--t3)}
+.ass-bloco-head .dir{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ass-bloco-head select{font-family:var(--font-sans);font-size:12px;padding:6px 8px;border-radius:8px;
+  border:1px solid var(--border-med);background:var(--surface);color:var(--t2)}
+.ass-bloco-head .btn-nova-tarefa{padding:6px 12px;font-size:12px}
+.ass-bloco-vazio{padding:26px 18px;text-align:center;color:var(--t3);font-size:13px}
+
+/* consultas */
+.cs-row{display:grid;grid-template-columns:22px minmax(0,1fr) 118px 112px 120px 62px;align-items:center;
+  gap:10px;padding:11px 16px;border-top:1px solid var(--border)}
+.cs-row:first-of-type{border-top:none}
+.cs-row:hover{background:var(--surface2)}
+.cs-row.feita .cs-tt b{color:var(--t3);text-decoration:line-through}
+.cs-n{width:22px;height:22px;border-radius:50%;background:var(--surface3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--t3)}
+.cs-row.feita .cs-n{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.cs-n.fora{background:var(--red-bg);border-color:rgba(178,59,59,.35);color:var(--red-hi)}
+.cs-tt{min-width:0}
+.cs-tt b{display:block;font-size:13.5px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-tt span{display:block;font-size:11px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-tipo{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--t2);min-width:0}
+.cs-tipo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-tipo i{width:7px;height:7px;border-radius:2px;background:var(--c);flex-shrink:0}
+.cs-st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:7px;
+  padding:4px 9px;border:1px solid;cursor:pointer;white-space:nowrap;font-family:var(--font-sans)}
+.cs-st.aberta{background:var(--surface3);border-color:var(--border-med);color:var(--t2)}
+.cs-st.andamento{background:var(--blue-bg);border-color:rgba(47,93,148,.3);color:var(--blue-hi)}
+.cs-st.concluida{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.cs-st.cancelada{background:var(--surface3);border-color:var(--border);color:var(--t3);text-decoration:line-through}
+.cs-data{text-align:right;font-size:11.5px;color:var(--t3);line-height:1.4}
+.cs-data b{display:block;font-size:12px;color:var(--t2);font-weight:600}
+.cs-data b.late{color:var(--red-hi)}
+.cs-acoes{display:flex;gap:2px;justify-content:flex-end;color:var(--t3)}
+
+/* financeiro */
+.pc-row{display:grid;grid-template-columns:minmax(0,1fr) 108px 104px 128px 62px;align-items:center;
+  gap:10px;padding:11px 16px;border-top:1px solid var(--border)}
+.pc-row:first-of-type{border-top:none}
+.pc-row:hover{background:var(--surface2)}
+.pc-tt{min-width:0}
+.pc-tt b{display:block;font-size:13.5px;font-weight:600}
+.pc-tt span{display:block;font-size:11px;color:var(--t3);margin-top:2px}
+.pc-venc{font-size:12.5px;font-weight:600;color:var(--t2)}
+.pc-venc.late{color:var(--red-hi)}
+.pc-venc small{display:block;font-size:10.5px;font-weight:500;color:var(--t3)}
+.pc-venc.late small{color:var(--red-hi)}
+.pc-val{font-size:14px;font-weight:700;color:var(--t);text-align:right;font-variant-numeric:tabular-nums}
+.pc-st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:7px;
+  padding:4px 9px;border:1px solid;white-space:nowrap;font-family:var(--font-sans);justify-self:start}
+.pc-st.paga{background:var(--green-bg);border-color:rgba(47,125,63,.3);color:var(--green-hi)}
+.pc-st.aberta{background:var(--surface3);border-color:var(--border-med);color:var(--t2);cursor:pointer}
+.pc-st.vencida{background:var(--red-bg);border-color:rgba(178,59,59,.3);color:var(--red-hi);cursor:pointer}
+.pc-acoes{display:flex;gap:2px;justify-content:flex-end;color:var(--t3)}
+.ass-rodape{display:flex;align-items:center;gap:14px;padding:11px 16px;border-top:1px solid var(--border);
+  background:var(--surface2);font-size:12px;color:var(--t3);flex-wrap:wrap}
+.ass-rodape b{color:var(--t);font-weight:700}
+
+/* escopo */
+.ass-texto{padding:14px 16px;font-size:13px;color:var(--t2);line-height:1.6;white-space:pre-wrap}
+.ass-texto.vazio{color:var(--t3);font-style:italic}
+
+/* bloco na ficha do cliente */
+.cli-ass{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;
+  padding:11px 13px;background:var(--surface2);margin-bottom:8px;cursor:pointer}
+.cli-ass:hover{border-color:var(--border-hi)}
+.cli-ass>i{width:30px;height:30px;border-radius:8px;background:rgba(22,36,61,.07);color:var(--navy);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.cli-ass .tx{flex:1;min-width:0}
+.cli-ass .tx b{display:block;font-size:13px;font-weight:600}
+.cli-ass .tx span{font-size:11.5px;color:var(--t3)}
+
+/* ─── responsivo ─── */
+@media (max-width:1180px){
+  .ass-grid{grid-template-columns:minmax(0,1fr)}
+  .ass-lista{position:static}
+  .ass-nums{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .cs-row{grid-template-columns:22px minmax(0,1fr) 110px;row-gap:6px}
+  .cs-row .cs-tipo,.cs-row .cs-acoes{display:none}
+  .cs-row .cs-data{grid-column:3;grid-row:1}
+  .cs-row .cs-st{grid-column:2;justify-self:start}
+  .pc-row{grid-template-columns:minmax(0,1fr) 110px;row-gap:6px}
+  .pc-row .pc-acoes,.pc-row .pc-venc{display:none}
+  .ass-nums{grid-template-columns:1fr}
+}
+
+/* ─── modais ─── */
+.mco-cota{display:block;font-size:11.5px;color:var(--t3);margin-top:7px;line-height:1.45}
+.mco-cota.alerta{color:var(--amber-hi)}
+.mco-check{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:13px;color:var(--t2);cursor:pointer}
+.mco-check input{width:16px;height:16px;accent-color:var(--navy)}
+.mpc-previa{font-size:12.5px;color:var(--t2);line-height:1.5;background:var(--surface2);
+  border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin:4px 0 12px}
 </style>
 </head>
 <body>
@@ -2200,6 +2617,7 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       <button class="sb-item active" id="nav-dash" onclick="navegarPara('dash')" title="Visão geral"><i class="ti ti-layout-dashboard"></i><span class="sb-rot">Visão geral</span></button>
       <div class="sb-grupo"><span>Operação</span></div>
       <button class="sb-item" id="nav-rotina" onclick="navegarPara('rotina')" title="Rotina"><i class="ti ti-checklist"></i><span class="sb-rot">Rotina</span><span class="nav-badge" id="nav-rotina-badge" style="display:none"></span></button>
+      <button class="sb-item" id="nav-assessorias" onclick="navegarPara('assessorias')" title="Assessorias"><i class="ti ti-briefcase"></i><span class="sb-rot">Assessorias</span><span class="nav-badge" id="nav-assessorias-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-processos" onclick="navegarPara('processos')" title="Processos"><i class="ti ti-gavel"></i><span class="sb-rot">Processos</span><span class="nav-badge" id="nav-processos-badge" style="display:none"></span></button>
       <button class="sb-item" id="nav-arquivados" onclick="navegarPara('arquivados')" title="Arquivados"><i class="ti ti-archive"></i><span class="sb-rot">Arquivados</span></button>
       <button class="sb-item" id="nav-modelos" onclick="navegarPara('modelos')" title="Modelos"><i class="ti ti-file-text"></i><span class="sb-rot">Modelos</span></button>
@@ -2957,80 +3375,108 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
     </div>
 
     <!-- ─── VIEW: ROTINA ─── -->
+    <!-- Painel de comando: visões salvas à esquerda, tabela densa no centro e
+         detalhe da tarefa à direita. Cumprimento de prazos, projetos e recados
+         deixaram o rodapé e viraram painéis acionados pelo menu da esquerda. -->
     <div class="view" id="view-rotina">
-      <div class="page-head">
-        <h1>Rotina do Escritório</h1>
-        <p>O que vence primeiro aparece primeiro · conclua com um clique</p>
-      </div>
-
-      <!-- linha do tempo horizontal dos prazos fatais da semana -->
-      <div class="rot-fatais" id="rot-fatais"></div>
-
-      <!-- stories: um círculo por sócio; clicar filtra a rotina para as tarefas dele -->
-      <div class="rot-stories" id="rot-pessoas"></div>
-
-      <!-- placar: o que está em jogo hoje. Os blocos são clicáveis e filtram a lista -->
-      <div class="rot-placar" id="rotina-stats"></div>
-
-      <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
-      <div id="rotina-avisos"></div>
-
-      <!-- criação rápida: título + responsável + prazo, Enter grava -->
-      <div class="rot-rapida">
-        <i class="ti ti-plus"></i>
-        <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
-        <select id="rr-resp" title="Responsável"></select>
-        <div class="rr-datas" id="rr-datas"></div>
-        <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
-        <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
-        <button class="btn-sec" onclick="abrirModalTarefa(null,null)" title="Abrir o formulário completo"><i class="ti ti-adjustments-horizontal"></i></button>
-      </div>
-
-      <div class="rot-toolbar">
-        <div class="seg rot-modo">
-          <button type="button" id="rot-modo-agenda" onclick="mudarModoRotina('agenda')"><i class="ti ti-list-details"></i> Agenda</button>
-          <button type="button" id="rot-modo-board" onclick="mudarModoRotina('board')"><i class="ti ti-layout-columns"></i> Por responsável</button>
+      <div class="rot-top">
+        <h1>Rotina</h1>
+        <span class="rot-crumb" id="rot-crumb"></span>
+        <div class="rot-top-dir">
+          <span class="rot-tool" id="rot-agrupar-wrap" title="Como as linhas são agrupadas">
+            <i class="ti ti-layout-rows"></i>Agrupar:
+            <select id="rot-agrupar" onchange="mudarAgruparRotina(this.value)">
+              <option value="prazo">Prazo</option>
+              <option value="tipo">Tipo</option>
+              <option value="resp">Sócio</option>
+              <option value="etapa">Etapa</option>
+            </select>
+          </span>
+          <input class="search-inp rot-busca-top" id="rot-busca" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
+          <button class="btn-nova-tarefa" onclick="abrirModalTarefa(null,null)"><i class="ti ti-plus"></i>Nova tarefa</button>
         </div>
-        <input class="search-inp" id="rot-busca" style="max-width:240px;margin-left:auto" placeholder="Buscar tarefa, cliente, processo…" oninput="buscaRotina(this.value)">
       </div>
 
-      <div class="rotina-chips rot-status-chips" id="rot-status-chips" style="display:none">
-        <button class="chip active" data-f="todos" onclick="filtroRotina('todos',this)">Todas</button>
-        <button class="chip" data-f="pendente" onclick="filtroRotina('pendente',this)">Pendentes</button>
-        <button class="chip" data-f="andamento" onclick="filtroRotina('andamento',this)">Em andamento</button>
-        <button class="chip" data-f="concluido" onclick="filtroRotina('concluido',this)">Concluídas</button>
-      </div>
-      <div id="rotina-agenda"></div>
-      <div class="rotina-board" id="rotina-board"></div>
+      <div class="rot-grid">
+        <!-- visões: cada recorte vira um item nomeado, com contador -->
+        <nav class="rot-views" id="rot-views"></nav>
 
-      <!-- cumprimento de prazos: o que foi concluído, quando, e com quantos dias de atraso -->
-      <div class="modulo-card" style="margin-top:20px">
-        <div class="card-head">
-          <h3>Cumprimento de prazos</h3>
-          <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
-        </div>
-        <div class="card-body">
-          <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
-            <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
-            <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
-            <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
-            <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+        <section class="rot-centro">
+          <!-- placar: o que está em jogo hoje. Os blocos trocam a visão ativa -->
+          <div class="rot-placar" id="rotina-stats"></div>
+
+          <!-- avisos que pedem ação (publicações do DJEN, prazos a conferir) -->
+          <div id="rotina-avisos"></div>
+
+          <!-- criação rápida: título + responsável + prazo, Enter grava -->
+          <div class="rot-rapida">
+            <i class="ti ti-plus"></i>
+            <input type="text" id="rr-titulo" placeholder="O que precisa ser feito? (Enter para incluir)" onkeydown="if(event.key==='Enter'){event.preventDefault();criarTarefaRapida()}">
+            <select id="rr-resp" title="Responsável"></select>
+            <div class="rr-datas" id="rr-datas"></div>
+            <input type="date" id="rr-prazo" title="Prazo" onchange="rrMarcarAtalho(null)">
+            <button class="btn-nova-tarefa" onclick="criarTarefaRapida()">Incluir</button>
           </div>
-          <div id="rotina-desempenho"></div>
-        </div>
+
+          <div class="rot-tabela" id="rotina-tabela"></div>
+
+          <!-- painéis: ocupam o centro quando escolhidos no menu da esquerda -->
+          <div class="rot-painel" id="rotina-painel">
+            <div id="painel-desempenho">
+              <div class="modulo-card">
+                <div class="card-head">
+                  <h3>Cumprimento de prazos</h3>
+                  <span class="sub" style="font-size:12px;color:var(--t3)">tarefas concluídas × prazo combinado</span>
+                </div>
+                <div class="card-body">
+                  <div class="rotina-chips desemp-chips" style="margin-bottom:16px">
+                    <button class="chip" data-p="30" onclick="filtroDesempenho('30',this)">Últimos 30 dias</button>
+                    <button class="chip" data-p="90" onclick="filtroDesempenho('90',this)">Últimos 90 dias</button>
+                    <button class="chip" data-p="mes" onclick="filtroDesempenho('mes',this)">Este mês</button>
+                    <button class="chip active" data-p="tudo" onclick="filtroDesempenho('tudo',this)">Tudo</button>
+                  </div>
+                  <div id="rotina-desempenho"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- projetos em andamento: puxa as rotinas de elaboração em aberto,
+                 agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
+            <div id="painel-projetos"><div class="proj-panel recolhida" id="proj-panel"></div></div>
+
+            <div id="painel-recados">
+              <div class="chat-panel">
+                <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
+                <div class="chat-list" id="rotina-chat-list"></div>
+                <div class="chat-input-row">
+                  <input type="text" class="chat-input" id="rotina-chat-input" placeholder="Deixe um recado para o outro sócio…" onkeydown="if(event.key==='Enter')enviarChatGeral()">
+                  <button class="chat-send-btn" onclick="enviarChatGeral()" title="Enviar"><i class="ti ti-send"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- detalhe da tarefa selecionada -->
+        <aside class="rot-detalhe" id="rot-detalhe"></aside>
+      </div>
+    </div>
+
+    <!-- ─── VIEW: ASSESSORIAS ─── -->
+    <!-- Contratos de assessoria mensal: lista à esquerda, detalhe à direita.
+         As parcelas são lançamentos do próprio cliente (cliente.fin) marcados
+         com assessoriaId — por isso aparecem também no Financeiro e na ficha. -->
+    <div class="view" id="view-assessorias">
+      <div class="page-head">
+        <h1>Assessorias</h1>
+        <p>Contratos mensais · consultas entregues ao cliente e parcelas da mensalidade</p>
       </div>
 
-      <!-- projetos em andamento: puxa automaticamente as rotinas de elaboração
-           em aberto, agrupadas por tipo; o conteúdo é montado em renderProjetos() -->
-      <div class="proj-panel recolhida" id="proj-panel"></div>
+      <div class="ass-nums" id="ass-stats" style="margin-bottom:18px"></div>
 
-      <div class="chat-panel" style="margin-top:20px">
-        <div class="chat-panel-head"><h3>Recados do escritório</h3><span class="sub" style="font-size:12px;color:var(--t3)">observações gerais entre os sócios</span></div>
-        <div class="chat-list" id="rotina-chat-list"></div>
-        <div class="chat-input-row">
-          <input type="text" class="chat-input" id="rotina-chat-input" placeholder="Deixe um recado para o outro sócio…" onkeydown="if(event.key==='Enter')enviarChatGeral()">
-          <button class="chat-send-btn" onclick="enviarChatGeral()" title="Enviar"><i class="ti ti-send"></i></button>
-        </div>
+      <div class="ass-grid">
+        <aside class="ass-lista" id="ass-lista"></aside>
+        <section class="ass-det" id="ass-det"></section>
       </div>
     </div>
 
@@ -3332,6 +3778,109 @@ kbd{font-family:var(--font-sans);font-size:10.5px;font-weight:600;line-height:1;
       <button class="btn-del" id="mct-del" onclick="excluirContrato()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn-cancel" onclick="fecharOverlay('overlay-contrato')">Cancelar</button>
       <button class="btn-confirm" onclick="salvarContrato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-assessoria">
+  <div class="modal">
+    <h3 id="ma-titulo">Nova assessoria</h3>
+    <div class="fg"><label>Cliente</label><select id="ma-cliente"></select>
+      <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">O cliente precisa estar cadastrado em Clientes. As mensalidades entram na ficha dele e no Financeiro.</span></div>
+    <div class="fg"><label>Objeto do contrato</label><input type="text" id="ma-objeto" placeholder="Ex.: Assessoria jurídica mensal"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Início da vigência</label><input type="date" id="ma-inicio"></div>
+      <div class="fg"><label>Fim (opcional)</label><input type="date" id="ma-fim"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Responsável</label><select id="ma-resp"></select></div>
+      <div class="fg"><label>Situação</label>
+        <div class="seg">
+          <button type="button" id="ma-st-ativa" onclick="maStatus('Ativa')">Ativa</button>
+          <button type="button" id="ma-st-suspensa" onclick="maStatus('Suspensa')">Suspensa</button>
+          <button type="button" id="ma-st-encerrada" onclick="maStatus('Encerrada')">Encerrada</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Consultas por mês</label><input type="number" id="ma-consultas" min="0" max="99" placeholder="Ex.: 4">
+        <span style="font-size:11px;color:var(--t3);display:block;margin-top:6px">Quantas o cliente tem direito por mês. Deixe 0 para não controlar cota.</span></div>
+      <div class="fg"><label>O que não foi usado acumula?</label>
+        <div class="seg">
+          <button type="button" id="ma-ac-nao" onclick="maAcumula(false)">Não acumula</button>
+          <button type="button" id="ma-ac-sim" onclick="maAcumula(true)">Acumula</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Mensalidade (R$)</label><input type="text" id="ma-valor" inputmode="decimal" placeholder="Ex.: 2.500,00"></div>
+      <div class="fg"><label>Dia de vencimento</label><input type="number" id="ma-dia" min="1" max="31" placeholder="Ex.: 10"></div>
+    </div>
+    <div class="fg"><label>Escopo — o que está incluído</label><textarea id="ma-escopo" rows="3" placeholder="Ex.: consultas por WhatsApp e e-mail, análise de contratos, uma reunião mensal. Não inclui atuação em processos judiciais."></textarea></div>
+    <div class="fg"><label>Observações</label><textarea id="ma-obs" rows="2" placeholder="Reajuste, forma de pagamento, contato do cliente…"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-del" id="ma-del" onclick="excluirAssessoria()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-assessoria')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarAssessoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CONSULTA DA ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-consulta">
+  <div class="modal">
+    <h3 id="mco-titulo">Registrar consulta</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-6px 0 16px">Cliente: <b id="mco-cliente-nome" style="color:var(--t2)"></b></p>
+    <div class="fg"><label>O que o cliente pediu</label><input type="text" id="mco-obj" placeholder="Ex.: Análise do contrato de locação da filial"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Tipo</label><select id="mco-tipo"></select></div>
+      <div class="fg"><label>Como chegou</label><select id="mco-canal"></select></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Quem pediu</label><input type="text" id="mco-solicitante" placeholder="Ex.: Dr. Ricardo, setor de compras"></div>
+      <div class="fg"><label>Responsável pela entrega</label><select id="mco-resp"></select></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Data do pedido</label><input type="date" id="mco-data"></div>
+      <div class="fg"><label>Prazo de entrega</label><input type="date" id="mco-prazo"></div>
+    </div>
+    <div class="fg"><label>Competência — de qual mês desconta</label><input type="month" id="mco-comp" onchange="mcoAvisoCota()">
+      <span class="mco-cota" id="mco-cota"></span></div>
+    <div class="fg"><label>Situação</label>
+      <div class="seg">
+        <button type="button" id="mco-st-aberta" onclick="mcoStatus('aberta')">Aberta</button>
+        <button type="button" id="mco-st-andamento" onclick="mcoStatus('andamento')">Em andamento</button>
+        <button type="button" id="mco-st-concluida" onclick="mcoStatus('concluida')">Concluída</button>
+        <button type="button" id="mco-st-cancelada" onclick="mcoStatus('cancelada')">Cancelada</button>
+      </div>
+    </div>
+    <div class="fg"><label>Detalhes / resposta dada</label><textarea id="mco-desc" rows="3" placeholder="Resumo do que foi pedido e do que foi entregue."></textarea></div>
+    <label class="mco-check" id="mco-tarefa-wrap"><input type="checkbox" id="mco-tarefa">
+      <span>Criar também uma tarefa na Rotina, com este prazo e responsável</span></label>
+    <div class="modal-btns">
+      <button class="btn-del" id="mco-del" onclick="excluirConsulta()" style="display:none"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-consulta')">Cancelar</button>
+      <button class="btn-confirm" onclick="salvarConsulta()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: GERAR PARCELAS DA ASSESSORIA ═══════════════ -->
+<div class="overlay" id="overlay-parcelas">
+  <div class="modal" style="max-width:520px">
+    <h3>Gerar parcelas da mensalidade</h3>
+    <p style="font-size:12.5px;color:var(--t3);margin:-6px 0 16px">Cliente: <b id="mpc-cliente-nome" style="color:var(--t2)"></b> · os lançamentos entram como “a receber” na ficha dele.</p>
+    <div class="fg-row">
+      <div class="fg"><label>Quantas parcelas</label><input type="number" id="mpc-qtd" min="1" max="36" oninput="mpcPrevia()"></div>
+      <div class="fg"><label>Valor de cada uma (R$)</label><input type="text" id="mpc-valor" inputmode="decimal" placeholder="Ex.: 2.500,00" oninput="mpcPrevia()"></div>
+    </div>
+    <div class="fg"><label>Primeiro vencimento</label><input type="date" id="mpc-venc" onchange="mpcPrevia()"></div>
+    <p class="mpc-previa" id="mpc-previa"></p>
+    <p style="font-size:11.5px;color:var(--t3);line-height:1.5">Competências que já tiverem parcela gerada são puladas, então dá para rodar de novo sem duplicar.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fecharOverlay('overlay-parcelas')">Cancelar</button>
+      <button class="btn-confirm" onclick="gerarParcelasAssessoria()">Gerar parcelas</button>
     </div>
   </div>
 </div>
@@ -4473,6 +5022,7 @@ async function seedDB(){
     lancamentos:[],
     saldoInicial:{valor:0,obs:'',atualizadoEm:''},
     conteudos:[],
+    assessorias:[],
     metasComercial:{artigosMes:4,videosMes:4},
   };
 }
@@ -4508,6 +5058,7 @@ async function carregarDBRemoto(){
   if(!Array.isArray(DB.lancamentos)){DB.lancamentos=[];precisaSalvar=true;}
   if(!DB.saldoInicial||typeof DB.saldoInicial.valor!=='number'){DB.saldoInicial={valor:0,obs:'',atualizadoEm:''};precisaSalvar=true;}
   if(!Array.isArray(DB.conteudos)){DB.conteudos=[];precisaSalvar=true;}
+  if(!Array.isArray(DB.assessorias)){DB.assessorias=[];precisaSalvar=true;}
   if(!DB.metasComercial||typeof DB.metasComercial.artigosMes!=='number'){DB.metasComercial={artigosMes:4,videosMes:4};precisaSalvar=true;}
   if(!DB.metasCRM||typeof DB.metasCRM!=='object'){DB.metasCRM={};precisaSalvar=true;}
   // régua pré-proposta: preenche a proximaAcaoEm em branco dos leads ativos pré-proposta
@@ -5257,6 +5808,7 @@ function renderSino(){
   const nb=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.textContent=v>99?'99+':v;el.style.display=v>0?'inline-flex':'none';};
   nb('nav-rotina-badge',n);
   nb('nav-processos-badge',typeof pubsAnalisar==='function'&&DB?pubsAnalisar().length:0);
+  if(typeof atualizarBadgeAssessorias==='function')atualizarBadgeAssessorias();
   const b=document.getElementById('sino-badge');
   if(!b)return;
   const total=n+nRev;
@@ -5338,6 +5890,7 @@ const RENDERIZADORES={
   arquivados:()=>{if(typeof renderArquivados==='function')renderArquivados()},
   fin:()=>renderFin(),
   rotina:()=>{if(typeof renderRotina==='function')renderRotina()},
+  assessorias:()=>{if(typeof renderAssessorias==='function')renderAssessorias()},
   comercial:()=>{if(typeof renderComercial==='function')renderComercial()},
 };
 let telasDesatualizadas=new Set();
@@ -8128,73 +8681,105 @@ function renderAgendaAudiencias(){
   lista.innerHTML=side;
 }
 function irParaCliente(id){navegarPara('crm');abrirCliente(id);}
+// ═══════════════════════════════════════════════════════════
+//  ROTINA — PAINEL DE COMANDO
+// ═══════════════════════════════════════════════════════════
+//  A tela deixou de ser uma pilha de blocos rolável. Agora são três
+//  colunas fixas:
+//
+//    · à esquerda, as VISÕES: cada recorte que antes era um filtro solto
+//      (hoje, atrasadas, a conferir, sem prazo, por tipo) virou um item
+//      nomeado com contador. Só um fica ativo por vez, então sempre dá
+//      para saber que recorte está na tela.
+//    · no centro, a TABELA densa, agrupada pelo que vence primeiro
+//      (ou por tipo, sócio e etapa, à escolha).
+//    · à direita, o DETALHE da tarefa selecionada, com cliente, processo,
+//      prazo fatal, histórico e as ações. Sem nada selecionado, mostra o
+//      prazo fatal mais próximo e o que está esperando triagem.
+//
+//  Cumprimento de prazos, projetos e recados saíram do rodapé e viraram
+//  painéis que ocupam o centro quando escolhidos no menu.
+//
+//  O que não mudou: o agrupamento por prazo, o registro de adiamento
+//  (t.adiamentos / t.prazoOriginal), o fluxo de revisão e aprovação entre
+//  os sócios e a leitura automática do DJEN.
+// ═══════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════
-//  ROTINA (tarefas por sócio)
-// ═══════════════════════════════════════════════════════════
-let rotinaFiltro='todos';
-let rotinaCat={}; // categoria (tipo) selecionada por coluna/responsável
-function rotinaFiltroCat(resp,val){rotinaCat[resp]=val;renderRotina();}
-function filtroRotina(f,btn){
-  rotinaFiltro=f;
-  // :not(.desemp-chips) — o painel de cumprimento de prazos tem os próprios chips
-  document.querySelectorAll('#rot-status-chips .chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+const LS_ROTINA_PREF='bgl_rotina_pref';
+let rotinaPref=(()=>{try{const v=JSON.parse(localStorage.getItem(LS_ROTINA_PREF)||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}})();
+let rotinaBusca='', rotSel=null, rrAtalho='hoje', __rrIniciado=false;
+const ROT_LIMITE=150;   // teto de linhas desenhadas de uma vez
+
+function salvarPrefRotina(){try{localStorage.setItem(LS_ROTINA_PREF,JSON.stringify(rotinaPref))}catch(e){}}
+function rotinaPessoa(){const p=rotinaPref.pessoa;return p&&RESP.includes(p)?p:'todos'}
+function rotinaAgrupar(){return ['prazo','tipo','resp','etapa'].includes(rotinaPref.agrupar)?rotinaPref.agrupar:'prazo'}
+
+// ─── VISÕES ───────────────────────────────────────────────
+// Cada visão é um recorte nomeado da lista. `fn` diz quais tarefas entram;
+// `painel` troca o centro da tela por um dos painéis (desempenho, projetos,
+// recados); `acao` é um item que só dispara alguma coisa (abrir o DJEN).
+function visoesRotina(){
+  const h=hojeISO(), eu=EU&&EU.nome;
+  const base=[
+    {g:'Rotina'},
+    {k:'mesa',lbl:'Minha mesa',ico:'inbox',fn:t=>t.status!=='concluido'},
+    {k:'hoje',lbl:'Hoje',ico:'bolt',fn:t=>t.status!=='concluido'&&t.prazo===h},
+    {k:'atrasadas',lbl:'Atrasadas',ico:'alert-triangle',alerta:true,fn:t=>t.status!=='concluido'&&t.prazo&&t.prazo<h},
+    {k:'fatais',lbl:'Prazos fatais',ico:'flag',fn:t=>t.status!=='concluido'&&!!t.prazoFatal},
+    {k:'semprazo',lbl:'Sem prazo',ico:'hourglass-low',fn:t=>t.status!=='concluido'&&!t.prazo},
+    {k:'concluidas',lbl:'Concluídas',ico:'circle-check',fn:t=>t.status==='concluido'},
+    {g:'Triagem'},
+    {k:'djen',lbl:'DJEN a revisar',ico:'news',ambar:true,acao:()=>abrirPainelPublicacoes('revisar'),
+      contar:()=>(typeof pubsAnalisar==='function'?pubsAnalisar().length:0)},
+    {k:'conferir',lbl:'A conferir',ico:'alert-triangle',ambar:true,fn:t=>t.status!=='concluido'&&!!t.conferir},
+    {k:'revmim',lbl:'Na minha revisão',ico:'eye',fn:t=>revPendenteRevisor(t)&&revisorDa(t)===eu},
+    {k:'revenviar',lbl:'Para eu enviar',ico:'send',fn:t=>revAguardaEnvio(t)&&(!eu||t.resp===eu)},
+    {g:'Por tipo'},
+  ];
+  tiposTarefa().filter(x=>x.key!=='followup').forEach(x=>{
+    base.push({k:'tipo:'+x.key,lbl:x.lbl,cor:x.cor,fn:t=>t.status!=='concluido'&&t.tipo===x.key});
+  });
+  base.push({g:'Painéis'},
+    {k:'desempenho',lbl:'Cumprimento de prazos',ico:'trending-up',painel:'desempenho'},
+    {k:'projetos',lbl:'Projetos em andamento',ico:'rocket',painel:'projetos'},
+    {k:'recados',lbl:'Recados do escritório',ico:'message',painel:'recados'});
+  return base;
+}
+function visaoRotina(){
+  const vs=visoesRotina().filter(v=>v.k);
+  return vs.find(v=>v.k===rotinaPref.visao)||vs[0];
+}
+function mudarVisaoRotina(k){
+  const v=visoesRotina().find(x=>x.k===k);
+  if(!v)return;
+  if(v.acao){v.acao();return;}
+  rotinaPref.visao=k;
+  if(v.painel==='projetos'){
+    blocosRecolhidos['projetos:painel']=false;
+    try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
+  }
+  salvarPrefRotina();
+  rotSel=null;
   renderRotina();
 }
-// abre um lead diretamente a partir de uma tarefa (Rotina)
+function mudarPessoaRotina(p){
+  rotinaPref.pessoa=(rotinaPessoa()===p?'todos':p);
+  salvarPrefRotina();__rrIniciado=false;rotSel=null;renderRotina();
+}
+function mudarAgruparRotina(a){rotinaPref.agrupar=a;salvarPrefRotina();renderRotina();}
+function buscaRotina(v){rotinaBusca=v;renderRotina();}
+function irParaDesempenho(){mudarVisaoRotina('desempenho')}
+// mantida para quem chama de fora (avisos, atalhos antigos)
+function filtroHorizonte(h){mudarVisaoRotina(h==='semana'?'mesa':h)}
+
+// abre um lead diretamente a partir de uma tarefa
 function abrirLeadDeTarefa(leadId,leadMod){
   navegarPara('trab');
   mudarTipoTriagem(leadMod);
   if(leadMod==='civel')abrirLeadCivel(leadId);else abrirLead(leadId);
 }
-function taskCard(t){
-  const pi=prazoInfo(t);const cli=nomeCliente(t.cid);
-  const done=t.status==='concluido'?'done':'';
-  const stCls=t.status==='concluido'?'st-concluido':t.status==='andamento'?'st-andamento':'st-pendente';
-  const leadChip=t.leadId?`<span class="task-cli" onclick="abrirLeadDeTarefa('${t.leadId}','${t.leadMod}')" title="Abrir lead na Jornada Comercial"><i class="ti ti-user" style="font-size:11px"></i> lead</span>`:'';
-  return `<div class="task-card ${done}">
-    <div class="task-titulo">${esc(t.titulo)}</div>
-    <div class="task-meta">
-      <span class="task-tipo">${tipoInfo(t.tipo).lbl}</span>
-      ${cli?`<span class="task-cli" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:''}
-      ${leadChip}
-      ${seloProjeto(t)}
-      <span class="prazo-badge ${pi.cls}"${pi.titulo?` title="${esc(pi.titulo)}"`:''}>${pi.txt}</span>
-      ${t.hora?`<span class="prazo-badge prazo-ok" title="Horário"><i class="ti ti-clock" style="font-size:11px"></i>${esc(t.hora)}</span>`:''}
-    </div>
-    <div class="task-foot">
-      <span class="st-pill ${stCls}" onclick="cicloTarefa('${t.id}')" title="Clique para avançar o status">${ST_LBL[t.status]}</span>
-      <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar tarefa"><i class="ti ti-pencil"></i></button>
-    </div>
-  </div>`;
-}
-// ═══════════════════════════════════════════════════════════
-//  ROTINA — AGENDA POR PRAZO
-//  A lista principal agrupa as tarefas pelo que vence primeiro
-//  (atrasadas, hoje, amanhã, próximos 7 dias…). A ideia é que a
-//  pergunta "o que eu preciso entregar agora?" se responda olhando
-//  o topo da tela, sem varrer quatro colunas.
-//  · conclusão em um clique (com "desfazer")
-//  · adiar é possível, mas fica registrado (t.adiamentos, t.prazoOriginal)
-//    e aparece no placar e no relatório de cumprimento
-//  · tarefa sem prazo fica em grupo próprio, pedindo uma data
-//  O quadro por responsável continua disponível ("Por responsável").
-// ═══════════════════════════════════════════════════════════
-const LS_ROTINA_PREF='bgl_rotina_pref';
-let rotinaPref=(()=>{try{const v=JSON.parse(localStorage.getItem(LS_ROTINA_PREF)||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}})();
-let rotinaHorizonte=null, rotinaBusca='', rrAtalho='hoje', __rrIniciado=false;
-function salvarPrefRotina(){try{localStorage.setItem(LS_ROTINA_PREF,JSON.stringify(rotinaPref))}catch(e){}}
-function rotinaModo(){return rotinaPref.modo==='board'?'board':'agenda'}
-function rotinaPessoa(){const p=rotinaPref.pessoa;return p&&RESP.includes(p)?p:'todos'}
-function mudarModoRotina(m){rotinaPref.modo=m;salvarPrefRotina();renderRotina();}
-function mudarPessoaRotina(p){rotinaPref.pessoa=p;salvarPrefRotina();__rrIniciado=false;renderRotina();}
-function buscaRotina(v){rotinaBusca=v;renderRotina();}
-function filtroHorizonte(h){
-  rotinaHorizonte=rotinaHorizonte===h?null:h;
-  if(rotinaModo()!=='agenda'){rotinaPref.modo='agenda';salvarPrefRotina();}
-  renderRotina();
-}
+
+// ─── FILTROS DE BASE ──────────────────────────────────────
 // a tarefa aparece para o responsável; também para o outro sócio quando está
 // aguardando a revisão/aprovação dele (fica "na mesa" dos dois)
 function tarefaDaPessoa(t,p){
@@ -8208,7 +8793,14 @@ function tarefaCasaBusca(t,q){
   const p=processoPorId(t.pid);
   return [t.titulo,nomeCliente(t.cid),t.resp,tipoInfo(t.tipo).lbl,p&&p.num,p&&p.numCNJ,p&&p.ativo,p&&p.passivo].some(x=>semAcento(x).includes(q));
 }
+function tarefasDaRotina(){
+  const pessoa=rotinaPessoa();
+  return DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaDaPessoa(t,pessoa));
+}
+
+// ─── AGRUPAMENTO ──────────────────────────────────────────
 function grupoDaTarefa(t,hoje,amanha,fim7){
+  if(t.status==='concluido')return 'concluidas';
   if(!t.prazo)return 'semprazo';
   if(t.prazo<hoje)return 'atrasadas';
   if(t.prazo===hoje)return 'hoje';
@@ -8223,6 +8815,415 @@ const GRUPOS_AGENDA=[
   {k:'semana',lbl:'Próximos 7 dias',cor:'var(--navy-soft)'},
   {k:'semprazo',lbl:'Sem prazo',cor:'var(--silver)',dica:'tarefa sem data tende a ficar para depois — defina uma'},
   {k:'proximas',lbl:'Mais adiante',cor:'var(--silver-dark)',fechado:true},
+  {k:'concluidas',lbl:'Concluídas',cor:'var(--green)',fechado:true},
+];
+function ordenarAgenda(a,b){
+  const pa=a.prazo||'9999',pb=b.prazo||'9999';
+  if(pa!==pb)return pa<pb?-1:1;
+  const fa=a.prazoFatal||'9999',fb=b.prazoFatal||'9999';
+  if(fa!==fb)return fa<fb?-1:1;
+  return (a.hora||'99')<(b.hora||'99')?-1:1;
+}
+// etapa do fluxo, usada como rótulo na linha e como critério de agrupamento
+function etapaDaTarefa(t){
+  if(t.status==='concluido')return {k:'concluida',lbl:'concluída',cls:'ok',ico:'circle-check'};
+  if(t.conferir)return {k:'conferir',lbl:'conferir',cls:'conferir',ico:'alert-triangle'};
+  if(t.revPede){
+    const prox=revProximaAcao(t), quem=revisorDa(t);
+    if(!prox)return {k:'revok',lbl:t.revEstado==='aprovado'?'aprovada':'revisada',cls:'ok',ico:'circle-check'};
+    if(!t.revEnviado){
+      if(EU&&EU.nome===t.resp)return {k:'enviar',lbl:'enviar p/ '+(prox==='aprovar'?'aprovação':'revisão'),cls:'enviar',ico:'send',
+        acao:`enviarParaRevisao('${t.id}')`};
+      return {k:'elaboracao',lbl:'em elaboração',cls:'',ico:'pencil'};
+    }
+    const souEu=EU&&EU.nome===quem;
+    return {k:'revisar',lbl:souEu?(prox==='aprovar'?'aprovar':'revisar'):'aguarda '+quem,cls:'revisar',ico:'eye',
+      acao:souEu?`marcarRevisao('${t.id}','${prox}')`:''};
+  }
+  if(t.status==='andamento')return {k:'andamento',lbl:'em andamento',cls:'andamento',ico:'player-play'};
+  return {k:'pendente',lbl:'pendente',cls:'',ico:''};
+}
+const ORDEM_ETAPA=['conferir','revisar','enviar','andamento','elaboracao','pendente','revok','concluida'];
+function agruparTarefas(ts){
+  const modo=rotinaAgrupar();
+  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
+  const mapa={};
+  const push=(k,lbl,cor,dica,fechado,ordem)=>{
+    if(!mapa[k])mapa[k]={k,lbl,cor,dica,fechado,ordem,itens:[]};
+    return mapa[k];
+  };
+  if(modo==='prazo'){
+    GRUPOS_AGENDA.forEach((g,i)=>push(g.k,g.lbl,g.cor,g.dica,!!g.fechado,i));
+    ts.forEach(t=>mapa[grupoDaTarefa(t,hoje,amanha,fim7)].itens.push(t));
+  }else if(modo==='tipo'){
+    tiposTarefa().forEach((x,i)=>push('t:'+x.key,x.lbl,x.cor,'',false,i));
+    ts.forEach(t=>{const i=tipoInfo(t.tipo);push('t:'+i.key,i.lbl,i.cor,'',false,99).itens.push(t)});
+  }else if(modo==='resp'){
+    RESP.forEach((r,i)=>push('r:'+r,r,'var(--navy-soft)','',false,i));
+    ts.forEach(t=>push('r:'+(t.resp||'—'),t.resp||'Sem responsável','var(--silver)','',false,99).itens.push(t));
+  }else{
+    ts.forEach(t=>{
+      const e=etapaDaTarefa(t);
+      push('e:'+e.k,e.lbl,'var(--navy-soft)','',e.k==='concluida',ORDEM_ETAPA.indexOf(e.k)).itens.push(t);
+    });
+  }
+  return Object.values(mapa).filter(g=>g.itens.length)
+    .sort((a,b)=>a.ordem-b.ordem)
+    .map(g=>{g.itens.sort(ordenarAgenda);return g});
+}
+
+// ─── RENDER PRINCIPAL ─────────────────────────────────────
+function renderRotina(){
+  const v=visaoRotina(), pessoa=rotinaPessoa();
+  const base=tarefasDaRotina();
+  const q=semAcento(rotinaBusca.trim());
+
+  renderViewsRotina(base,v,pessoa);
+  renderPlacarRotina(base);
+  renderAvisosRotina();
+  renderRapidaRotina(pessoa);
+
+  const tab=document.getElementById('rotina-tabela');
+  const pan=document.getElementById('rotina-painel');
+  const det=document.getElementById('rot-detalhe');
+  const sel=document.getElementById('rot-agrupar-wrap');
+  const selIn=document.getElementById('rot-agrupar');
+  if(selIn&&selIn.value!==rotinaAgrupar())selIn.value=rotinaAgrupar();
+
+  if(v.painel){
+    if(tab)tab.style.display='none';
+    if(det)det.style.display='none';
+    if(sel)sel.style.display='none';
+    if(pan){
+      pan.classList.add('on');
+      ['desempenho','projetos','recados'].forEach(k=>{
+        const el=document.getElementById('painel-'+k);
+        if(el)el.classList.toggle('on',k===v.painel);
+      });
+    }
+  }else{
+    if(pan)pan.classList.remove('on');
+    if(tab)tab.style.display='';
+    if(det)det.style.display='';
+    if(sel)sel.style.display='';
+    renderTabelaRotina(base.filter(t=>v.fn(t)&&tarefaCasaBusca(t,q)));
+    renderDetalheRotina();
+  }
+  renderCrumbRotina(v,base,q);
+
+  renderChatGeral();
+  renderProjetos();
+  renderDesempenhoRotina();
+}
+
+function renderCrumbRotina(v,base,q){
+  const el=document.getElementById('rot-crumb');
+  if(!el)return;
+  const pessoa=rotinaPessoa();
+  let n='';
+  if(!v.painel){
+    const total=base.filter(t=>v.fn(t)&&tarefaCasaBusca(t,q)).length;
+    n=' · '+total+' tarefa'+(total===1?'':'s');
+  }
+  el.innerHTML=`<i class="ti ti-chevron-right"></i><b>${esc(v.lbl)}</b>${n}`
+    +(pessoa!=='todos'?` <span class="et" style="margin-left:4px">só ${esc(pessoa)}</span>`:'')
+    +(q?` <span class="et" style="margin-left:4px">busca “${esc(rotinaBusca.trim())}”</span>`:'');
+}
+
+function renderViewsRotina(base,atual,pessoa){
+  const el=document.getElementById('rot-views');
+  if(!el)return;
+  const contar=v=>v.contar?v.contar():(v.fn?base.filter(v.fn).length:null);
+  let h='';
+  visoesRotina().forEach(v=>{
+    if(v.g){h+=`<div class="rv-grupo">${esc(v.g)}</div>`;return;}
+    const n=contar(v);
+    const cls=[v.k===atual.k?'on':'',v.alerta&&n?'alerta':'',v.ambar&&n?'ambar':'',(n===0&&v.fn&&v.k.startsWith('tipo:'))?'sumida':''].filter(Boolean).join(' ');
+    const ico=v.cor?`<span class="rv-dot" style="background:${v.cor}"></span>`:`<i class="ti ti-${v.ico}"></i>`;
+    h+=`<button type="button" class="rv ${cls}" onclick="mudarVisaoRotina('${v.k}')" title="${esc(v.lbl)}">
+      ${ico}<span class="rv-tx">${esc(v.lbl)}</span>${n===null?'':`<span class="rv-n">${n}</span>`}</button>`;
+  });
+  h+=`<div class="rv-grupo">Filtrar por sócio</div>`;
+  const abertas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido');
+  RESP.forEach(r=>{
+    const av=corResp(r);
+    h+=`<button type="button" class="rv ${pessoa===r?'on':''}" onclick="mudarPessoaRotina('${esc(r)}')" title="Ver só as tarefas de ${esc(r)}">
+      <span class="rv-av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</span>
+      <span class="rv-tx">${esc(r)}</span>
+      <span class="rv-n">${abertas.filter(t=>tarefaDaPessoa(t,r)).length}</span></button>`;
+  });
+  el.innerHTML=h;
+}
+
+function renderPlacarRotina(base){
+  const el=document.getElementById('rotina-stats');
+  if(!el)return;
+  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
+  const abertas=base.filter(t=>t.status!=='concluido');
+  const cont={atrasadas:0,hoje:0,amanha:0,semana:0,proximas:0,semprazo:0,concluidas:0};
+  abertas.forEach(t=>cont[grupoDaTarefa(t,hoje,amanha,fim7)]++);
+  const maisAntiga=abertas.reduce((m,t)=>t.prazo&&t.prazo<hoje&&(!m||t.prazo<m)?t.prazo:m,'');
+  const fataisHoje=abertas.filter(t=>t.prazoFatal===hoje).length;
+  const r30=resumoConclusao(base.filter(t=>t.status==='concluido'&&t.concluidoEm&&t.concluidoEm>=isoAdd(hoje,-30)));
+  const pct=r30.pctNoPrazo;
+  const corPct=pct===null?'var(--silver)':pct>=85?'var(--green)':pct>=65?'var(--amber)':'var(--red)';
+  const visaoAtiva=rotinaPref.visao;
+  const box=(k,c,lbl,val,sub,alerta,extra)=>`<button type="button" class="rp-box ${visaoAtiva===k?'sel':''}" data-c="${c}" data-alerta="${alerta?1:0}" onclick="mudarVisaoRotina('${k}')">
+      <div class="rp-lbl">${lbl}</div><div class="rp-val">${val}</div>${extra||''}<div class="rp-sub">${sub}</div></button>`;
+  el.innerHTML=
+    box('atrasadas','red','Atrasadas',cont.atrasadas,maisAntiga?'a mais antiga venceu há '+diasEntreISO(maisAntiga,hoje)+'d':'nada vencido',cont.atrasadas>0)+
+    box('hoje','amber','Para hoje',cont.hoje,fataisHoje?fataisHoje+' prazo'+(fataisHoje>1?'s':'')+' fata'+(fataisHoje>1?'is':'l')+' hoje':cont.hoje?'entregas do dia':'nada marcado para hoje',false)+
+    box('mesa','blue','Em aberto',abertas.length,(cont.amanha+cont.semana)+' nos próximos 7 dias',false)+
+    box('desempenho','green','No prazo · 30 dias',pct===null?'—':pct+'%',
+      r30.comPrazo?r30.dentroDoPrazo+' de '+r30.comPrazo+' no prazo'+(r30.adiadas?' · '+r30.adiadas+' adiada'+(r30.adiadas>1?'s':''):''):'nenhuma conclusão com prazo',false,
+      `<div class="rp-meter"><span style="width:${pct||0}%;background:${corPct}"></span></div>`);
+}
+
+function renderAvisosRotina(){
+  const el=document.getElementById('rotina-avisos');
+  if(!el)return;
+  let h='';
+  const nPub=typeof pubsAnalisar==='function'?pubsAnalisar().length:0;
+  const nConf=tarefasConferir().filter(t=>tarefaDaPessoa(t,rotinaPessoa())).length;
+  if(nPub)h+=`<div class="rot-aviso ambar"><i class="ti ti-news"></i><span><b>${nPub} publicaç${nPub>1?'ões':'ão'} do DJEN para revisar.</b>${nConf?' Os prazos já foram calculados e estão marcados “conferir”.':''}</span><button class="btn-sec" onclick="abrirPainelPublicacoes('revisar')">Revisar</button></div>`;
+  else if(nConf&&rotinaPref.visao!=='conferir')h+=`<div class="rot-aviso ambar"><i class="ti ti-alert-triangle"></i><span><b>${nConf} prazo${nConf>1?'s':''} ou audiência${nConf>1?'s':''}</b> lido${nConf>1?'s':''} do DJEN aguardando conferência.</span><button class="btn-sec" onclick="mudarVisaoRotina('conferir')">Conferir</button></div>`;
+  el.innerHTML=h;
+}
+
+// ─── TABELA ───────────────────────────────────────────────
+function renderTabelaRotina(lista){
+  const el=document.getElementById('rotina-tabela');
+  if(!el)return;
+  if(!lista.length){
+    el.innerHTML=`<div class="rt-vazio"><i class="ti ti-circle-check"></i>${
+      rotinaBusca.trim()?'Nenhuma tarefa encontrada para esta busca.':'Nada neste recorte.'}</div>`;
+    return;
+  }
+  const grupos=agruparTarefas(lista);
+  let desenhadas=0, cortou=false;
+  let h=`<div class="rt-head"><span></span><span>Tarefa</span><span>Tipo</span><span>Resp</span><span>Etapa</span><span class="dir">Prazo</span><span></span></div>`;
+  grupos.forEach(g=>{
+    const chave='rt:'+rotinaAgrupar()+':'+g.k;
+    const fechado=blocoRecolhido(chave,!!g.fechado);
+    const itens=[];
+    g.itens.forEach(t=>{
+      if(fechado)return;
+      if(desenhadas>=ROT_LIMITE){cortou=true;return;}
+      desenhadas++;itens.push(rtRowHTML(t));
+    });
+    h+=`<button type="button" class="rt-grupo ${fechado?'fechado':''}" style="--c:${g.cor}" onclick="alternarBloco('${chave}',${!!g.fechado})">
+        <span class="barra"></span><span class="tt">${esc(g.lbl)}</span><span class="n">${g.itens.length}</span>
+        ${g.dica?`<span class="dica">${esc(g.dica)}</span>`:''}
+        <i class="ti ti-chevron-down chev"></i></button>
+      <div class="rt-corpo">${itens.join('')}</div>`;
+  });
+  if(cortou)h+=`<div class="rt-mais">Mostrando as ${ROT_LIMITE} primeiras. Use a busca ou um recorte do menu para filtrar.</div>`;
+  el.innerHTML=h;
+}
+
+function rtRowHTML(t){
+  const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
+  const e=etapaDaTarefa(t), done=t.status==='concluido', h=hojeISO();
+  const sub=[
+    cli,
+    p?(p.numCNJ||p.num):'',
+    t.leadId?'lead':'',
+    t.adiamentos?'adiada '+t.adiamentos+'x':'',
+    t.conferir?'lido do DJEN':'',
+    ehProjeto(t)?'projeto':'',
+  ].filter(Boolean).join(' · ');
+
+  let prazo;
+  if(done){
+    const ci=conclusaoInfo(t);
+    prazo=`<b class="ok">${esc(ci.txt)}</b>`;
+  }else if(!t.prazo){
+    prazo=`<input type="date" onclick="event.stopPropagation()" onchange="event.stopPropagation();definirPrazoRapido('${t.id}',this.value)" title="Defina o prazo desta tarefa">`;
+  }else{
+    const cls=t.prazo<h?'late':t.prazo===h?'soon':'';
+    prazo=`<b class="${cls}">${rotuloPrazoAgenda(t)}${t.hora?' · '+esc(t.hora):''}</b>`;
+    if(t.prazoFatal){
+      const df=diasEntreISO(h,t.prazoFatal);
+      prazo+=`<span title="Prazo fatal do processo"><i class="ti ti-flag" style="font-size:11px"></i>${df<0?'fatal vencido':'fatal '+fmtDataCurta(t.prazoFatal)}${df>=0&&df<=2?(df===0?' HOJE':' · '+df+'d'):''}</span>`;
+    }
+  }
+  const etapa=e.acao
+    ? `<span class="et ${e.cls} acao" onclick="event.stopPropagation();${e.acao}" title="${esc(e.lbl)}"><i class="ti ti-${e.ico}"></i>${esc(e.lbl)}</span>`
+    : `<span class="et ${e.cls}" title="${esc(revEstadoLbl(t)||e.lbl)}">${e.ico?`<i class="ti ti-${e.ico}"></i>`:''}${esc(e.lbl)}</span>`;
+
+  return `<div class="rt-row ${rotSel===t.id?'sel':''} ${done?'feita':''}" id="rt-${t.id}" onclick="selecionarTarefaRotina('${t.id}')">
+    <button class="rt-ck ${done?'on':''}" onclick="event.stopPropagation();${done?`reabrirTarefa('${t.id}')`:`concluirRapido('${t.id}')`}" title="${done?'Reabrir tarefa':'Concluir'}"><i class="ti ti-check"></i></button>
+    <span class="rt-nome"><b>${esc(t.titulo)}</b>${sub?`<span>${esc(sub)}</span>`:''}</span>
+    <span class="rt-tipo" style="--c:${tp.cor}"><i></i><span>${esc(tp.lbl)}</span></span>
+    <span class="rt-av" style="background:${av[0]};color:${av[1]}" title="${esc(t.resp||'')}">${avatarResp(t.resp)}</span>
+    <span class="rt-etapa">${etapa}</span>
+    <span class="rt-prazo">${prazo}</span>
+    <span class="rt-acoes"><button class="btn-ico" onclick="event.stopPropagation();abrirModalTarefa('${t.id}',null)" title="Abrir o formulário completo"><i class="ti ti-pencil"></i></button></span>
+  </div>`;
+}
+
+function rotuloPrazoAgenda(t){
+  const h=hojeISO();
+  if(t.prazo===h)return 'Hoje';
+  if(t.prazo===isoAdd(h,1))return 'Amanhã';
+  if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'');}
+  return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
+}
+function selecionarTarefaRotina(id){
+  rotSel=(rotSel===id?null:id);
+  renderRotina();
+}
+
+// ─── PAINEL DE DETALHE ────────────────────────────────────
+function renderDetalheRotina(){
+  const el=document.getElementById('rot-detalhe');
+  if(!el)return;
+  const t=rotSel?DB.tarefas.find(x=>x.id===rotSel):null;
+  el.innerHTML=t?detalheTarefaHTML(t):detalhePadraoRotina();
+}
+
+function detalheTarefaHTML(t){
+  const tp=tipoInfo(t.tipo), c=t.cid&&DB.clientes.find(x=>x.id===t.cid), p=processoPorId(t.pid);
+  const av=corResp(t.resp), h=hojeISO(), done=t.status==='concluido';
+  const e=etapaDaTarefa(t), prox=revProximaAcao(t), quem=revisorDa(t);
+
+  const lin=(k,v,onclick)=>`<div class="rd-lin"><span class="k">${k}</span>`
+    +(onclick?`<span class="v link" onclick="${onclick}">${v}</span>`:`<span class="v">${v}</span>`)+`</div>`;
+  let linhas='';
+  if(c)linhas+=lin('Cliente',esc(c.curto||c.nome),`irParaCliente('${c.id}')`);
+  if(p)linhas+=lin('Processo',esc(p.numCNJ||p.num||'sem número'),`irParaProcesso('${p.id}')`);
+  if(t.leadId)linhas+=lin('Lead','abrir na Jornada Comercial',`abrirLeadDeTarefa('${t.leadId}','${t.leadMod}')`);
+  linhas+=lin('Tipo',`<span class="rt-tipo" style="--c:${tp.cor}"><i></i><span>${esc(tp.lbl)}</span></span>`);
+  linhas+=lin('Responsável',`<span class="rt-av" style="background:${av[0]};color:${av[1]}">${avatarResp(t.resp)}</span> ${esc(t.resp||'—')}`);
+  if(t.revPede)linhas+=lin('Revisor',esc(quem)+' · '+(REV_PEDE_LBL[t.revPede]||t.revPede).toLowerCase());
+  linhas+=lin('Prazo',t.prazo?esc(fmtDataSem(t.prazo))+(t.hora?' · '+esc(t.hora):''):'<span style="color:var(--t3);font-weight:500">sem prazo definido</span>');
+  if(t.prazoFatal)linhas+=lin('Prazo fatal',esc(fmtDataSem(t.prazoFatal)));
+  if(done)linhas+=lin('Concluída',esc(conclusaoInfo(t).txt.replace('✓ ','')));
+
+  let alerta='';
+  if(!done&&t.prazoFatal&&t.prazoFatal<=isoAdd(h,2)){
+    const df=diasEntreISO(h,t.prazoFatal);
+    alerta=`<div class="rd-alerta"><i class="ti ti-flag"></i><span><b>Prazo fatal ${df<0?'vencido':df===0?'hoje':'em '+df+' dia'+(df>1?'s':'')}</b>
+      <span>${df<0?'o prazo do processo já passou — trate como emergência.':'não há folga: o que não sair hoje atrasa o processo.'}</span></span></div>`;
+  }else if(!done&&t.conferir){
+    alerta=`<div class="rd-alerta ambar"><i class="ti ti-alert-triangle"></i><span><b>Prazo lido do DJEN</b>
+      <span>a data foi calculada automaticamente. Confira no processo antes de trabalhar nela.</span></span></div>`;
+  }else if(!done&&revPendenteRevisor(t)&&(!EU||EU.nome!==quem)){
+    alerta=`<div class="rd-alerta ambar"><i class="ti ti-eye"></i><span><b>Na mesa de ${esc(quem)}</b>
+      <span>enviada para ${prox==='aprovar'?'aprovação':'revisão'}${t.revEnviadoEm?' em '+esc(fmtDataHora(t.revEnviadoEm)):''} — só pode ser concluída depois que ${esc(quem)} responder.</span></span></div>`;
+  }else if(!done&&revAguardaEnvio(t)&&(!EU||EU.nome!==t.resp)){
+    alerta=`<div class="rd-alerta ambar"><i class="ti ti-hourglass-low"></i><span><b>Ainda com ${esc(t.resp)}</b>
+      <span>a peça precisa ser enviada para ${prox==='aprovar'?'aprovação':'revisão'} antes de ser concluída.</span></span></div>`;
+  }else if(t.revPede&&!prox){
+    alerta=`<div class="rd-alerta verde"><i class="ti ti-circle-check"></i><span><b>${t.revEstado==='aprovado'?'Aprovada':'Revisada'}${t.revPorQuem?' por '+esc(t.revPorQuem):''}</b>
+      <span>liberada para conclusão.</span></span></div>`;
+  }
+
+  let acoes='';
+  if(!done&&t.revPede&&prox&&!t.revEnviado&&(!EU||EU.nome===t.resp)){
+    acoes+=`<button class="rd-b1" onclick="enviarParaRevisao('${t.id}')"><i class="ti ti-send"></i>Enviar para ${prox==='aprovar'?'aprovação':'revisão'} de ${esc(quem)}</button>`;
+  }else if(!done&&revPendenteRevisor(t)&&EU&&EU.nome===quem){
+    acoes+=`<button class="rd-b1" onclick="marcarRevisao('${t.id}','${prox}')"><i class="ti ti-eye"></i>Marcar como ${prox==='aprovar'?'aprovada':'revisada'}</button>`;
+  }else if(!done&&revBloqueiaConclusao(t)){
+    // trava do fluxo: concluir aqui só mostraria um aviso, então o botão diz o que falta
+    const falta=t.revEnviado
+      ? (prox==='aprovar'?'aprovação':'revisão')+' de '+quem
+      : 'envio de '+t.resp;
+    acoes+=`<button class="rd-b2" onclick="mostrarToast(avisoRevConclusao(DB.tarefas.find(x=>x.id==='${t.id}')))" style="height:34px">
+      <i class="ti ti-lock"></i>Aguarda ${esc(falta)}</button>`;
+  }else if(!done){
+    acoes+=`<button class="rd-b1" onclick="concluirRapido('${t.id}')"><i class="ti ti-check"></i>Concluir tarefa</button>`;
+  }else{
+    acoes+=`<button class="rd-b1" onclick="reabrirTarefa('${t.id}')"><i class="ti ti-arrow-back-up"></i>Reabrir tarefa</button>`;
+  }
+  if(!done)acoes+=`<div class="dupla">
+      <button class="rd-b2" onclick="alternarAndamento('${t.id}')"><i class="ti ti-player-${t.status==='andamento'?'pause':'play'}"></i>${t.status==='andamento'?'Pendente':'Em andamento'}</button>
+      <button class="rd-b2" onclick="abrirModalTarefa('${t.id}',null)"><i class="ti ti-pencil"></i>Editar</button></div>`;
+  else acoes+=`<button class="rd-b2" onclick="abrirModalTarefa('${t.id}',null)"><i class="ti ti-pencil"></i>Editar tarefa</button>`;
+
+  let adiar='';
+  if(!done){
+    adiar=`<div class="rd-hist"><div class="rd-k">Adiar · fica registrado no cumprimento de prazos</div>
+      <div class="rd-acoes" style="margin-top:8px">
+        <div class="dupla">
+          <button class="rd-b2" onclick="adiarTarefa('${t.id}','dia')">+1 dia</button>
+          <button class="rd-b2" onclick="adiarTarefa('${t.id}','util')">Próximo dia útil</button>
+        </div>
+        <div class="dupla">
+          <button class="rd-b2" onclick="adiarTarefa('${t.id}','semana')">+1 semana</button>
+          <button class="rd-b2" onclick="abrirModalTarefa('${t.id}',null)">Outra data…</button>
+        </div>
+      </div></div>`;
+  }
+
+  const hist=[];
+  if(t.criadoEm)hist.push(['Criada'+(t.criadoPor?' por '+esc(t.criadoPor):''),fmtDataHora(t.criadoEm)]);
+  if(t.conferir)hist.push(['Prazo calculado a partir de publicação do DJEN','automático']);
+  if(t.adiamentos)hist.push(['Adiada '+t.adiamentos+'x'+(t.adiadaPor?' por '+esc(t.adiadaPor):''),t.prazoOriginal?'data original '+fmtData(t.prazoOriginal):'']);
+  if(t.revEnviadoEm)hist.push(['Enviada para '+(t.revPede==='aprovar'?'aprovação':'revisão'),fmtDataHora(t.revEnviadoEm)]);
+  if(t.revEm)hist.push([(t.revEstado==='aprovado'?'Aprovada':'Revisada')+(t.revPorQuem?' por '+esc(t.revPorQuem):''),fmtDataHora(t.revEm)]);
+  if(done&&t.concluidoEm)hist.push(['Concluída',fmtData(t.concluidoEm)]);
+
+  return `<div class="rd-head"><div class="rd-k">Tarefa selecionada</div><h3>${esc(t.titulo)}</h3></div>
+    <div class="rd-body">
+      ${linhas}
+      ${alerta}
+      <div class="rd-acoes">${acoes}</div>
+      ${adiar}
+      ${hist.length?`<div class="rd-hist"><div class="rd-k">Histórico</div>
+        ${hist.map(x=>`<div class="rd-hi"><i></i><span>${x[0]}${x[1]?`<time>${esc(x[1])}</time>`:''}</span></div>`).join('')}</div>`:''}
+    </div>`;
+}
+
+// sem tarefa selecionada: o prazo fatal mais próximo e o que espera triagem
+function detalhePadraoRotina(){
+  const h=hojeISO();
+  const fatais=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido'&&t.prazoFatal)
+    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:1);
+  const f=fatais[0];
+  let topo;
+  if(f){
+    const df=diasEntreISO(h,f.prazoFatal);
+    topo=`<button type="button" class="rd-fatal" style="display:block;width:100%;text-align:left;border:none;cursor:pointer" onclick="selecionarTarefaRotina('${f.id}')">
+      <div class="k">Prazo fatal mais próximo</div>
+      <div class="num">${df<0?'VENCIDO':df===0?'HOJE':df+(df===1?' dia':' dias')}</div>
+      <div class="k" style="opacity:.6">${esc(fmtDataSem(f.prazoFatal))}</div>
+      <div class="tt">${esc(f.titulo)}</div>
+      <div class="mt">${esc([nomeCliente(f.cid),f.resp].filter(Boolean).join(' · '))}</div></button>`;
+  }else{
+    topo=`<div class="rd-fatal calmo"><div class="k">Prazos fatais</div>
+      <div class="num">Nenhum</div><div class="mt" style="font-size:12px">Nenhuma tarefa em aberto tem prazo fatal do processo.</div></div>`;
+  }
+  const nPub=typeof pubsAnalisar==='function'?pubsAnalisar().length:0;
+  const nConf=tarefasConferir().filter(t=>tarefaDaPessoa(t,rotinaPessoa())).length;
+  const eu=EU&&EU.nome;
+  const nRev=DB.tarefas.filter(t=>revPendenteRevisor(t)&&revisorDa(t)===eu).length;
+  const tr=[];
+  if(nPub)tr.push(['amb','news',nPub+' publicaç'+(nPub>1?'ões':'ão')+' do DJEN','para revisar e transformar em prazo',`abrirPainelPublicacoes('revisar')`]);
+  if(nConf)tr.push(['amb','alert-triangle',nConf+' prazo'+(nConf>1?'s':'')+' a conferir','lidos automaticamente — confira a data',`mudarVisaoRotina('conferir')`]);
+  if(nRev)tr.push(['nav','eye',nRev+' peça'+(nRev>1?'s':'')+' na sua mesa','aguardando sua revisão ou aprovação',`mudarVisaoRotina('revmim')`]);
+
+  const prox=fatais.slice(0,4).map(t=>{
+    const df=diasEntreISO(h,t.prazoFatal);
+    return `<button type="button" class="rd-mini ${df<=0?'urg':''}" onclick="selecionarTarefaRotina('${t.id}')">
+      <span class="pt"></span><span class="tx"><b>${esc(t.titulo)}</b><span>${esc([nomeCliente(t.cid),t.resp].filter(Boolean).join(' · '))}</span></span>
+      <span class="d">${df<0?'vencido':df===0?'hoje':fmtDataCurta(t.prazoFatal)}</span></button>`;
+  }).join('');
+
+  return topo
+    +(tr.length?`<div class="rd-triagem">${tr.map(x=>`<button type="button" class="rd-tr ${x[0]}" onclick="${x[4]}">
+        <i class="ti ti-${x[1]}"></i><span class="tx"><b>${esc(x[2])}</b><span>${esc(x[3])}</span></span>
+        <i class="ti ti-chevron-right ir"></i></button>`).join('')}</div>`:'')
+    +(prox?`<div class="rd-lista"><div class="k">Prazos fatais a seguir</div>${prox}</div>`:'')
+    +`<div class="rd-lista" style="padding-top:0"><div class="rd-hi" style="color:var(--t3)"><i></i><span>Clique em uma linha da lista para ver cliente, processo, histórico e as ações da tarefa aqui.</span></div></div>`;
+}
+
+// ─── CRIAÇÃO RÁPIDA ───────────────────────────────────────
+const RR_ATALHOS=[
+  {k:'hoje',lbl:'Hoje',data:()=>hojeISO()},
+  {k:'amanha',lbl:'Amanhã',data:()=>isoAdd(hojeISO(),1)},
+  {k:'sexta',lbl:'Sexta',data:()=>proximaSexta()},
+  {k:'semana',lbl:'+7d',data:()=>isoAdd(hojeISO(),7)},
 ];
 // próximo dia de expediente para tarefas internas (sem recesso forense)
 function proximoDiaTrabalho(iso){
@@ -8235,115 +9236,6 @@ function proximaSexta(){
   while(isoDow(d)!==5&&g++<7)d=isoAdd(d,1);
   return d;
 }
-
-// ─── PLACAR, AVISOS E FILTROS ─────────────────────────────
-function renderRotina(){
-  const pessoa=rotinaPessoa(), modo=rotinaModo();
-  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
-  const todas=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaDaPessoa(t,pessoa));
-  const abertas=todas.filter(t=>t.status!=='concluido');
-  const cont={atrasadas:0,hoje:0,amanha:0,semana:0,proximas:0,semprazo:0};
-  abertas.forEach(t=>cont[grupoDaTarefa(t,hoje,amanha,fim7)]++);
-  const maisAntiga=abertas.reduce((m,t)=>t.prazo&&t.prazo<hoje&&(!m||t.prazo<m)?t.prazo:m,'');
-  const fataisHoje=abertas.filter(t=>t.prazoFatal===hoje).length;
-  const r30=resumoConclusao(todas.filter(t=>t.status==='concluido'&&t.concluidoEm&&t.concluidoEm>=isoAdd(hoje,-30)));
-  const pct=r30.pctNoPrazo;
-  const corPct=pct===null?'var(--silver)':pct>=85?'var(--green)':pct>=65?'var(--amber)':'var(--red)';
-  const box=(h,c,lbl,val,sub,alerta,extra)=>`<button type="button" class="rp-box ${rotinaHorizonte===h?'sel':''}" data-c="${c}" data-alerta="${alerta?1:0}" onclick="${h==='desempenho'?'irParaDesempenho()':`filtroHorizonte('${h}')`}">
-      <div class="rp-lbl">${lbl}</div><div class="rp-val">${val}</div>${extra||''}<div class="rp-sub">${sub}</div></button>`;
-  const st=document.getElementById('rotina-stats');
-  if(st)st.innerHTML=
-    box('atrasadas','red','Atrasadas',cont.atrasadas,maisAntiga?'a mais antiga venceu há '+diasEntreISO(maisAntiga,hoje)+'d':'nada vencido',cont.atrasadas>0)+
-    box('hoje','amber','Para hoje',cont.hoje,fataisHoje?fataisHoje+' prazo'+(fataisHoje>1?'s':'')+' fata'+(fataisHoje>1?'is':'l')+' hoje':cont.hoje?'entregas do dia':'nada marcado para hoje',false)+
-    box('semana','blue','Próximos 7 dias',cont.amanha+cont.semana,cont.amanha+' para amanhã',false)+
-    box('semprazo','','Sem prazo',cont.semprazo,cont.semprazo?'defina uma data':'todas com data',false)+
-    box('desempenho','green','No prazo · 30 dias',pct===null?'—':pct+'%',
-      r30.comPrazo?r30.dentroDoPrazo+' de '+r30.comPrazo+' no prazo'+(r30.adiadas?' · '+r30.adiadas+' adiada'+(r30.adiadas>1?'s':''):''):'nenhuma conclusão com prazo',false,
-      `<div class="rp-meter"><span style="width:${pct||0}%;background:${corPct}"></span></div>`);
-
-  renderFataisSemana();
-  renderAvisosRotina(pessoa);
-  renderPessoasRotina(pessoa,hoje);
-  renderRapidaRotina(pessoa);
-  document.getElementById('rot-modo-agenda').classList.toggle('on',modo==='agenda');
-  document.getElementById('rot-modo-board').classList.toggle('on',modo==='board');
-  document.getElementById('rot-status-chips').style.display=modo==='board'?'flex':'none';
-  const ag=document.getElementById('rotina-agenda'),bd=document.getElementById('rotina-board');
-  if(modo==='board'){ag.innerHTML='';ag.style.display='none';bd.style.display='';renderRotinaBoard(pessoa);}
-  else{bd.innerHTML='';bd.style.display='none';ag.style.display='';renderAgendaRotina(pessoa);}
-
-  renderChatGeral();
-  renderProjetos();
-  renderDesempenhoRotina();
-}
-function irParaDesempenho(){
-  const el=document.getElementById('rotina-desempenho');
-  if(el)el.closest('.modulo-card').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function renderAvisosRotina(pessoa){
-  const el=document.getElementById('rotina-avisos');
-  if(!el)return;
-  let h='';
-  const nPub=pubsAnalisar().length;
-  const nConf=tarefasConferir().filter(t=>tarefaDaPessoa(t,pessoa)).length;
-  if(nPub)h+=`<div class="rot-aviso ambar"><i class="ti ti-news"></i><span><b>${nPub} publicaç${nPub>1?'ões':'ão'} do DJEN para revisar.</b>${nConf?' Os prazos já foram calculados e estão na lista abaixo, marcados “conferir”.':''}</span><button class="btn-sec" onclick="abrirPainelPublicacoes('revisar')">Revisar</button></div>`;
-  else if(nConf)h+=`<div class="rot-aviso ambar"><i class="ti ti-alert-triangle"></i><span><b>${nConf} prazo${nConf>1?'s':''} ou audiência${nConf>1?'s':''}</b> lido${nConf>1?'s':''} do DJEN aguardando conferência.</span><button class="btn-sec" onclick="filtroHorizonte('conferir')">${rotinaHorizonte==='conferir'?'Mostrar tudo':'Conferir'}</button></div>`;
-  if(rotinaHorizonte&&rotinaHorizonte!=='conferir'){
-    const nome={atrasadas:'atrasadas',hoje:'para hoje',semana:'dos próximos 7 dias',semprazo:'sem prazo'}[rotinaHorizonte]||rotinaHorizonte;
-    h+=`<div class="rot-aviso azul"><i class="ti ti-filter"></i><span>Mostrando só as tarefas <b>${nome}</b>.</span><button class="btn-sec" onclick="filtroHorizonte('${rotinaHorizonte}')">Mostrar tudo</button></div>`;
-  }
-  el.innerHTML=h;
-}
-// Seletor de pessoas em "stories" (círculos): clicar filtra a rotina para as
-// tarefas daquela pessoa — inclusive as que ela precisa revisar/aprovar.
-function renderPessoasRotina(pessoa,hoje){
-  const el=document.getElementById('rot-pessoas');
-  if(!el)return;
-  const abertas=DB.tarefas.filter(t=>t.tipo!=='followup'&&t.status!=='concluido');
-  const atras=p=>abertas.filter(t=>tarefaDaPessoa(t,p)&&t.prazo&&t.prazo<hoje).length;
-  const story=(key,sel,conteudo,bg,cor,n,a)=>`
-    <button type="button" class="rot-story ${sel?'on':''}" onclick="mudarPessoaRotina('${key}')" title="${a?a+' atrasada'+(a>1?'s':''):'nenhuma atrasada'}">
-      <span class="rot-story-ring${a?' alerta':''}"><span class="rot-story-av" style="background:${bg};color:${cor}">${conteudo}</span>${a?'<span class="rot-story-dot"></span>':''}</span>
-      <span class="rot-story-nm">${key==='todos'?'Todos':esc(key)}</span>
-      <span class="rot-story-n">${n}</span>
-    </button>`;
-  el.className='rot-stories';
-  el.innerHTML=
-    story('todos',pessoa==='todos','<i class="ti ti-users"></i>','var(--navy)','var(--cream)',abertas.length,0)+
-    RESP.map(r=>{const av=corResp(r);return story(r,pessoa===r,avatarResp(r),av[0],av[1],abertas.filter(t=>tarefaDaPessoa(t,r)).length,atras(r));}).join('');
-}
-// Linha do tempo horizontal dos prazos fatais da semana (próximos 7 dias).
-function renderFataisSemana(){
-  const el=document.getElementById('rot-fatais');
-  if(!el)return;
-  const hoje=hojeISO(), fim=isoAdd(hoje,7);
-  const fatais=DB.tarefas
-    .filter(t=>t.status!=='concluido'&&t.prazoFatal&&t.prazoFatal>=hoje&&t.prazoFatal<=fim)
-    .sort((a,b)=>a.prazoFatal<b.prazoFatal?-1:a.prazoFatal>b.prazoFatal?1:0);
-  if(!fatais.length){
-    el.innerHTML=`<div class="rot-fatais-vazio"><i class="ti ti-shield-check"></i> Nenhum prazo fatal nos próximos 7 dias.</div>`;
-    return;
-  }
-  const pts=fatais.slice(0,6).map((t,i)=>{
-    const dd=diasEntreISO(hoje,t.prazoFatal);
-    const sel=i===0;
-    return `<button type="button" class="rot-fatal-pt ${sel?'urg':''}" onclick="abrirModalTarefa('${t.id}',null)" title="${esc(t.titulo)}">
-      <span class="rfp-marca"></span>
-      <span class="rfp-dia">${(+t.prazoFatal.slice(8,10))}<small>${diaSemanaCurto(t.prazoFatal)}</small></span>
-      <span class="rfp-tt">${esc(t.titulo)}</span>
-      <span class="rfp-sub">${dd===0?'hoje':dd===1?'amanhã':'em '+dd+' dias'}${nomeCliente(t.cid)?' · '+esc(nomeCliente(t.cid)):''}</span>
-    </button>`;
-  }).join('<span class="rot-fatal-liga"></span>');
-  el.innerHTML=`<div class="rot-fatais-head">Prazos fatais da semana</div><div class="rot-fatais-trilha">${pts}</div>`;
-}
-
-// ─── CRIAÇÃO RÁPIDA ───────────────────────────────────────
-const RR_ATALHOS=[
-  {k:'hoje',lbl:'Hoje',data:()=>hojeISO()},
-  {k:'amanha',lbl:'Amanhã',data:()=>isoAdd(hojeISO(),1)},
-  {k:'sexta',lbl:'Sexta',data:()=>proximaSexta()},
-  {k:'semana',lbl:'+7d',data:()=>isoAdd(hojeISO(),7)},
-];
 function renderRapidaRotina(pessoa){
   const sel=document.getElementById('rr-resp');
   if(!sel)return;
@@ -8384,143 +9276,16 @@ function criarTarefaRapida(){
   setTimeout(()=>inp.focus(),30);
 }
 
-// ─── AGENDA ───────────────────────────────────────────────
-function ordenarAgenda(a,b){
-  const pa=a.prazo||'9999',pb=b.prazo||'9999';
-  if(pa!==pb)return pa<pb?-1:1;
-  const fa=a.prazoFatal||'9999',fb=b.prazoFatal||'9999';
-  if(fa!==fb)return fa<fb?-1:1;
-  return (a.hora||'99')<(b.hora||'99')?-1:1;
-}
-function renderAgendaRotina(pessoa){
-  const el=document.getElementById('rotina-agenda');
-  if(!el)return;
-  const hoje=hojeISO(), amanha=isoAdd(hoje,1), fim7=isoAdd(hoje,7);
-  const q=semAcento(rotinaBusca.trim());
-  const todas=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaDaPessoa(t,pessoa)&&tarefaCasaBusca(t,q));
-  let abertas=todas.filter(t=>t.status!=='concluido');
-  if(rotinaHorizonte==='conferir')abertas=abertas.filter(t=>t.conferir);
-  const grupos={};
-  abertas.forEach(t=>{const g=grupoDaTarefa(t,hoje,amanha,fim7);(grupos[g]=grupos[g]||[]).push(t);});
-  const visivel=k=>!rotinaHorizonte||rotinaHorizonte==='conferir'||rotinaHorizonte===k||(rotinaHorizonte==='semana'&&k==='amanha');
-  let html='';
-  GRUPOS_AGENDA.forEach(g=>{
-    const ts=(grupos[g.k]||[]).sort(ordenarAgenda);
-    if(!ts.length||!visivel(g.k))return;
-    html+=grupoAgendaHTML(g.k,g.lbl,g.cor,ts,g.dica,!!g.fechado);
-  });
-  if(!html)html=`<div class="ag-vazio"><i class="ti ti-circle-check"></i>${q?'Nenhuma tarefa encontrada para esta busca.':rotinaHorizonte?'Nada neste recorte.':'Nenhuma tarefa em aberto. Tudo em dia.'}</div>`;
-  if(!rotinaHorizonte){
-    const recentes=todas.filter(t=>t.status==='concluido'&&t.concluidoEm&&t.concluidoEm>=isoAdd(hoje,-7))
-      .sort((a,b)=>(b.concluidoEm||'').localeCompare(a.concluidoEm||''));
-    if(recentes.length)html+=grupoAgendaHTML('concluidas','Concluídas nos últimos 7 dias','var(--green)',recentes,'clique no círculo para reabrir',true);
-  }
-  el.innerHTML=html;
-}
-function grupoAgendaHTML(k,lbl,cor,ts,dica,fechadoPadrao){
-  const chave='ag:'+k;
-  const fechado=blocoRecolhido(chave,fechadoPadrao);
-  return `<div class="ag-grupo ${fechado?'recolhida':''}" data-g="${k}">
-    <div class="ag-head" style="--c:${cor}" onclick="alternarBloco('${chave}',${fechadoPadrao})">
-      ${chevron()}<span class="ag-tit">${lbl}</span><span class="ag-ct">${ts.length}</span>
-      ${dica?`<span class="ag-dica">${dica}</span>`:''}
-    </div>
-    <div class="ag-corpo">${ts.map(agRowHTML).join('')}</div>
-  </div>`;
-}
-function rotuloPrazoAgenda(t){
-  const h=hojeISO();
-  if(t.prazo===h)return 'Hoje';
-  if(t.prazo===isoAdd(h,1))return 'Amanhã';
-  if(t.prazo<h){const d=diasEntreISO(t.prazo,h);return 'há '+d+' dia'+(d>1?'s':'')+' · '+fmtDataCurta(t.prazo);}
-  return fmtDataSem(t.prazo).replace(/\/\d{4}$/,'');
-}
-// chip de revisão/aprovação: deixa claro em que etapa do fluxo a tarefa está
-//   em elaboração → o responsável envia → revisor revisa/aprova → concluída
-function revChipHTML(t){
-  if(!t||!t.revPede)return '';
-  const prox=revProximaAcao(t);
-  if(!prox){   // já revisada/aprovada
-    return `<span class="ag-chip rev-ok" title="${esc(revEstadoLbl(t))}"><i class="ti ti-circle-check" style="font-size:11px"></i> ${t.revEstado==='aprovado'?'aprovada':'revisada'}</span>`;
-  }
-  const quem=revisorDa(t), acaoLbl=prox==='aprovar'?'aprovação':'revisão';
-  if(!t.revEnviado){   // ainda com o responsável
-    if(EU&&EU.nome===t.resp)
-      return `<span class="ag-chip rev-enviar" onclick="event.stopPropagation();enviarParaRevisao('${t.id}')" title="Enviar para ${acaoLbl} de ${quem}"><i class="ti ti-send" style="font-size:11px"></i> enviar p/ ${acaoLbl}</span>`;
-    return `<span class="ag-chip rev-aguarda" title="${esc(t.resp)} ainda vai enviar para ${acaoLbl}"><i class="ti ti-hourglass-low" style="font-size:11px"></i> em elaboração</span>`;
-  }
-  // enviada: na mesa do revisor
-  const souEu=EU&&EU.nome===quem;
-  const onclick=souEu?` onclick="event.stopPropagation();marcarRevisao('${t.id}','${prox}')"`:'';
-  const dica=souEu?`Clique para marcar como ${prox==='aprovar'?'aprovada':'revisada'}`:`Aguarda ${acaoLbl} de ${quem}`;
-  return `<span class="ag-chip rev-pend ${souEu?'rev-eu':''}"${onclick} title="${esc(dica)}"><i class="ti ti-eye" style="font-size:11px"></i> ${souEu?(prox==='aprovar'?'aprovar':'revisar'):'p/ '+quem}</span>`;
-}
-function agRowHTML(t){
-  const tp=tipoInfo(t.tipo), cli=nomeCliente(t.cid), p=processoPorId(t.pid), av=corResp(t.resp);
-  const done=t.status==='concluido', and=t.status==='andamento';
-  const h=hojeISO();
-  let prazo;
-  if(done){
-    const ci=conclusaoInfo(t);
-    prazo=`<div class="d" style="color:var(--green-hi)">${esc(ci.txt)}</div>`;
-  }else if(!t.prazo){
-    prazo=`<input type="date" onchange="definirPrazoRapido('${t.id}',this.value)" title="Defina o prazo desta tarefa">`;
-  }else{
-    const cls=t.prazo<h?'late':t.prazo===h?'soon':'';
-    prazo=`<div class="d ${cls}">${rotuloPrazoAgenda(t)}${t.hora?' · '+esc(t.hora):''}</div>`;
-    if(t.prazoFatal){
-      const df=diasEntreISO(h,t.prazoFatal);
-      prazo+=`<div class="f" title="Prazo fatal do processo">${df<0?'fatal vencido em ':'fatal '}${fmtDataSem(t.prazoFatal).replace(/\/\d{4}$/,'')}${df>=0&&df<=2?' — '+(df===0?'HOJE':df+'d'):''}</div>`;
-    }
-    if(t.adiamentos)prazo+=`<div class="s" title="Prazo original: ${esc(fmtData(t.prazoOriginal||''))}">adiada ${t.adiamentos}x</div>`;
-  }
-  const chips=[
-    `<span class="ag-tipo"><i style="background:${tp.cor}"></i>${esc(tp.lbl)}</span>`,
-    `<span class="ag-av" style="background:${av[0]};color:${av[1]}" title="${esc(t.resp)}">${avatarResp(t.resp)}</span>`,
-    revChipHTML(t),
-    and?'<span class="ag-chip andamento">em andamento</span>':'',
-    t.conferir?`<span class="ag-chip conferir" onclick="abrirModalTarefa('${t.id}',null)" title="Lido automaticamente do DJEN — confira"><i class="ti ti-alert-triangle" style="font-size:11px"></i> conferir</span>`:'',
-    p?`<span class="ag-chip proc" onclick="irParaProcesso('${p.id}')" title="${esc(rotuloProcesso(p))}">${esc(p.numCNJ||p.num)}</span>`:'',
-    cli?`<span class="ag-chip" onclick="irParaCliente('${t.cid}')">${esc(cli)}</span>`:'',
-    t.leadId?`<span class="ag-chip" onclick="abrirLeadDeTarefa('${t.leadId}','${t.leadMod}')"><i class="ti ti-user" style="font-size:11px"></i> lead</span>`:'',
-    seloProjeto(t),
-  ].join('');
-  const acoes=done
-    ?`<button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>`
-    :`<button class="btn-ico" onclick="alternarAndamento('${t.id}')" title="${and?'Voltar para pendente':'Marcar como em andamento'}"><i class="ti ti-${and?'player-pause':'player-play'}"></i></button>
-      <span class="ag-menu" id="agm-${t.id}">
-        <button class="btn-ico" onclick="event.stopPropagation();abrirMenuAdiar('${t.id}')" title="Adiar"><i class="ti ti-clock-pause"></i></button>
-        <span class="ag-menu-pop">
-          <div class="nota">O adiamento fica registrado e entra no relatório de cumprimento.</div>
-          <button onclick="adiarTarefa('${t.id}','dia')">+1 dia</button>
-          <button onclick="adiarTarefa('${t.id}','util')">Próximo dia útil</button>
-          <button onclick="adiarTarefa('${t.id}','semana')">+1 semana</button>
-          <div class="sep"></div>
-          <button onclick="fecharMenusAdiar();abrirModalTarefa('${t.id}',null)">Escolher outra data…</button>
-        </span>
-      </span>
-      <button class="btn-ico" onclick="abrirModalTarefa('${t.id}',null)" title="Editar"><i class="ti ti-pencil"></i></button>`;
-  return `<div class="ag-row ${done?'done':''} ${and?'andamento':''}" id="ag-${t.id}">
-    <button class="ag-check" onclick="${done?`reabrirTarefa('${t.id}')`:`concluirRapido('${t.id}')`}" title="${done?'Reabrir tarefa':'Concluir'}"><i class="ti ti-check"></i></button>
-    <div class="ag-main">
-      <div class="ag-tt" onclick="abrirModalTarefa('${t.id}',null)">${esc(t.titulo)}</div>
-      <div class="ag-meta">${chips}</div>
-    </div>
-    <div class="ag-prazo">${prazo}</div>
-    <div class="ag-acoes">${acoes}</div>
-  </div>`;
-}
-
 // ─── AÇÕES RÁPIDAS ────────────────────────────────────────
 function concluirRapido(id){
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
   if(revBloqueiaConclusao(t)){mostrarToast(avisoRevConclusao(t));return;}
   const antes={status:t.status,concluidoEm:t.concluidoEm};
   aplicarStatusTarefa(t,'concluido');
-  const row=document.getElementById('ag-'+id);
+  const row=document.getElementById('rt-'+id);
   if(row)row.classList.add('saindo');
   salvarDB();
-  setTimeout(refreshUI,220);
+  setTimeout(refreshUI,200);
   const ci=conclusaoInfo(t);
   const sufixo=ci&&ci.cat==='atrasada'?' com '+plural(ci.dias,' de atraso'):ci&&(ci.cat==='antecipada'||ci.cat==='noprazo')?' no prazo':'';
   mostrarToast('Concluída'+sufixo+': '+t.titulo,'Desfazer',()=>{
@@ -8546,16 +9311,7 @@ function registrarAdiamento(t){
   t.adiamentos=(t.adiamentos||0)+1;
   t.adiadaEm=Date.now();t.adiadaPor=EU?EU.nome:'';
 }
-function abrirMenuAdiar(id){
-  const m=document.getElementById('agm-'+id);
-  const abrir=m&&!m.classList.contains('open');
-  fecharMenusAdiar();
-  if(abrir)m.classList.add('open');
-}
-function fecharMenusAdiar(){document.querySelectorAll('.ag-menu.open').forEach(m=>m.classList.remove('open'))}
-document.addEventListener('click',e=>{if(!e.target.closest('.ag-menu'))fecharMenusAdiar();});
 function adiarTarefa(id,modo){
-  fecharMenusAdiar();
   const t=DB.tarefas.find(x=>x.id===id);if(!t)return;
   const h=hojeISO();
   const base=t.prazo&&t.prazo>=h?t.prazo:h;
@@ -8586,73 +9342,6 @@ function toastAcao(){
   const fn=__toastFn;__toastFn=null;
   document.getElementById('toast').classList.remove('on');
   if(fn)fn();
-}
-
-// ─── QUADRO POR RESPONSÁVEL (visão anterior) ──────────────
-function renderRotinaBoard(pessoa){
-  const q=semAcento(rotinaBusca.trim());
-  const atividades=DB.tarefas.filter(t=>t.tipo!=='followup'&&tarefaCasaBusca(t,q));
-  const board=document.getElementById('rotina-board');
-  if(!board)return;
-  board.innerHTML=(pessoa&&pessoa!=='todos'?[pessoa]:RESP).map(r=>{
-    const av=corResp(r);
-    let ts=atividades.filter(t=>t.resp===r);
-    if(rotinaFiltro!=='todos')ts=ts.filter(t=>t.status===rotinaFiltro);
-    // categorias (tipos de tarefa) presentes, para o filtro por coluna
-    const cats=[...new Set(ts.map(t=>tipoInfo(t.tipo).lbl))].sort();
-    let catSel=rotinaCat[r]||'todos';
-    if(catSel!=='todos'&&!cats.includes(catSel))catSel='todos';
-    let tsView=catSel==='todos'?ts:ts.filter(t=>tipoInfo(t.tipo).lbl===catSel);
-    tsView.sort((a,b)=>{
-      const o={pendente:0,andamento:1,concluido:2};
-      if(o[a.status]!==o[b.status])return o[a.status]-o[b.status];
-      // concluídas: as mais recentes primeiro (pela data em que foram concluídas)
-      if(a.status==='concluido')return (b.concluidoEm||'').localeCompare(a.concluidoEm||'');
-      return (a.prazo||'9999')<(b.prazo||'9999')?-1:1;
-    });
-    const abertas=ts.filter(t=>t.status!=='concluido').length;
-
-    // Com o filtro "Todas", as tarefas já concluídas não são despejadas junto
-    // com as abertas: viram um card fechado no fim da coluna, que abre com um
-    // clique. Nos filtros específicos (Pendentes, Em andamento, Concluídas) a
-    // lista continua inteira, porque ali o usuário já pediu aquele recorte.
-    const separarConcluidas=(rotinaFiltro==='todos');
-    const emAberto=separarConcluidas?tsView.filter(t=>t.status!=='concluido'):tsView;
-    const concluidas=separarConcluidas?tsView.filter(t=>t.status==='concluido'):[];
-
-    const chaveCol='rotina:'+r;
-    const colFechada=blocoRecolhido(chaveCol,false);
-    const chaveConc='rotina-concluidas:'+r;
-    const concFechada=blocoRecolhido(chaveConc,true);
-
-    return `<div class="rot-col ${colFechada?'recolhida':''}">
-      <div class="rot-col-head clicavel" onclick="alternarBloco('${chaveCol}',false)" title="${colFechada?'Clique para abrir':'Clique para recolher'}">
-        ${chevron()}
-        <div class="av" style="background:${av[0]};color:${av[1]}">${avatarResp(r)}</div>
-        <span class="nm">${r}</span>
-        <span class="ct">${abertas} aberta${abertas!==1?'s':''}</span>
-      </div>
-      <div class="rot-col-corpo">
-        <div style="padding:10px 10px 8px">
-          <select onchange="rotinaFiltroCat('${r}',this.value)" style="width:100%;font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid var(--border-hi);background:var(--surface);color:var(--t2)">
-            <option value="todos" ${catSel==='todos'?'selected':''}>Todas as categorias</option>
-            ${cats.map(cat=>`<option value="${esc(cat)}" ${catSel===cat?'selected':''}>${esc(cat)}</option>`).join('')}
-          </select>
-        </div>
-        <div class="rot-list">
-          ${emAberto.length?emAberto.map(taskCard).join(''):'<div class="rot-empty">Nenhuma tarefa em aberto</div>'}
-          <button class="btn-nova-tarefa" style="width:100%;justify-content:center;background:transparent;border:1px dashed var(--border-hi);color:var(--t3)" onclick="abrirModalTarefa(null,'${r}')"><i class="ti ti-plus"></i>Adicionar</button>
-          ${concluidas.length?`
-          <div class="rot-sub ${concFechada?'recolhida':''}">
-            <div class="rot-sub-head" onclick="alternarBloco('${chaveConc}',true)" title="${concFechada?'Clique para ver as concluídas':'Clique para recolher'}">
-              ${chevron()}<span>Concluídas (${concluidas.length})</span>
-            </div>
-            <div class="rot-sub-corpo">${concluidas.map(taskCard).join('')}</div>
-          </div>`:''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
 }
 // ═══════════════════════════════════════════════════════════
 //  PROJETOS EM ANDAMENTO (painel da aba Rotina)
@@ -8863,7 +9552,9 @@ function irParaProjeto(id){
   blocosRecolhidos['projetos:painel']=false;
   blocosRecolhidos['projetos:tipo:'+(t.tipo||'outro')]=false;
   try{localStorage.setItem(LS_RECOLHIDAS,JSON.stringify(blocosRecolhidos))}catch(e){}
-  renderProjetos();
+  // a rotina virou painel de comando: projetos ocupam o centro quando escolhidos
+  if(typeof mudarVisaoRotina==='function')mudarVisaoRotina('projetos');
+  else renderProjetos();
   setTimeout(()=>{
     const card=document.getElementById('proj-card-'+id);
     if(!card)return;
@@ -9833,6 +10524,12 @@ function detalheClienteHTML(c){
         <p class="det-demandas">${esc(c.demandas)}</p>
         ${c.obs?`<div class="det-obs"><i class="ti ti-info-circle"></i> ${esc(c.obs)}</div>`:''}
       </div>
+      ${(typeof assessoriaDoClienteHTML==='function'&&assessoriaDoClienteHTML(c.id))?`<div class="det-sec">
+        <div class="det-sec-titulo"><span>Assessoria mensal</span>
+          <button class="det-add" onclick="irParaAssessoria(assessoriasDoCliente('${c.id}')[0].id)"><i class="ti ti-external-link"></i> Abrir controle</button>
+        </div>
+        ${assessoriaDoClienteHTML(c.id)}
+      </div>`:''}
       <div class="det-sec">
         <div class="det-sec-titulo"><span>Contratos</span>
           <button class="det-add" onclick="abrirModalContrato('${c.id}',null)"><i class="ti ti-plus"></i> Novo contrato</button>
@@ -12337,6 +13034,8 @@ function contarDados(d){
     leadsTrabalhista:n(d.leads), leadsCivel:n(d.leadsCivel),
     custosFixos:n(d.custosFixos), lancamentosDeCaixa:n(d.lancamentos),
     aportesDoFundo:n(d.fundoAportes), conteudos:n(d.conteudos),
+    assessorias:n(d.assessorias),
+    consultasDeAssessoria:(Array.isArray(d.assessorias)?d.assessorias:[]).reduce((a,x)=>a+n(x.consultas),0),
     mensagensChatGeral:n(d.chatGeral), usuarios:n(d.usuarios),
   };
 }
@@ -12601,6 +13300,8 @@ function gerarRelatorioHTML(){
     ['Lançamentos de caixa',String(t.lancamentosDeCaixa)],
     ['Aportes no fundo do escritório',String(t.aportesDoFundo)],
     ['Pautas de conteúdo',String(t.conteudos)],
+    ['Assessorias mensais',String(t.assessorias)],
+    ['Consultas de assessoria',String(t.consultasDeAssessoria)],
     ['<b>Total de registros</b>','<b>'+totalRegistros(t)+'</b>'],
   ]));
 
@@ -12669,6 +13370,29 @@ function gerarRelatorioHTML(){
         esc(x.prazo?fmtData(x.prazo):''),esc(ST_LBL[x.status]||x.status||''),
         esc(ci&&ci.data?fmtData(ci.data):''),esc(ci?CONC_CAT_LBL[ci.cat]+(ci.cat==='atrasada'?' ('+plural(ci.dias,'')+')':ci.cat==='antecipada'?' ('+plural(-ci.dias,'')+')':''):'')];
     })));
+
+  // ── assessorias ──
+  const ass=Array.isArray(DB.assessorias)?DB.assessorias:[];
+  S.push('<h2>Assessorias mensais</h2>');
+  S.push(ass.length?relTabela(['Cliente','Objeto','Situação','Responsável','Consultas/mês','Mensalidade','Início','Usadas no mês','Parcelas pagas','Em aberto'],
+    ass.map(a=>{
+      const k=seguro(()=>cotaAssessoria(a),{usadas:0,cota:0});
+      const ps=seguro(()=>parcelasDaAssessoria(a),[]);
+      const pagas=ps.filter(f=>f.t==='alc');
+      const aberto=ps.filter(f=>f.t!=='alc').reduce((x,f)=>x+(f.v||0),0);
+      return [esc(nomeCliente(a.cid)||''),esc(a.titulo||''),esc(a.status||''),esc(a.resp||''),
+        esc(a.consultasCiclo?String(a.consultasCiclo):'—'),esc(a.valor?fmt(a.valor):'—'),esc(a.inicio?fmtData(a.inicio):''),
+        esc(k.cota?k.usadas+' de '+k.cota:String(k.usadas)),esc(pagas.length+' de '+ps.length),esc(fmt(aberto))];
+    })):'<p class="vazio">Nenhuma assessoria cadastrada.</p>');
+  const comConsultas=ass.filter(a=>(a.consultas||[]).length);
+  if(comConsultas.length){
+    S.push('<h3>Consultas e pedidos</h3>');
+    S.push(relTabela(['Cliente','Pedido','Tipo','Quem pediu','Competência','Pedida em','Prazo','Situação','Entregue em'],
+      comConsultas.flatMap(a=>(a.consultas||[]).map(c=>[
+        esc(nomeCliente(a.cid)||''),esc(c.titulo||''),esc(seguro(()=>tipoConsulta(c.tipo).lbl,'')),esc(c.solicitante||''),
+        esc(seguro(()=>fmtComp(c.competencia),'')),esc(c.solicitadoEm?fmtData(c.solicitadoEm):''),
+        esc(c.prazo?fmtData(c.prazo):''),esc(ST_CONSULTA[c.status]||c.status||''),esc(c.entregaEm?fmtData(c.entregaEm):'')]))));
+  }
 
   // ── funil ──
   S.push('<h2>Funil de vendas (CRM)</h2>');
@@ -12951,7 +13675,7 @@ function abrirBackup(){
 // comercial). No computador ela pode ser recolhida só para os ícones; no
 // celular vira uma gaveta que abre pelo botão de menu do cabeçalho.
 const LS_SIDEBAR='bgl_sidebar_recolhida';
-const TITULO_TELA={dash:'Visão geral',rotina:'Rotina',processos:'Processos',arquivados:'Arquivados',
+const TITULO_TELA={dash:'Visão geral',rotina:'Rotina',assessorias:'Assessorias',processos:'Processos',arquivados:'Arquivados',
   crm:'Clientes',fin:'Financeiro',trab:'Atendimento',comercial:'Comercial',modelos:'Modelos'};
 
 function prepararCasca(){
@@ -12986,7 +13710,7 @@ function fecharSidebarMovel(){const a=document.getElementById('screen-dashboard'
 // diferença de maiúsculas, por qualquer pedaço do nome, do número do
 // processo, das partes, do telefone ou das demandas.
 const PALETA_TELAS=[
-  {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},
+  {id:'dash',t:'Visão geral',i:'ti-layout-dashboard'},{id:'rotina',t:'Rotina',i:'ti-checklist'},{id:'assessorias',t:'Assessorias',i:'ti-briefcase'},
   {id:'processos',t:'Processos',i:'ti-gavel'},{id:'arquivados',t:'Arquivados',i:'ti-archive'},
   {id:'modelos',t:'Modelos',i:'ti-file-text'},
   {id:'crm',t:'Clientes',i:'ti-users'},{id:'fin',t:'Financeiro',i:'ti-wallet'},
@@ -12998,6 +13722,7 @@ const PALETA_ACOES=[
   {t:'Novo lançamento financeiro',d:'Recebido, previsto ou saída',i:'ti-cash',fn:()=>abrirModalFin(null,null)},
   {t:'Novo cliente',d:'Carteira',i:'ti-user-plus',fn:()=>{navegarPara('crm');abrirModalCliente(null);}},
   {t:'Novo processo',d:'Processos',i:'ti-file-plus',fn:()=>abrirModalProc(null,null)},
+  {t:'Nova assessoria',d:'Contrato de assessoria mensal',i:'ti-briefcase',fn:()=>{navegarPara('assessorias');abrirModalAssessoria(null);}},
   {t:'Novo lead trabalhista',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('trab');}},
   {t:'Novo lead cível',d:'Atendimento',i:'ti-headset',fn:()=>{navegarPara('trab');abrirModalNovo('civel');}},
   {t:'Metas do mês',d:'Faturamento, honorários e contratos',i:'ti-target-arrow',fn:()=>abrirDetalheMetaContratos()},
@@ -13884,6 +14609,754 @@ function abrirModelo(codigo){
 function abrirPastaModelos(){const m=driveMapa();if(m&&m.pastaModelos)abrirLinkExterno(m.pastaModelos);}
 
 RENDERIZADORES.modelos=()=>renderModelos();
+// ═══════════════════════════════════════════════════════════
+//  ASSESSORIAS — contratos de assessoria mensal
+// ═══════════════════════════════════════════════════════════
+//  Uma assessoria é um contrato recorrente com um cliente da carteira:
+//  o escritório entrega um número combinado de consultas por mês e
+//  recebe uma mensalidade. As duas coisas precisam de controle, e são
+//  as duas que esta tela mostra lado a lado:
+//
+//    · COTA E CONSULTAS — quantas consultas o cliente tem direito por
+//      mês, quantas já pediu, em que estado está cada uma (aberta, em
+//      andamento, concluída) e o que estourou a cota.
+//    · PARCELAS — mensalidades com data de vencimento e baixa de
+//      pagamento.
+//
+//  As parcelas NÃO vivem aqui: são lançamentos do próprio cliente
+//  (cliente.fin), marcados com assessoriaId. Assim a mensalidade entra
+//  no Financeiro, na ficha do cliente e nas metas do mês sem virar um
+//  caixa paralelo. O que a assessoria guarda é o vínculo e a data de
+//  vencimento original (assessoriaVenc), que não se perde quando o
+//  lançamento vira "recebido" e a data passa a ser a do pagamento.
+//
+//  Campos de DB.assessorias[]:
+//    id · cid (cliente) · contratoId · titulo · status · inicio · fim
+//    resp · consultasCiclo · acumula · valor · diaVencimento · escopo
+//    obs · criadoEm · criadoPor · consultas[]
+//  Campos de uma consulta:
+//    id · titulo · tipo · solicitante · canal · solicitadoEm
+//    competencia (AAAA-MM) · prazo · status · resp · descricao
+//    entregaEm · tarefaId
+// ═══════════════════════════════════════════════════════════
+
+const ASS_STATUS=['Ativa','Suspensa','Encerrada'];
+const TIPOS_CONSULTA=[
+  {k:'consulta',  lbl:'Consulta',           cor:'#2f5d94'},
+  {k:'parecer',   lbl:'Parecer',            cor:'#16243d'},
+  {k:'documento', lbl:'Contrato/documento', cor:'#6b4f9e'},
+  {k:'reuniao',   lbl:'Reunião',            cor:'#2f7d3f'},
+  {k:'diligencia',lbl:'Diligência',         cor:'#8a93a6'},
+  {k:'outro',     lbl:'Outro',              cor:'#828b9c'},
+];
+const CANAIS_CONSULTA=['WhatsApp','E-mail','Telefone','Reunião','Presencial','Outro'];
+const ST_CONSULTA={aberta:'Aberta',andamento:'Em andamento',concluida:'Concluída',cancelada:'Cancelada'};
+const MESES_CURTO=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+let assSel=null, assFiltroComp='', assFiltroSt='abertas';
+
+// ─── AJUDANTES ────────────────────────────────────────────
+function assessorias(){return Array.isArray(DB.assessorias)?DB.assessorias:(DB.assessorias=[])}
+function assessoriaPorId(id){return id?assessorias().find(a=>a.id===id)||null:null}
+function assessoriasDoCliente(cid){return assessorias().filter(a=>a.cid===cid)}
+function clienteDaAssessoria(a){return a&&a.cid?DB.clientes.find(c=>c.id===a.cid)||null:null}
+function tipoConsulta(k){return TIPOS_CONSULTA.find(x=>x.k===k)||TIPOS_CONSULTA[TIPOS_CONSULTA.length-1]}
+function compDe(iso){return (iso||'').slice(0,7)}
+function compHoje(){return compDe(hojeISO())}
+function fmtComp(comp){
+  if(!comp||comp.length<7)return '—';
+  return MESES_CURTO[(+comp.slice(5,7))-1]+'/'+comp.slice(0,4);
+}
+function compAdd(comp,n){
+  const y=+comp.slice(0,4), m=(+comp.slice(5,7))-1+n;
+  const d=new Date(Date.UTC(y,m,1));
+  return d.toISOString().slice(0,7);
+}
+// quantos ciclos mensais já correram desde o início (o mês de início conta como 1)
+function ciclosDecorridos(a){
+  const ini=compDe(a.inicio)||compHoje();
+  const fim=a.fim&&compDe(a.fim)<compHoje()?compDe(a.fim):compHoje();
+  const n=(+fim.slice(0,4)-+ini.slice(0,4))*12+(+fim.slice(5,7)-+ini.slice(5,7))+1;
+  return Math.max(1,n);
+}
+function consultasDe(a){return Array.isArray(a.consultas)?a.consultas:(a.consultas=[])}
+function consultasValidas(a){return consultasDe(a).filter(c=>c.status!=='cancelada')}
+// cota do mês: quantas consultas o cliente tem direito, quantas já usou
+function cotaAssessoria(a,comp){
+  comp=comp||compHoje();
+  const cota=+a.consultasCiclo||0;
+  const usadas=consultasValidas(a).filter(c=>c.competencia===comp).length;
+  return {comp,cota,usadas,
+    saldo:cota?cota-usadas:null,
+    excedente:cota?Math.max(0,usadas-cota):0};
+}
+// saldo acumulado: só vale quando a assessoria acumula o que não foi usado
+function saldoAcumuladoAss(a){
+  if(!a.acumula||!(+a.consultasCiclo))return null;
+  return (+a.consultasCiclo)*ciclosDecorridos(a)-consultasValidas(a).length;
+}
+// valor em texto para os campos de formulário (2500 → "2.500,00")
+function numBR(v){return (+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+// vencimento da parcela: enquanto está em aberto vale a data do lançamento (que
+// o modal de financeiro pode corrigir); depois de paga, a data vira a do
+// pagamento, então vale o vencimento original guardado na parcela
+function vencParcela(f){return f.t==='alc'?(f.assessoriaVenc||f.dt||''):(f.dt||f.assessoriaVenc||'')}
+function parcelasDaAssessoria(a){
+  const c=clienteDaAssessoria(a);
+  if(!c||!Array.isArray(c.fin))return [];
+  return c.fin.filter(f=>f.assessoriaId===a.id)
+    .sort((x,y)=>(vencParcela(x)||'9999').localeCompare(vencParcela(y)||'9999'));
+}
+function statusParcela(f){
+  if(f.t==='alc')return 'paga';
+  const v=vencParcela(f);
+  return v&&v<hojeISO()?'vencida':'aberta';
+}
+function parcelasVencidas(){
+  let n=0,v=0;
+  assessorias().forEach(a=>parcelasDaAssessoria(a).forEach(f=>{
+    if(statusParcela(f)==='vencida'){n++;v+=f.v||0;}
+  }));
+  return {n,v};
+}
+function consultasAbertas(a){return consultasDe(a).filter(c=>c.status==='aberta'||c.status==='andamento')}
+
+// ─── TELA ─────────────────────────────────────────────────
+function renderAssessorias(){
+  const lista=assessorias();
+  if(assSel&&!assessoriaPorId(assSel))assSel=null;
+  if(!assSel&&lista.length)assSel=lista[0].id;
+  renderAssStats(lista);
+  renderAssLista(lista);
+  renderAssDetalhe();
+  atualizarBadgeAssessorias();
+}
+function atualizarBadgeAssessorias(){
+  const b=document.getElementById('nav-assessorias-badge');
+  if(!b)return;
+  const {n}=parcelasVencidas();
+  b.textContent=n;
+  b.style.display=n?'':'none';
+}
+function renderAssStats(lista){
+  const el=document.getElementById('ass-stats');
+  if(!el)return;
+  const ativas=lista.filter(a=>a.status==='Ativa');
+  const comp=compHoje();
+  let cota=0,usadas=0,andamento=0;
+  ativas.forEach(a=>{
+    const k=cotaAssessoria(a,comp);
+    cota+=k.cota;usadas+=k.usadas;
+    andamento+=consultasDe(a).filter(c=>c.status==='andamento').length;
+  });
+  let aberto=0,vencido=0,nVenc=0,mensal=0;
+  lista.forEach(a=>{
+    if(a.status==='Ativa')mensal+=+a.valor||0;
+    parcelasDaAssessoria(a).forEach(f=>{
+      const s=statusParcela(f);
+      if(s!=='paga')aberto+=f.v||0;
+      if(s==='vencida'){vencido+=f.v||0;nVenc++;}
+    });
+  });
+  const pct=cota?Math.min(100,Math.round(usadas/cota*100)):0;
+  const box=(c,l,v,s,extra)=>`<div class="ass-num" style="--c:${c}"><div class="l">${l}</div><div class="v">${v}</div>${extra||''}<div class="s">${s}</div></div>`;
+  el.innerHTML=
+    box('var(--navy)','Assessorias ativas',ativas.length,
+      mensal?money(mensal)+' por mês':'sem mensalidade informada')+
+    box('var(--blue)','Consultas em '+fmtComp(comp),cota?usadas+' / '+cota:usadas,
+      cota?(usadas>cota?(usadas-cota)+' além da cota':(cota-usadas)+' ainda disponíveis'):'sem cota definida',
+      cota?`<div class="barra"><i style="width:${pct}%;background:${usadas>cota?'var(--red)':'var(--blue)'}"></i></div>`:'')+
+    box('var(--amber)','Em andamento',andamento,andamento?'consultas já iniciadas':'nenhuma consulta em execução')+
+    box(nVenc?'var(--red)':'var(--green)','A receber',money(aberto),
+      nVenc?nVenc+' parcela'+(nVenc>1?'s':'')+' vencida'+(nVenc>1?'s':'')+' · '+money(vencido):'nenhuma parcela vencida');
+}
+function renderAssLista(lista){
+  const el=document.getElementById('ass-lista');
+  if(!el)return;
+  const ordenada=[...lista].sort((a,b)=>{
+    const o={Ativa:0,Suspensa:1,Encerrada:2};
+    if(o[a.status]!==o[b.status])return (o[a.status]??3)-(o[b.status]??3);
+    return cmpNome(nomeCliente(a.cid)||a.titulo,nomeCliente(b.cid)||b.titulo);
+  });
+  const itens=ordenada.map(a=>{
+    const c=clienteDaAssessoria(a), k=cotaAssessoria(a), ab=consultasAbertas(a).length;
+    const venc=parcelasDaAssessoria(a).filter(f=>statusParcela(f)==='vencida').length;
+    return `<button type="button" class="ass-item ${assSel===a.id?'on':''}" onclick="abrirAssessoria('${a.id}')">
+      <div class="l1"><span class="nome">${esc(c?(c.curto||c.nome):'Cliente removido')}</span>
+        <span class="ass-tag ${a.status.toLowerCase()}" style="margin-left:auto">${a.status}</span></div>
+      <div class="l2">${esc(a.titulo||'Assessoria mensal')}${a.valor?' · '+money(a.valor)+'/mês':''}</div>
+      <div class="l3">${medidorCotaHTML(k)}
+        ${ab?`<span class="ass-tag">${ab} em aberto</span>`:''}
+        ${venc?`<span class="ass-tag alerta"><i class="ti ti-alert-triangle"></i>${venc} vencida${venc>1?'s':''}</span>`:''}</div>
+    </button>`;
+  }).join('');
+  el.innerHTML=`<div class="ass-lista-head"><b>Contratos</b><span class="n">${lista.length}</span>
+      <button class="btn-nova-tarefa" onclick="abrirModalAssessoria(null)"><i class="ti ti-plus"></i>Nova</button></div>`
+    +(itens||`<div class="ass-vazio"><i class="ti ti-briefcase"></i>Nenhuma assessoria cadastrada.<br>Clique em <b>Nova</b> para incluir a primeira.</div>`);
+}
+// medidor de cota: um tracinho por consulta contratada; o que passou fica vermelho
+function medidorCotaHTML(k){
+  if(!k.cota)return `<span class="cota"><span class="txt">${k.usadas} consulta${k.usadas===1?'':'s'} no mês</span></span>`;
+  const traco=[];
+  for(let i=0;i<k.cota;i++)traco.push(`<i class="${i<k.usadas?'usada':''}"></i>`);
+  for(let i=0;i<k.excedente;i++)traco.push('<i class="extra"></i>');
+  return `<span class="cota" title="${k.usadas} de ${k.cota} consultas usadas em ${fmtComp(k.comp)}">${traco.join('')}
+    <span class="txt">${k.usadas}/${k.cota}</span></span>`;
+}
+
+function renderAssDetalhe(){
+  const el=document.getElementById('ass-det');
+  if(!el)return;
+  const a=assessoriaPorId(assSel);
+  if(!a){
+    el.innerHTML=`<div class="ass-bloco"><div class="ass-vazio" style="padding:54px 24px">
+      <i class="ti ti-briefcase"></i>
+      <b style="display:block;font-size:15px;color:var(--t);margin-bottom:6px">Nenhuma assessoria cadastrada</b>
+      Cadastre o contrato de assessoria mensal para controlar as consultas entregues e as parcelas da mensalidade.<br><br>
+      <button class="btn-nova-tarefa" onclick="abrirModalAssessoria(null)"><i class="ti ti-plus"></i>Nova assessoria</button>
+    </div></div>`;
+    return;
+  }
+  const c=clienteDaAssessoria(a);
+  const comp=assFiltroComp||compHoje();
+  const k=cotaAssessoria(a,comp);
+  const acum=saldoAcumuladoAss(a);
+  const andamento=consultasDe(a).filter(x=>x.status==='andamento').length;
+  const parcelas=parcelasDaAssessoria(a);
+  let aberto=0,vencido=0,nVenc=0,pago=0;
+  parcelas.forEach(f=>{
+    const s=statusParcela(f);
+    if(s==='paga')pago+=f.v||0;else aberto+=f.v||0;
+    if(s==='vencida'){vencido+=f.v||0;nVenc++;}
+  });
+  const pct=k.cota?Math.min(100,Math.round(k.usadas/k.cota*100)):0;
+
+  const capa=`<div class="ass-capa">
+    <div class="tx">
+      <div class="k">Assessoria mensal</div>
+      <h2>${esc(a.titulo||'Assessoria jurídica mensal')}</h2>
+      ${c?`<span class="cli" onclick="irParaCliente('${c.id}')"><i class="ti ti-user"></i>${esc(c.nome)}<i class="ti ti-external-link" style="font-size:13px"></i></span>`
+        :'<span class="cli">Cliente removido do sistema</span>'}
+      <div class="meta">
+        <span><i class="ti ti-circle-dot" style="font-size:14px"></i>${esc(a.status)}</span>
+        ${a.valor?`<span><i class="ti ti-cash" style="font-size:14px"></i>${money(a.valor)} por mês${a.diaVencimento?' · vence dia '+a.diaVencimento:''}</span>`:''}
+        ${a.consultasCiclo?`<span><i class="ti ti-messages" style="font-size:14px"></i>${a.consultasCiclo} consulta${a.consultasCiclo>1?'s':''} por mês${a.acumula?' · acumula saldo':''}</span>`:''}
+        ${a.resp?`<span><i class="ti ti-user-check" style="font-size:14px"></i>${esc(a.resp)}</span>`:''}
+        ${a.inicio?`<span><i class="ti ti-calendar" style="font-size:14px"></i>desde ${esc(fmtData(a.inicio))}</span>`:''}
+      </div>
+    </div>
+    <div class="acoes">
+      <button class="ab forte" onclick="abrirModalConsulta('${a.id}',null)"><i class="ti ti-plus"></i>Registrar consulta</button>
+      <button class="ab" onclick="abrirModalParcelas('${a.id}')"><i class="ti ti-receipt"></i>Gerar parcelas</button>
+      <button class="ab" onclick="abrirModalAssessoria('${a.id}')"><i class="ti ti-pencil"></i>Editar</button>
+    </div>
+  </div>`;
+
+  const nums=`<div class="ass-nums">
+    <div class="ass-num" style="--c:var(--blue)">
+      <div class="l">Consultas em ${fmtComp(comp)}</div>
+      <div class="v">${k.cota?k.usadas+' / '+k.cota:k.usadas}</div>
+      ${k.cota?`<div class="barra"><i style="width:${pct}%;background:${k.excedente?'var(--red)':'var(--blue)'}"></i></div>`:''}
+      <div class="s">${k.cota?(k.excedente?k.excedente+' além do contratado':(k.saldo)+' ainda disponíveis'):'cota não definida'}${acum!==null?' · saldo acumulado '+acum:''}</div>
+    </div>
+    <div class="ass-num" style="--c:var(--amber)">
+      <div class="l">Em aberto</div><div class="v">${consultasAbertas(a).length}</div>
+      <div class="s">${andamento} em andamento · ${consultasAbertas(a).length-andamento} aguardando início</div>
+    </div>
+    <div class="ass-num" style="--c:${nVenc?'var(--red)':'var(--navy)'}">
+      <div class="l">A receber</div><div class="v">${money(aberto)}</div>
+      <div class="s">${nVenc?nVenc+' parcela'+(nVenc>1?'s':'')+' vencida'+(nVenc>1?'s':'')+' · '+money(vencido):parcelas.length?'nenhuma parcela vencida':'nenhuma parcela gerada'}</div>
+    </div>
+    <div class="ass-num" style="--c:var(--green)">
+      <div class="l">Já recebido</div><div class="v">${money(pago)}</div>
+      <div class="s">${parcelas.filter(f=>f.t==='alc').length} de ${parcelas.length} parcela${parcelas.length===1?'':'s'} paga${parcelas.filter(f=>f.t==='alc').length===1?'':'s'}</div>
+    </div>
+  </div>`;
+
+  el.innerHTML=capa+nums+blocoConsultasHTML(a)+blocoParcelasHTML(a,parcelas)+blocoEscopoHTML(a);
+}
+
+// ─── CONSULTAS E PEDIDOS ──────────────────────────────────
+function blocoConsultasHTML(a){
+  const todas=consultasDe(a);
+  // meses presentes + o mês corrente, para o seletor de competência
+  const comps=[...new Set(todas.map(c=>c.competencia).filter(Boolean).concat([compHoje()]))].sort().reverse();
+  let lista=[...todas];
+  if(assFiltroComp)lista=lista.filter(c=>c.competencia===assFiltroComp);
+  if(assFiltroSt==='abertas')lista=lista.filter(c=>c.status==='aberta'||c.status==='andamento');
+  else if(assFiltroSt==='concluidas')lista=lista.filter(c=>c.status==='concluida');
+  lista.sort((x,y)=>{
+    const o={andamento:0,aberta:1,concluida:2,cancelada:3};
+    if(o[x.status]!==o[y.status])return o[x.status]-o[y.status];
+    return (y.solicitadoEm||'').localeCompare(x.solicitadoEm||'');
+  });
+  const hoje=hojeISO();
+  // posição da consulta dentro da própria competência: deixa visível qual foi a
+  // 5ª de um mês que contratou 4 (essa aparece em vermelho, fora da cota)
+  const ordem={};
+  [...todas].filter(c=>c.status!=='cancelada')
+    .sort((x,y)=>(x.solicitadoEm||'').localeCompare(y.solicitadoEm||''))
+    .forEach(c=>{
+      const cp=c.competencia||'';
+      ordem[c.id]=(ordem['#'+cp]=(ordem['#'+cp]||0)+1);
+    });
+  const linhas=lista.map(cs=>{
+    const tp=tipoConsulta(cs.tipo), feita=cs.status==='concluida'||cs.status==='cancelada';
+    const atrasada=!feita&&cs.prazo&&cs.prazo<hoje;
+    const sub=[cs.solicitante,cs.canal,cs.competencia?'competência '+fmtComp(cs.competencia):''].filter(Boolean).join(' · ');
+    let data;
+    if(cs.status==='concluida')data=`<b style="color:var(--green-hi)">entregue ${esc(fmtDataCurta(cs.entregaEm||cs.solicitadoEm))}</b><span>pedida em ${esc(fmtDataCurta(cs.solicitadoEm))}</span>`;
+    else if(cs.prazo)data=`<b class="${atrasada?'late':''}">${atrasada?'venceu '+fmtDataCurta(cs.prazo):'até '+fmtDataCurta(cs.prazo)}</b><span>pedida em ${esc(fmtDataCurta(cs.solicitadoEm))}</span>`;
+    else data=`<b>${esc(fmtDataCurta(cs.solicitadoEm))}</b><span>sem prazo</span>`;
+    const pos=ordem[cs.id]||0;
+    const fora=!!(a.consultasCiclo&&pos>a.consultasCiclo);
+    return `<div class="cs-row ${feita?'feita':''}">
+      <span class="cs-n ${fora?'fora':''}" title="${pos?pos+'ª consulta de '+fmtComp(cs.competencia||''):'cancelada'}${fora?' — além da cota de '+a.consultasCiclo:''}">${pos||'—'}</span>
+      <span class="cs-tt"><b>${esc(cs.titulo)}</b>${sub?`<span>${esc(sub)}</span>`:''}</span>
+      <span class="cs-tipo" style="--c:${tp.cor}"><i></i><span>${esc(tp.lbl)}</span></span>
+      <button class="cs-st ${cs.status}" onclick="cicloConsulta('${a.id}','${cs.id}')" title="Clique para avançar o estado">${ST_CONSULTA[cs.status]||cs.status}</button>
+      <span class="cs-data">${data}</span>
+      <span class="cs-acoes">
+        ${cs.tarefaId?`<button class="btn-ico" onclick="irParaTarefaDaConsulta('${cs.tarefaId}')" title="Abrir a tarefa na Rotina"><i class="ti ti-checklist"></i></button>`
+          :`<button class="btn-ico" onclick="criarTarefaDaConsulta('${a.id}','${cs.id}')" title="Criar tarefa na Rotina"><i class="ti ti-subtask"></i></button>`}
+        <button class="btn-ico" onclick="abrirModalConsulta('${a.id}','${cs.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+      </span>
+    </div>`;
+  }).join('');
+  const k=cotaAssessoria(a,assFiltroComp||compHoje());
+  return `<div class="ass-bloco">
+    <div class="ass-bloco-head">
+      <h3>Consultas e pedidos</h3>
+      <span class="sub">o que o cliente pediu e em que pé está</span>
+      <div class="dir">
+        <select onchange="assMudarComp(this.value)" title="Competência">
+          <option value="">Todas as competências</option>
+          ${comps.map(cp=>`<option value="${cp}" ${assFiltroComp===cp?'selected':''}>${fmtComp(cp)}</option>`).join('')}
+        </select>
+        <select onchange="assMudarStatus(this.value)" title="Situação">
+          <option value="abertas" ${assFiltroSt==='abertas'?'selected':''}>Em aberto</option>
+          <option value="concluidas" ${assFiltroSt==='concluidas'?'selected':''}>Concluídas</option>
+          <option value="todas" ${assFiltroSt==='todas'?'selected':''}>Todas</option>
+        </select>
+        <button class="btn-nova-tarefa" onclick="abrirModalConsulta('${a.id}',null)"><i class="ti ti-plus"></i>Registrar</button>
+      </div>
+    </div>
+    ${linhas||`<div class="ass-bloco-vazio">${todas.length?'Nenhuma consulta neste recorte.':'Nenhuma consulta registrada ainda. Clique em <b>Registrar</b> quando o cliente pedir a primeira.'}</div>`}
+    <div class="ass-rodape">
+      <span>Em ${fmtComp(k.comp)}: <b>${k.usadas}</b> usada${k.usadas===1?'':'s'}${k.cota?' de <b>'+k.cota+'</b> contratadas':''}</span>
+      ${k.cota?(k.excedente?`<span class="ass-tag alerta"><i class="ti ti-alert-triangle"></i>${k.excedente} além da cota</span>`
+        :`<span class="ass-tag cota">${k.saldo} ainda disponível${k.saldo===1?'':'is'}</span>`):''}
+      <span style="margin-left:auto">Total no contrato: <b>${consultasValidas(a).length}</b> consulta${consultasValidas(a).length===1?'':'s'}</span>
+    </div>
+  </div>`;
+}
+function assMudarComp(v){assFiltroComp=v;renderAssDetalhe();}
+function assMudarStatus(v){assFiltroSt=v;renderAssDetalhe();}
+function abrirAssessoria(id){assSel=id;assFiltroComp='';renderAssessorias();}
+// aberta → em andamento → concluída → aberta
+function cicloConsulta(aid,cid){
+  const a=assessoriaPorId(aid);
+  const cs=a&&consultasDe(a).find(x=>x.id===cid);
+  if(!cs)return;
+  const ordem=['aberta','andamento','concluida'];
+  const i=ordem.indexOf(cs.status);
+  cs.status=ordem[(i+1)%ordem.length];
+  cs.entregaEm=cs.status==='concluida'?(cs.entregaEm||hojeISO()):'';
+  // a tarefa vinculada acompanha o estado da consulta
+  if(cs.tarefaId){
+    const t=DB.tarefas.find(x=>x.id===cs.tarefaId);
+    if(t)aplicarStatusTarefa(t,cs.status==='concluida'?'concluido':cs.status==='andamento'?'andamento':'pendente');
+  }
+  salvarDB();refreshUI();
+  if(typeof mostrarToast==='function')mostrarToast(cs.titulo+' · '+ST_CONSULTA[cs.status].toLowerCase());
+}
+// a consulta vira uma tarefa da Rotina, com o prazo combinado
+function criarTarefaDaConsulta(aid,cid){
+  const a=assessoriaPorId(aid);
+  const cs=a&&consultasDe(a).find(x=>x.id===cid);
+  if(!cs)return;
+  const c=clienteDaAssessoria(a);
+  const t={id:uid(),
+    titulo:'Assessoria — '+cs.titulo,
+    resp:cs.resp||a.resp||(EU&&RESP.includes(EU.nome)?EU.nome:RESP[0]),
+    tipo:cs.tipo==='reuniao'?'outro':cs.tipo==='diligencia'?'diligencia':'outro',
+    cid:a.cid||null, prazo:cs.prazo||'', hora:'',
+    status:cs.status==='andamento'?'andamento':'pendente', concluidoEm:'',
+    criadoEm:Date.now(), criadoPor:EU?EU.nome:'', assessoriaId:a.id, consultaId:cs.id};
+  DB.tarefas.push(t);
+  cs.tarefaId=t.id;
+  salvarDB();refreshUI();
+  if(typeof mostrarToast==='function')mostrarToast('Tarefa criada na Rotina para '+t.resp+(c?' · '+c.curto:''),'Abrir',()=>irParaTarefaDaConsulta(t.id));
+}
+function irParaTarefaDaConsulta(tid){
+  const t=DB.tarefas.find(x=>x.id===tid);
+  if(!t){alert('A tarefa vinculada a esta consulta não existe mais.');return;}
+  navegarPara('rotina');
+  if(typeof mudarVisaoRotina==='function')mudarVisaoRotina('mesa');
+  if(typeof selecionarTarefaRotina==='function'&&rotSel!==tid)selecionarTarefaRotina(tid);
+}
+
+// ─── PARCELAS ─────────────────────────────────────────────
+function blocoParcelasHTML(a,parcelas){
+  const hoje=hojeISO();
+  const linhas=parcelas.map(f=>{
+    const st=statusParcela(f);
+    const venc=vencParcela(f);
+    const dias=venc&&st!=='paga'?diasEntreISO(venc,hoje):0;
+    return `<div class="pc-row">
+      <span class="pc-tt"><b>${esc(f.d)}</b><span>${f.assessoriaComp?'competência '+fmtComp(f.assessoriaComp):''}${f.t==='alc'&&f.dt?' · pago em '+fmtData(f.dt):''}</span></span>
+      <span class="pc-venc ${st==='vencida'?'late':''}">${venc?esc(fmtData(venc)):'—'}
+        <small>${st==='vencida'?'há '+dias+' dia'+(dias>1?'s':''):st==='paga'?'vencimento':venc?'a vencer':''}</small></span>
+      <span class="pc-val">${money(f.v)}</span>
+      ${st==='paga'
+        ? `<span class="pc-st paga"><i class="ti ti-check"></i>Paga</span>`
+        : `<button class="pc-st ${st}" onclick="baixarParcela('${a.id}','${f.id}')" title="Marcar como paga hoje"><i class="ti ti-${st==='vencida'?'alert-triangle':'clock'}"></i>${st==='vencida'?'Vencida':'Em aberto'}</button>`}
+      <span class="pc-acoes">
+        ${st==='paga'?`<button class="btn-ico" onclick="reabrirParcela('${a.id}','${f.id}')" title="Desfazer a baixa"><i class="ti ti-arrow-back-up"></i></button>`:''}
+        <button class="btn-ico" onclick="abrirModalFin('${a.cid}','${f.id}')" title="Editar lançamento"><i class="ti ti-pencil"></i></button>
+        <button class="btn-ico" onclick="excluirParcela('${a.id}','${f.id}')" title="Excluir parcela"><i class="ti ti-trash"></i></button>
+      </span>
+    </div>`;
+  }).join('');
+  const prox=parcelas.filter(f=>statusParcela(f)!=='paga')[0];
+  return `<div class="ass-bloco">
+    <div class="ass-bloco-head">
+      <h3>Financeiro da assessoria</h3>
+      <span class="sub">mensalidades · os lançamentos são os mesmos da ficha do cliente</span>
+      <div class="dir">
+        <button class="btn-nova-tarefa" onclick="abrirModalParcelas('${a.id}')"><i class="ti ti-plus"></i>Gerar parcelas</button>
+      </div>
+    </div>
+    ${linhas||`<div class="ass-bloco-vazio">Nenhuma parcela gerada. Clique em <b>Gerar parcelas</b> para lançar as mensalidades com data de vencimento.</div>`}
+    ${parcelas.length?`<div class="ass-rodape">
+      ${prox?`<span>Próxima parcela: <b>${esc(fmtDataSem(vencParcela(prox)))}</b> · ${money(prox.v)}</span>`:'<span>Todas as parcelas estão pagas.</span>'}
+      <span style="margin-left:auto">${parcelas.length} parcela${parcelas.length>1?'s':''} · total ${money(parcelas.reduce((s,f)=>s+(f.v||0),0))}</span>
+    </div>`:''}
+  </div>`;
+}
+function baixarParcela(aid,fid){
+  const a=assessoriaPorId(aid), c=clienteDaAssessoria(a);
+  const f=c&&c.fin.find(x=>x.id===fid);
+  if(!f)return;
+  const venc=vencParcela(f);
+  if(!confirm('Marcar "'+f.d+'" ('+fmt(f.v)+') como PAGA hoje?'+(venc?'\n\nVencimento: '+fmtData(venc):'')))return;
+  f.t='alc';f.dt=hojeISO();
+  salvarDB();refreshUI();
+  if(typeof avisarFundoEscritorio==='function')avisarFundoEscritorio(f.v);
+}
+function reabrirParcela(aid,fid){
+  const a=assessoriaPorId(aid), c=clienteDaAssessoria(a);
+  const f=c&&c.fin.find(x=>x.id===fid);
+  if(!f)return;
+  f.t='prev';f.dt=f.assessoriaVenc||f.dt;
+  salvarDB();refreshUI();
+}
+function excluirParcela(aid,fid){
+  const a=assessoriaPorId(aid), c=clienteDaAssessoria(a);
+  const f=c&&c.fin.find(x=>x.id===fid);
+  if(!f)return;
+  if(!confirm('Excluir a parcela "'+f.d+'" ('+fmt(f.v)+')?\n\nO lançamento sai também da ficha do cliente e do Financeiro.'))return;
+  c.fin=c.fin.filter(x=>x.id!==fid);
+  salvarDB();refreshUI();
+}
+
+// ─── ESCOPO ───────────────────────────────────────────────
+function blocoEscopoHTML(a){
+  if(!a.escopo&&!a.obs)return '';
+  return `<div class="ass-bloco">
+    <div class="ass-bloco-head"><h3>Escopo e observações</h3><span class="sub">o que está incluído no contrato</span></div>
+    ${a.escopo?`<div class="ass-texto">${esc(a.escopo)}</div>`:''}
+    ${a.obs?`<div class="ass-texto" style="border-top:${a.escopo?'1px solid var(--border)':'none'};color:var(--t3)">${esc(a.obs)}</div>`:''}
+  </div>`;
+}
+
+// ─── MODAL: ASSESSORIA ────────────────────────────────────
+let maCtx={id:null,status:'Ativa',acumula:false};
+function abrirModalAssessoria(id){
+  const a=assessoriaPorId(id);
+  maCtx={id:id||null,status:a?a.status:'Ativa',acumula:a?!!a.acumula:false};
+  document.getElementById('ma-titulo').textContent=a?'Editar assessoria':'Nova assessoria';
+  const sel=document.getElementById('ma-cliente');
+  const ativos=ordenarPorNome(DB.clientes.filter(c=>c.status!=='Arquivado'||(a&&a.cid===c.id)));
+  sel.innerHTML='<option value="">Selecione o cliente…</option>'+ativos.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+  sel.value=a?a.cid||'':'';
+  sel.disabled=!!a;   // trocar o cliente levaria junto as parcelas; melhor criar outra
+  const resp=document.getElementById('ma-resp');
+  resp.innerHTML=RESP.map(r=>`<option>${esc(r)}</option>`).join('');
+  resp.value=a?(a.resp||RESP[0]):(EU&&RESP.includes(EU.nome)?EU.nome:RESP[0]);
+  document.getElementById('ma-objeto').value=a?a.titulo||'':'Assessoria jurídica mensal';
+  document.getElementById('ma-inicio').value=a?a.inicio||'':hojeISO();
+  document.getElementById('ma-fim').value=a?a.fim||'':'';
+  document.getElementById('ma-consultas').value=a?(a.consultasCiclo||''):4;
+  document.getElementById('ma-valor').value=a&&a.valor?numBR(a.valor):'';
+  document.getElementById('ma-dia').value=a?(a.diaVencimento||''):10;
+  document.getElementById('ma-escopo').value=a?a.escopo||'':'';
+  document.getElementById('ma-obs').value=a?a.obs||'':'';
+  document.getElementById('ma-del').style.display=a?'':'none';
+  maStatus(maCtx.status);maAcumula(maCtx.acumula);
+  abrirOverlay('overlay-assessoria');
+  setTimeout(()=>{(a?document.getElementById('ma-objeto'):sel).focus()},40);
+}
+function maStatus(s){
+  maCtx.status=s;
+  ASS_STATUS.forEach(x=>{
+    const b=document.getElementById('ma-st-'+x.toLowerCase());
+    if(b)b.classList.toggle('on',x===s);
+  });
+}
+function maAcumula(v){
+  maCtx.acumula=!!v;
+  document.getElementById('ma-ac-sim').classList.toggle('on',maCtx.acumula);
+  document.getElementById('ma-ac-nao').classList.toggle('on',!maCtx.acumula);
+}
+function salvarAssessoria(){
+  const cid=document.getElementById('ma-cliente').value;
+  const titulo=document.getElementById('ma-objeto').value.trim();
+  if(!cid){alert('Escolha o cliente da assessoria.\n\nSe ele ainda não está cadastrado, cadastre-o antes em Clientes.');return;}
+  if(!titulo){alert('Informe o objeto do contrato (ex.: Assessoria jurídica mensal).');return;}
+  const valorTxt=document.getElementById('ma-valor').value.trim();
+  const valor=valorTxt?parseValor(valorTxt):0;
+  if(valorTxt&&!(valor>0)){alert('Valor mensal inválido (ex.: 2.500,00). Deixe em branco se ainda não houver valor fechado.');return;}
+  const dia=+document.getElementById('ma-dia').value||0;
+  if(dia&&(dia<1||dia>31)){alert('O dia de vencimento precisa estar entre 1 e 31.');return;}
+  const dados={
+    cid, titulo, status:maCtx.status,
+    inicio:document.getElementById('ma-inicio').value,
+    fim:document.getElementById('ma-fim').value,
+    resp:document.getElementById('ma-resp').value,
+    consultasCiclo:+document.getElementById('ma-consultas').value||0,
+    acumula:maCtx.acumula, valor, diaVencimento:dia,
+    escopo:document.getElementById('ma-escopo').value.trim(),
+    obs:document.getElementById('ma-obs').value.trim(),
+  };
+  const a=assessoriaPorId(maCtx.id);
+  if(a){
+    Object.assign(a,dados);
+  }else{
+    const nova={id:uid(),...dados,contratoId:null,consultas:[],criadoEm:Date.now(),criadoPor:EU?EU.nome:''};
+    // a assessoria também vira um contrato do cliente: assim os lançamentos
+    // das mensalidades ficam separados dos honorários dos processos
+    const c=DB.clientes.find(x=>x.id===cid);
+    if(c){
+      if(!Array.isArray(c.contratos))c.contratos=[];
+      const ct=novoContrato({titulo,inicio:dados.inicio,status:dados.status==='Encerrada'?'Encerrado':'Ativo',
+        obs:'Assessoria mensal'+(valor?' · '+fmt(valor)+'/mês':'')});
+      c.contratos.push(ct);
+      nova.contratoId=ct.id;
+      if(dados.status==='Ativa'&&c.status==='Arquivado')c.status='Ativo';
+    }
+    assessorias().push(nova);
+    assSel=nova.id;
+  }
+  salvarDB();
+  fecharOverlay('overlay-assessoria');
+  navegarPara('assessorias');
+  refreshUI();
+}
+function excluirAssessoria(){
+  const a=assessoriaPorId(maCtx.id);
+  if(!a)return;
+  const parcelas=parcelasDaAssessoria(a);
+  if(!confirm('Excluir a assessoria "'+(a.titulo||'')+'"?\n\n'
+    +'  · '+consultasDe(a).length+' consulta(s) registrada(s)\n'
+    +'  · '+parcelas.length+' parcela(s) no financeiro do cliente\n\n'
+    +'As parcelas continuam na ficha do cliente; só perdem o vínculo com a assessoria.\n'
+    +'Se o contrato apenas acabou, prefira mudar o status para "Encerrada".'))return;
+  parcelas.forEach(f=>{delete f.assessoriaId;});
+  DB.assessorias=assessorias().filter(x=>x.id!==a.id);
+  assSel=null;
+  salvarDB();
+  fecharOverlay('overlay-assessoria');
+  refreshUI();
+}
+
+// ─── MODAL: CONSULTA ──────────────────────────────────────
+let mcoCtx={aid:null,id:null,status:'aberta'};
+function abrirModalConsulta(aid,cid){
+  const a=assessoriaPorId(aid);
+  if(!a)return;
+  const cs=cid?consultasDe(a).find(x=>x.id===cid):null;
+  mcoCtx={aid,id:cid||null,status:cs?cs.status:'aberta'};
+  document.getElementById('mco-titulo').textContent=cs?'Editar consulta':'Registrar consulta';
+  document.getElementById('mco-cliente-nome').textContent=nomeCliente(a.cid)||'—';
+  const tp=document.getElementById('mco-tipo');
+  tp.innerHTML=TIPOS_CONSULTA.map(t=>`<option value="${t.k}">${esc(t.lbl)}</option>`).join('');
+  tp.value=cs?cs.tipo||'consulta':'consulta';
+  const cn=document.getElementById('mco-canal');
+  cn.innerHTML='<option value="">—</option>'+CANAIS_CONSULTA.map(c=>`<option>${esc(c)}</option>`).join('');
+  cn.value=cs?cs.canal||'':'WhatsApp';
+  const rs=document.getElementById('mco-resp');
+  rs.innerHTML=RESP.map(r=>`<option>${esc(r)}</option>`).join('');
+  rs.value=cs?(cs.resp||a.resp||RESP[0]):(a.resp||(EU&&RESP.includes(EU.nome)?EU.nome:RESP[0]));
+  document.getElementById('mco-obj').value=cs?cs.titulo||'':'';
+  document.getElementById('mco-solicitante').value=cs?cs.solicitante||'':'';
+  document.getElementById('mco-data').value=cs?cs.solicitadoEm||hojeISO():hojeISO();
+  document.getElementById('mco-comp').value=cs?cs.competencia||compHoje():compHoje();
+  document.getElementById('mco-prazo').value=cs?cs.prazo||'':'';
+  document.getElementById('mco-desc').value=cs?cs.descricao||'':'';
+  document.getElementById('mco-del').style.display=cs?'':'none';
+  const tar=document.getElementById('mco-tarefa-wrap');
+  tar.style.display=cs&&cs.tarefaId?'none':'';
+  document.getElementById('mco-tarefa').checked=false;
+  mcoStatus(mcoCtx.status);
+  mcoAvisoCota();
+  abrirOverlay('overlay-consulta');
+  setTimeout(()=>document.getElementById('mco-obj').focus(),40);
+}
+function mcoStatus(s){
+  mcoCtx.status=s;
+  ['aberta','andamento','concluida','cancelada'].forEach(x=>{
+    const b=document.getElementById('mco-st-'+x);
+    if(b)b.classList.toggle('on',x===s);
+  });
+}
+// aviso de cota: mostra, já no momento do registro, se este pedido estoura o mês
+function mcoAvisoCota(){
+  const el=document.getElementById('mco-cota');
+  const a=assessoriaPorId(mcoCtx.aid);
+  if(!el||!a)return;
+  const comp=document.getElementById('mco-comp').value||compHoje();
+  const k=cotaAssessoria(a,comp);
+  const nova=mcoCtx.id?0:1;
+  if(!k.cota){el.innerHTML='Esta assessoria não tem cota mensal definida — a consulta é só registrada.';el.className='mco-cota';return;}
+  const depois=k.usadas+nova;
+  if(depois>k.cota){
+    el.innerHTML=`<b>Atenção:</b> em ${fmtComp(comp)} o cliente já usou ${k.usadas} de ${k.cota} consultas. Esta passa a cota em ${depois-k.cota}.`;
+    el.className='mco-cota alerta';
+  }else{
+    el.innerHTML=`Em ${fmtComp(comp)}: ${k.usadas} de ${k.cota} usadas. Com esta, ficam ${k.cota-depois} disponíveis.`;
+    el.className='mco-cota';
+  }
+}
+function salvarConsulta(){
+  const a=assessoriaPorId(mcoCtx.aid);
+  if(!a)return;
+  const titulo=document.getElementById('mco-obj').value.trim();
+  if(!titulo){alert('Descreva o que o cliente pediu (ex.: Análise de contrato de locação).');return;}
+  const dados={
+    titulo, tipo:document.getElementById('mco-tipo').value,
+    solicitante:document.getElementById('mco-solicitante').value.trim(),
+    canal:document.getElementById('mco-canal').value,
+    solicitadoEm:document.getElementById('mco-data').value||hojeISO(),
+    competencia:document.getElementById('mco-comp').value||compHoje(),
+    prazo:document.getElementById('mco-prazo').value,
+    resp:document.getElementById('mco-resp').value,
+    descricao:document.getElementById('mco-desc').value.trim(),
+    status:mcoCtx.status,
+  };
+  let cs=mcoCtx.id?consultasDe(a).find(x=>x.id===mcoCtx.id):null;
+  if(cs){
+    Object.assign(cs,dados);
+  }else{
+    cs={id:uid(),...dados,entregaEm:'',tarefaId:null,criadoEm:Date.now(),criadoPor:EU?EU.nome:''};
+    consultasDe(a).push(cs);
+  }
+  if(cs.status==='concluida'&&!cs.entregaEm)cs.entregaEm=hojeISO();
+  if(cs.status!=='concluida')cs.entregaEm='';
+  const criarTarefa=document.getElementById('mco-tarefa').checked&&!cs.tarefaId;
+  salvarDB();
+  fecharOverlay('overlay-consulta');
+  if(criarTarefa)criarTarefaDaConsulta(a.id,cs.id);
+  else refreshUI();
+}
+function excluirConsulta(){
+  const a=assessoriaPorId(mcoCtx.aid);
+  const cs=a&&consultasDe(a).find(x=>x.id===mcoCtx.id);
+  if(!cs)return;
+  if(!confirm('Excluir a consulta "'+cs.titulo+'"?\n\nEla deixa de contar na cota do mês.'+(cs.tarefaId?'\nA tarefa criada na Rotina NÃO é excluída.':'')))return;
+  a.consultas=consultasDe(a).filter(x=>x.id!==cs.id);
+  salvarDB();
+  fecharOverlay('overlay-consulta');
+  refreshUI();
+}
+
+// ─── MODAL: GERAR PARCELAS ────────────────────────────────
+let mpcCtx={aid:null};
+function abrirModalParcelas(aid){
+  const a=assessoriaPorId(aid);
+  if(!a)return;
+  mpcCtx={aid};
+  const c=clienteDaAssessoria(a);
+  if(!c){alert('Esta assessoria está sem cliente vinculado. Edite o contrato antes de gerar parcelas.');return;}
+  document.getElementById('mpc-cliente-nome').textContent=c.curto||c.nome;
+  document.getElementById('mpc-qtd').value=12;
+  document.getElementById('mpc-valor').value=a.valor?numBR(a.valor):'';
+  // primeiro vencimento: o próximo dia de vencimento ainda não gerado
+  const jaTem=parcelasDaAssessoria(a).map(f=>f.assessoriaComp).filter(Boolean);
+  let comp=compHoje();
+  while(jaTem.includes(comp))comp=compAdd(comp,1);
+  document.getElementById('mpc-venc').value=vencimentoDaComp(a,comp);
+  mpcPrevia();
+  abrirOverlay('overlay-parcelas');
+}
+function vencimentoDaComp(a,comp){
+  const dia=Math.min(+a.diaVencimento||10,28);
+  return comp+'-'+String(dia).padStart(2,'0');
+}
+function mpcPrevia(){
+  const el=document.getElementById('mpc-previa');
+  const a=assessoriaPorId(mpcCtx.aid);
+  if(!el||!a)return;
+  const n=Math.max(1,Math.min(36,+document.getElementById('mpc-qtd').value||0));
+  const v=parseValor(document.getElementById('mpc-valor').value||'0');
+  const venc=document.getElementById('mpc-venc').value;
+  if(!venc||!(v>0)){el.textContent='Informe o primeiro vencimento e o valor da parcela.';return;}
+  const ultima=isoAddMeses(venc,n-1);
+  el.innerHTML=`<b>${n}</b> parcela${n>1?'s':''} de <b>${fmt(v)}</b>, de ${fmtData(venc)} a ${fmtData(ultima)}.
+    Total: <b>${fmt(v*n)}</b>. Entram na ficha do cliente como “a receber”.`;
+}
+function gerarParcelasAssessoria(){
+  const a=assessoriaPorId(mpcCtx.aid);
+  const c=clienteDaAssessoria(a);
+  if(!a||!c)return;
+  const n=Math.max(1,Math.min(36,+document.getElementById('mpc-qtd').value||0));
+  const v=parseValor(document.getElementById('mpc-valor').value||'0');
+  const venc=document.getElementById('mpc-venc').value;
+  if(!venc){alert('Informe a data do primeiro vencimento.');return;}
+  if(!(v>0)){alert('Informe o valor da parcela (ex.: 2.500,00).');return;}
+  const existentes=parcelasDaAssessoria(a).map(f=>f.assessoriaComp).filter(Boolean);
+  let criadas=0, puladas=0;
+  for(let i=0;i<n;i++){
+    const d=isoAddMeses(venc,i);
+    const comp=compDe(d);
+    if(existentes.includes(comp)){puladas++;continue;}
+    c.fin.push({id:uid(),
+      d:(a.titulo||'Assessoria mensal')+' — '+fmtComp(comp),
+      v, t:'prev', dt:d, criadoEm:Date.now(),
+      contratoId:a.contratoId||null,
+      assessoriaId:a.id, assessoriaComp:comp, assessoriaVenc:d,
+      dependeTerceiro:false,dataPrevistaRecebimento:'',aceiteVerbal:false,alvara:false});
+    existentes.push(comp);criadas++;
+  }
+  salvarDB();
+  fecharOverlay('overlay-parcelas');
+  refreshUI();
+  if(typeof mostrarToast==='function')
+    mostrarToast(criadas+' parcela'+(criadas===1?'':'s')+' gerada'+(criadas===1?'':'s')
+      +(puladas?' · '+puladas+' competência'+(puladas>1?'s':'')+' já existia'+(puladas>1?'m':''):''));
+}
+
+// ─── FICHA DO CLIENTE ─────────────────────────────────────
+// bloco que aparece na ficha quando o cliente tem assessoria
+function assessoriaDoClienteHTML(cid){
+  const lista=assessoriasDoCliente(cid);
+  if(!lista.length)return '';
+  return lista.map(a=>{
+    const k=cotaAssessoria(a);
+    const venc=parcelasDaAssessoria(a).filter(f=>statusParcela(f)==='vencida').length;
+    return `<div class="cli-ass" onclick="irParaAssessoria('${a.id}')" title="Abrir em Assessorias">
+      <i class="ti ti-briefcase"></i>
+      <span class="tx"><b>${esc(a.titulo||'Assessoria mensal')}</b>
+        <span>${esc(a.status)}${a.valor?' · '+money(a.valor)+'/mês':''}${a.consultasCiclo?' · '+k.usadas+' de '+k.cota+' consultas em '+fmtComp(k.comp):''}</span></span>
+      ${venc?`<span class="ass-tag alerta"><i class="ti ti-alert-triangle"></i>${venc} vencida${venc>1?'s':''}</span>`:''}
+      <i class="ti ti-chevron-right" style="color:var(--t3)"></i>
+    </div>`;
+  }).join('');
+}
+function irParaAssessoria(id){
+  navegarPara('assessorias');
+  abrirAssessoria(id);
+}
 
 // ─── INICIALIZAÇÃO (por último, após todas as declarações) ──
 initApp();

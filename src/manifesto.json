@@ -20,7 +20,9 @@
     "ds/07-paleta.css",
     "ds/08-responsivo.css",
     "ds/09-drive-e-modelos.css",
-    "ds/10-redesenho-2026.css"
+    "ds/10-redesenho-2026.css",
+    "ds/11-rotina-painel.css",
+    "ds/12-assessorias.css"
   ],
   "js": [
     "00-sementes.js",
@@ -49,6 +51,7 @@
     "23-drive-mapa.js",
     "24-modelos-catalogo.js",
     "25-modelos.js",
+    "26-assessorias.js",
     "99-inicializacao.js"
   ]
 }

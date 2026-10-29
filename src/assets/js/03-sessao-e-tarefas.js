@@ -307,6 +307,7 @@ function renderSino(){
   const nb=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.textContent=v>99?'99+':v;el.style.display=v>0?'inline-flex':'none';};
   nb('nav-rotina-badge',n);
   nb('nav-processos-badge',typeof pubsAnalisar==='function'&&DB?pubsAnalisar().length:0);
+  if(typeof atualizarBadgeAssessorias==='function')atualizarBadgeAssessorias();
   const b=document.getElementById('sino-badge');
   if(!b)return;
   const total=n+nRev;
@@ -388,6 +389,7 @@ const RENDERIZADORES={
   arquivados:()=>{if(typeof renderArquivados==='function')renderArquivados()},
   fin:()=>renderFin(),
   rotina:()=>{if(typeof renderRotina==='function')renderRotina()},
+  assessorias:()=>{if(typeof renderAssessorias==='function')renderAssessorias()},
   comercial:()=>{if(typeof renderComercial==='function')renderComercial()},
 };
 let telasDesatualizadas=new Set();

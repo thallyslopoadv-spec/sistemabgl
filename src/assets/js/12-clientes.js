@@ -235,6 +235,12 @@ function detalheClienteHTML(c){
         <p class="det-demandas">${esc(c.demandas)}</p>
         ${c.obs?`<div class="det-obs"><i class="ti ti-info-circle"></i> ${esc(c.obs)}</div>`:''}
       </div>
+      ${(typeof assessoriaDoClienteHTML==='function'&&assessoriaDoClienteHTML(c.id))?`<div class="det-sec">
+        <div class="det-sec-titulo"><span>Assessoria mensal</span>
+          <button class="det-add" onclick="irParaAssessoria(assessoriasDoCliente('${c.id}')[0].id)"><i class="ti ti-external-link"></i> Abrir controle</button>
+        </div>
+        ${assessoriaDoClienteHTML(c.id)}
+      </div>`:''}
       <div class="det-sec">
         <div class="det-sec-titulo"><span>Contratos</span>
           <button class="det-add" onclick="abrirModalContrato('${c.id}',null)"><i class="ti ti-plus"></i> Novo contrato</button>

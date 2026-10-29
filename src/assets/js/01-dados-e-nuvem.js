@@ -402,6 +402,7 @@ async function seedDB(){
     lancamentos:[],
     saldoInicial:{valor:0,obs:'',atualizadoEm:''},
     conteudos:[],
+    assessorias:[],
     metasComercial:{artigosMes:4,videosMes:4},
   };
 }
@@ -437,6 +438,7 @@ async function carregarDBRemoto(){
   if(!Array.isArray(DB.lancamentos)){DB.lancamentos=[];precisaSalvar=true;}
   if(!DB.saldoInicial||typeof DB.saldoInicial.valor!=='number'){DB.saldoInicial={valor:0,obs:'',atualizadoEm:''};precisaSalvar=true;}
   if(!Array.isArray(DB.conteudos)){DB.conteudos=[];precisaSalvar=true;}
+  if(!Array.isArray(DB.assessorias)){DB.assessorias=[];precisaSalvar=true;}
   if(!DB.metasComercial||typeof DB.metasComercial.artigosMes!=='number'){DB.metasComercial={artigosMes:4,videosMes:4};precisaSalvar=true;}
   if(!DB.metasCRM||typeof DB.metasCRM!=='object'){DB.metasCRM={};precisaSalvar=true;}
   // régua pré-proposta: preenche a proximaAcaoEm em branco dos leads ativos pré-proposta
