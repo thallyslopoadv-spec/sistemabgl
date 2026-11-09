@@ -252,9 +252,32 @@ function erroDeAcesso(status,detalhe){
 // abertos na tela de login, de modo que ninguém fica preso.
 let TOKEN_RECUSADO=false;
 function marcarTokenRecusado(){TOKEN_RECUSADO=true;}
+// ─── AVISO DE VALIDADE DO TOKEN ────────────────────────────
+// Um token que vence derruba todo mundo de uma vez, sem aviso, e o erro que
+// aparece depois (401) não diz que a causa foi o vencimento. O GitHub informa
+// a data de validade em um cabeçalho da própria resposta; quando ele vem, o
+// sistema passa a avisar com antecedência. Se não vier — o navegador pode não
+// expor esse cabeçalho —, nada muda e nada quebra.
+function avisarValidadeDoToken(r){
+  try{
+    const v=r.headers.get('github-authentication-token-expiration');
+    if(!v)return;
+    const quando=new Date(v.replace(' UTC','Z').replace(' ','T'));
+    if(isNaN(quando))return;
+    const dias=Math.ceil((quando-Date.now())/86400000);
+    const faixa=document.getElementById('faixa-token');
+    if(!faixa)return;
+    if(dias>10){faixa.classList.remove('on');return;}
+    document.getElementById('faixa-token-txt').textContent=
+      (dias<=0?'O token do GitHub venceu':('O token do GitHub vence em '+dias+' dia(s)'))+
+      ' — gere um novo no GitHub e informe-o na tela de login. Vencido, ele interrompe a sincronização de todos os sócios ao mesmo tempo.';
+    faixa.classList.add('on');
+  }catch(e){}
+}
 async function lerDB(){
   const r=await fetch('https://api.github.com/gists/'+GIST_ID,{headers:GH_HDR()});
   if(!r.ok)throw erroDeAcesso(r.status,await detalheDoGitHub(r));
+  avisarValidadeDoToken(r);
   const j=await r.json();
   const arq=j.files&&(j.files[GIST_FILE]||Object.values(j.files)[0]);
   let txt=(arq&&arq.content)?arq.content.trim():'';
