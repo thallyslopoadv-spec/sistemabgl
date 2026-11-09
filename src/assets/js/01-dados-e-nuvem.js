@@ -245,16 +245,13 @@ function erroDeAcesso(status,detalhe){
   e.credencial=(status===401||status===403||status===404);
   return e;
 }
-// descarta o token guardado neste dispositivo, preservando o Gist ID: usado
-// quando o GitHub recusa o token, para que o próximo login peça um novo
-function descartarTokenGuardado(user){
-  const c=lerCofres();
-  const u=String(user||'').toLowerCase();
-  if(u&&c[u]){delete c[u];gravarCofres(c);}
-  localStorage.removeItem(LS_TOKEN_LEGADO);
-  sessionStorage.removeItem(SS_TOKEN);
-  GH_TOKEN='';
-}
+// Token recusado pelo GitHub: marcar, e não apagar. Apagar na hora parecia
+// mais limpo, mas destrói a única evidência do problema — sem o token em mãos
+// não há como testá-lo nem comparar seu prefixo com o da conta do GitHub. Ele
+// é substituído quando o usuário informar outro; até lá os campos ficam
+// abertos na tela de login, de modo que ninguém fica preso.
+let TOKEN_RECUSADO=false;
+function marcarTokenRecusado(){TOKEN_RECUSADO=true;}
 async function lerDB(){
   const r=await fetch('https://api.github.com/gists/'+GIST_ID,{headers:GH_HDR()});
   if(!r.ok)throw erroDeAcesso(r.status,await detalheDoGitHub(r));

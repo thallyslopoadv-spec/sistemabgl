@@ -451,12 +451,12 @@ function pedirCredenciaisNaTela(){
   const g=document.getElementById('l-gist');
   if(g&&!g.value)g.value=GIST_ID;
   const t=document.getElementById('l-token');
-  if(t){t.value='';}
+  if(t)t.value='';
 }
 function ajustarCampoToken(){
   // na cópia offline não há nuvem nenhuma; nos demais casos, só pede Gist/Token
   // quando este dispositivo ainda não tem nada configurado
-  document.getElementById('token-wrap').style.display=(MODO_OFFLINE||temConfiguracao())?'none':'block';
+  document.getElementById('token-wrap').style.display=(!MODO_OFFLINE&&(TOKEN_RECUSADO||!temConfiguracao()))?'block':'none';
 }
 
 async function tentarLogin(){
@@ -528,7 +528,7 @@ async function tentarLogin(){
             // campos escondidos: não havia como informar o token novo sem
             // limpar o navegador na mão. Agora o token recusado é apagado e os
             // campos reaparecem já com o Gist ID conhecido.
-            descartarTokenGuardado(u);
+            marcarTokenRecusado();
             pedirCredenciaisNaTela();
           }else{GH_TOKEN='';sessionStorage.removeItem(SS_TOKEN);}
           mostrarErroLogin('Não foi possível acessar os dados: '+e.message);
@@ -637,6 +637,47 @@ function finalizarLogout(){
   esconderErroLogin();
   ajustarCampoToken();
 }
+// ─── TESTE DE CONEXÃO COM O GIST ───────────────────────────
+// Separa, em uma passada, as três perguntas que o erro 401 sozinho não responde:
+// o token é aceito pelo GitHub? ele enxerga este Gist? e qual token é esse?
+// Consulta /user (vale o token em si) e depois o Gist (vale o acesso àquele
+// Gist), mostrando o código e a frase que o GitHub devolve em cada etapa.
+async function testarSincronizacao(){
+  const el=document.getElementById('login-err');
+  const dizer=t=>{el.innerHTML=t;el.style.display='block';};
+  const gist=(document.getElementById('l-gist').value.trim())||GIST_ID;
+  let token=(document.getElementById('l-token').value.trim())||GH_TOKEN;
+  let origem=document.getElementById('l-token').value.trim()?'digitado agora':(ORIGEM_TOKEN||'guardado neste navegador');
+  if(!token&&cofreDoUsuario(document.getElementById('inp-u').value.trim())){
+    const u=document.getElementById('inp-u').value.trim();
+    const p=document.getElementById('inp-p').value;
+    if(!p){dizer('Para testar o token guardado, preencha usuário e senha — é a senha que abre o cofre onde ele está.');return;}
+    try{ token=await abrirCofre(u,p); origem='cofre cifrado deste navegador'; }
+    catch(e){ dizer('A senha não abriu o cofre deste dispositivo, então o token guardado não pôde ser lido. Informe o Gist ID e o Token nos campos acima.'); return; }
+  }
+  if(!gist||!token){dizer('Informe o Gist ID e o Token para testar.');return;}
+  const limpo=String(token).replace(/[\s\u200b-\u200d\ufeff]/g,'');
+  const linhas=['<b>Teste de conexão</b>',
+    'Token em uso: '+limpo.slice(0,8)+'… · '+limpo.length+' caracteres · origem: '+origem,
+    'Gist: '+gist];
+  dizer(linhas.concat(['Consultando o GitHub…']).join('<br>'));
+  const consultar=async(url)=>{
+    try{
+      const r=await fetch(url,{headers:{'Authorization':'Bearer '+limpo,'Accept':'application/vnd.github+json'}});
+      let msg='';
+      try{const j=await r.json();msg=j&&(j.message||j.login||(j.files?'Gist legível':''))||'';}catch(e){}
+      return r.status+(msg?' — '+msg:'');
+    }catch(e){ return 'falha de rede: '+e.message; }
+  };
+  const user=await consultar('https://api.github.com/user');
+  const g=await consultar('https://api.github.com/gists/'+gist);
+  linhas.push('1) O token é aceito pelo GitHub? → '+user);
+  linhas.push('2) O token enxerga este Gist? → '+g);
+  if(/^401/.test(user))linhas.push('<b>Conclusão:</b> o GitHub não reconhece este token. Ele não é o token válido da sua conta — foi substituído, revogado ou copiado incompleto. Informe o token atual no campo acima.');
+  else if(/^(401|404)/.test(g))linhas.push('<b>Conclusão:</b> o token é válido, mas não alcança este Gist. Confira o Gist ID e a permissão de Gist do token; tokens que não contemplam Gists não servem para este sistema.');
+  else if(/^200/.test(g))linhas.push('<b>Conclusão:</b> credenciais corretas. Se o login ainda falhar, o problema não é o token.');
+  dizer(linhas.join('<br>'));
+}
 function trocarSincronizacao(){
   if(!confirm('Trocar o Gist/Token deste dispositivo?\n\nO token guardado aqui será apagado e você vai precisar informar o Gist ID e o Token novamente no próximo login.'))return;
   limparCredenciais();
@@ -696,7 +737,7 @@ async function initApp(){
   try{ await carregarDBRemoto(); }
   catch(e){
     if(e&&e.credencial){
-      descartarTokenGuardado(EU&&EU.user);
+      marcarTokenRecusado();
       EU=null;sessionStorage.removeItem('bgl_sistema_eu');
       pedirCredenciaisNaTela();
       mostrarErroLogin('Não foi possível acessar os dados: '+e.message);
