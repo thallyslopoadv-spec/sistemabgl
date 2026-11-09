@@ -196,9 +196,35 @@ function iniciarVigiaInatividade(){
 }
 ['click','keydown','touchstart','scroll'].forEach(ev=>
   document.addEventListener(ev,marcarAtividade,{passive:true,capture:true}));
+// ─── ERROS DE ACESSO AO GIST ───────────────────────────────
+// O GitHub responde com códigos secos. Traduzi-los aqui é o que permite à tela
+// de login dizer o que de fato aconteceu e reabrir os campos certos, em vez de
+// repetir "verifique o Gist ID e o Token" sem oferecer onde corrigir.
+function mensagemDeAcesso(status){
+  if(status===401)return 'o token do GitHub não foi aceito (HTTP 401). Ele expirou, foi revogado ou foi copiado incompleto. Gere um novo token com permissão de Gist e informe-o abaixo.';
+  if(status===404)return 'o Gist não foi encontrado com este token (HTTP 404). Confira o Gist ID e verifique se o token tem permissão de Gist e pertence a uma conta com acesso ao Gist.';
+  if(status===403)return 'o GitHub recusou o acesso (HTTP 403). Pode ser limite momentâneo de requisições ou token sem permissão de Gist.';
+  return 'HTTP '+status+' ao acessar o Gist — verifique o Gist ID e o Token.';
+}
+function erroDeAcesso(status){
+  const e=new Error(mensagemDeAcesso(status));
+  e.status=status;
+  e.credencial=(status===401||status===403||status===404);
+  return e;
+}
+// descarta o token guardado neste dispositivo, preservando o Gist ID: usado
+// quando o GitHub recusa o token, para que o próximo login peça um novo
+function descartarTokenGuardado(user){
+  const c=lerCofres();
+  const u=String(user||'').toLowerCase();
+  if(u&&c[u]){delete c[u];gravarCofres(c);}
+  localStorage.removeItem(LS_TOKEN_LEGADO);
+  sessionStorage.removeItem(SS_TOKEN);
+  GH_TOKEN='';
+}
 async function lerDB(){
   const r=await fetch('https://api.github.com/gists/'+GIST_ID,{headers:GH_HDR()});
-  if(!r.ok)throw new Error('HTTP '+r.status+' — verifique o Gist ID e o Token');
+  if(!r.ok)throw erroDeAcesso(r.status);
   const j=await r.json();
   const arq=j.files&&(j.files[GIST_FILE]||Object.values(j.files)[0]);
   let txt=(arq&&arq.content)?arq.content.trim():'';
@@ -241,7 +267,7 @@ async function gravarDB(){
     method:'PATCH',headers:GH_HDR(),
     body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(DB,null,2)}}})
   });
-  if(!r.ok){marcarSync('erro');throw new Error('Erro ao salvar (HTTP '+r.status+')');}
+  if(!r.ok){marcarSync('erro');throw new Error('Não foi possível salvar: '+mensagemDeAcesso(r.status));}
   marcarSync('ok');
 }
 // ─── GRAVAÇÃO AGRUPADA NA NUVEM ────────────────────────────

@@ -443,6 +443,16 @@ function mostrarErroLogin(msg){
   e.style.display='block';
 }
 function esconderErroLogin(){document.getElementById('login-err').style.display='none'}
+// reabre os campos de Gist/Token no login, já com o Gist ID conhecido deste
+// dispositivo, para que só falte o que de fato precisa ser corrigido
+function pedirCredenciaisNaTela(){
+  const w=document.getElementById('token-wrap');
+  if(w)w.style.display='block';
+  const g=document.getElementById('l-gist');
+  if(g&&!g.value)g.value=GIST_ID;
+  const t=document.getElementById('l-token');
+  if(t){t.value='';}
+}
 function ajustarCampoToken(){
   // na cópia offline não há nuvem nenhuma; nos demais casos, só pede Gist/Token
   // quando este dispositivo ainda não tem nada configurado
@@ -469,8 +479,17 @@ async function tentarLogin(){
       const gist=document.getElementById('l-gist').value.trim();
       const token=document.getElementById('l-token').value.trim();
       let tokenDigitado=false;
-      if(gist&&token){
-        salvarCredenciais(gist,token);
+      // aceita a correção de um campo só: quem precisa apenas trocar o token
+      // recusado não deve ser obrigado a redigitar o Gist ID, e vice-versa
+      if(gist||token){
+        let tokenUsado=token||GH_TOKEN;
+        if(!tokenUsado&&cofreDoUsuario(u)){
+          try{ tokenUsado=await abrirCofre(u,p); }catch(e){ tokenUsado=''; }
+        }
+        const gistUsado=gist||GIST_ID;
+        if(!gistUsado){mostrarErroLogin('Informe também o Gist ID.');return;}
+        if(!tokenUsado){mostrarErroLogin('Informe também o Token do GitHub.');return;}
+        salvarCredenciais(gistUsado,tokenUsado);
         tokenDigitado=true;
       }else if(!GH_TOKEN){
         // token guardado cifrado: a própria senha do login é a chave que o abre
@@ -484,12 +503,12 @@ async function tentarLogin(){
             registrarFalhaLogin();
             // a chave do cofre é a senha: se ela foi trocada em outro
             // computador, o token guardado aqui não abre mais
-            document.getElementById('token-wrap').style.display='block';
+            pedirCredenciaisNaTela();
             mostrarErroLogin('Senha incorreta — ou a senha foi trocada em outro computador. Se você trocou, informe o Gist ID e o Token abaixo desta vez.');
             return;
           }
         }else{
-          document.getElementById('token-wrap').style.display='block';
+          pedirCredenciaisNaTela();
           mostrarErroLogin('Este usuário ainda não configurou a sincronização neste dispositivo. Preencha o Gist ID e o Token.');
           return;
         }
@@ -501,8 +520,15 @@ async function tentarLogin(){
       if(tokenDigitado||!DB){
         try{ await carregarDBRemoto(); }
         catch(e){
-          if(tokenDigitado)limparCredenciais();
-          else{GH_TOKEN='';sessionStorage.removeItem(SS_TOKEN);}
+          if(e&&e.credencial){
+            // o token guardado aqui não serve mais (expirado, revogado ou sem
+            // permissão de Gist). Antes a tela só mostrava o erro, com os
+            // campos escondidos: não havia como informar o token novo sem
+            // limpar o navegador na mão. Agora o token recusado é apagado e os
+            // campos reaparecem já com o Gist ID conhecido.
+            descartarTokenGuardado(u);
+            pedirCredenciaisNaTela();
+          }else{GH_TOKEN='';sessionStorage.removeItem(SS_TOKEN);}
           mostrarErroLogin('Não foi possível acessar os dados: '+e.message);
           return;
         }
@@ -666,7 +692,17 @@ async function initApp(){
     return;
   }
   try{ await carregarDBRemoto(); }
-  catch(e){ mostrarErroLogin('Erro de conexão: '+e.message); return; }
+  catch(e){
+    if(e&&e.credencial){
+      descartarTokenGuardado(EU&&EU.user);
+      EU=null;sessionStorage.removeItem('bgl_sistema_eu');
+      pedirCredenciaisNaTela();
+      mostrarErroLogin('Não foi possível acessar os dados: '+e.message);
+    }else{
+      mostrarErroLogin('Erro de conexão: '+e.message);
+    }
+    return;
+  }
   reentrar();
 }
 
