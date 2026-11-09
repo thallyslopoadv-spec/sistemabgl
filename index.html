@@ -4676,18 +4676,35 @@ const SS_TOKEN='bgl_sistema_tk';             // token aberto, só enquanto a aba
 const PBKDF2_ITER=210000;
 
 let GIST_ID='', GH_TOKEN='';
+let ORIGEM_TOKEN='';                         // de onde veio o token em uso (para diagnóstico)
 let MODO_OFFLINE=false;                      // true quando a página é uma cópia de backup
 
 function carregarCredenciais(){
   GIST_ID=localStorage.getItem(LS_GIST)||'';
   // o token vem da sessão desta aba ou, em dispositivos ainda não migrados, do
   // formato antigo em texto puro — que é apagado assim que o cofre é criado
-  GH_TOKEN=sessionStorage.getItem(SS_TOKEN)||localStorage.getItem(LS_TOKEN_LEGADO)||'';
+  const daSessao=sessionStorage.getItem(SS_TOKEN)||'';
+  const legado=localStorage.getItem(LS_TOKEN_LEGADO)||'';
+  GH_TOKEN=daSessao||legado||'';
+  ORIGEM_TOKEN=daSessao?'sessão desta aba':(legado?'guardado em texto puro neste navegador (formato antigo)':'');
 }
-function salvarCredenciais(gist,token){
+function salvarCredenciais(gist,token,origem){
   try{localStorage.setItem(LS_GIST,gist);}catch(e){}
   try{sessionStorage.setItem(SS_TOKEN,token);}catch(e){}
   GIST_ID=gist;GH_TOKEN=token;
+  ORIGEM_TOKEN=origem||'digitado agora na tela de login';
+}
+// Identifica o token SEM revelá-lo: prefixo (é o que o GitHub também mostra na
+// lista de tokens), tamanho e de onde ele saiu. Serve para responder à dúvida
+// que trava o diagnóstico — "o token do GitHub está certo, então por que 401?":
+// o que o navegador envia pode não ser o token que se vê no GitHub.
+function identificacaoToken(){
+  if(!GH_TOKEN)return 'nenhum token em uso';
+  const t=GH_TOKEN;
+  const prefixo=t.slice(0,Math.min(8,t.length));
+  const sujo=/\s/.test(t)?', contém espaço ou quebra de linha':'';
+  return 'token enviado: '+prefixo+'… · '+t.length+' caracteres'+sujo+
+         (ORIGEM_TOKEN?' · origem: '+ORIGEM_TOKEN:'');
 }
 function limparCredenciais(){
   localStorage.removeItem(LS_GIST);
@@ -4700,7 +4717,9 @@ function temCredenciais(){return !!(GIST_ID&&GH_TOKEN)}
 // há configuração neste dispositivo mesmo que o token ainda esteja fechado no cofre
 function temConfiguracao(){return !!(GIST_ID&&(GH_TOKEN||cofreDoUsuario()))}
 function GH_HDR(){
-  return {'Authorization':'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','Content-Type':'application/json'};
+  // um token colado de dentro de um e-mail ou documento pode trazer espaço,
+  // quebra de linha ou caractere invisível: isso só produz 401, nunca aviso
+  return {'Authorization':'Bearer '+String(GH_TOKEN).replace(/[\s\u200b-\u200d\ufeff]/g,''),'Accept':'application/vnd.github+json','Content-Type':'application/json'};
 }
 
 // ─── CRIPTOGRAFIA ──────────────────────────────────────────
@@ -4821,13 +4840,27 @@ function iniciarVigiaInatividade(){
 // de login dizer o que de fato aconteceu e reabrir os campos certos, em vez de
 // repetir "verifique o Gist ID e o Token" sem oferecer onde corrigir.
 function mensagemDeAcesso(status){
-  if(status===401)return 'o token do GitHub não foi aceito (HTTP 401). Ele expirou, foi revogado ou foi copiado incompleto. Gere um novo token com permissão de Gist e informe-o abaixo.';
+  if(status===401)return 'o GitHub não reconheceu o token enviado por este navegador (HTTP 401). Atenção: o token guardado aqui não é necessariamente o mesmo que aparece na sua conta do GitHub — ele pode ter sido substituído, revogado ou copiado incompleto. Confira o identificador do token abaixo e, se não for o seu token atual, informe-o de novo.';
   if(status===404)return 'o Gist não foi encontrado com este token (HTTP 404). Confira o Gist ID e verifique se o token tem permissão de Gist e pertence a uma conta com acesso ao Gist.';
-  if(status===403)return 'o GitHub recusou o acesso (HTTP 403). Pode ser limite momentâneo de requisições ou token sem permissão de Gist.';
+  if(status===403)return 'o GitHub recusou o acesso (HTTP 403). Pode ser limite momentâneo de requisições, token sem permissão de Gist ou política da organização.';
   return 'HTTP '+status+' ao acessar o Gist — verifique o Gist ID e o Token.';
 }
-function erroDeAcesso(status){
-  const e=new Error(mensagemDeAcesso(status));
+// lê a explicação que o próprio GitHub manda no corpo da resposta
+// ("Bad credentials", "Not Found", "Requires authentication"…): é o dado que
+// separa token recusado de Gist inexistente, e antes era descartado
+async function detalheDoGitHub(r){
+  try{
+    const t=await r.text();
+    if(!t)return '';
+    try{const j=JSON.parse(t);return j&&j.message?String(j.message):'';}
+    catch(e){return t.slice(0,120);}
+  }catch(e){return '';}
+}
+function erroDeAcesso(status,detalhe){
+  const e=new Error(mensagemDeAcesso(status)+
+    (detalhe?' · GitHub respondeu: "'+detalhe+'"':'')+
+    ' · '+identificacaoToken()+
+    (GIST_ID?' · Gist usado: '+GIST_ID:''));
   e.status=status;
   e.credencial=(status===401||status===403||status===404);
   return e;
@@ -4844,7 +4877,7 @@ function descartarTokenGuardado(user){
 }
 async function lerDB(){
   const r=await fetch('https://api.github.com/gists/'+GIST_ID,{headers:GH_HDR()});
-  if(!r.ok)throw erroDeAcesso(r.status);
+  if(!r.ok)throw erroDeAcesso(r.status,await detalheDoGitHub(r));
   const j=await r.json();
   const arq=j.files&&(j.files[GIST_FILE]||Object.values(j.files)[0]);
   let txt=(arq&&arq.content)?arq.content.trim():'';
@@ -4887,7 +4920,7 @@ async function gravarDB(){
     method:'PATCH',headers:GH_HDR(),
     body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(DB,null,2)}}})
   });
-  if(!r.ok){marcarSync('erro');throw new Error('Não foi possível salvar: '+mensagemDeAcesso(r.status));}
+  if(!r.ok){marcarSync('erro');throw erroDeAcesso(r.status,await detalheDoGitHub(r));}
   marcarSync('ok');
 }
 // ─── GRAVAÇÃO AGRUPADA NA NUVEM ────────────────────────────
@@ -6016,7 +6049,8 @@ async function tentarLogin(){
         const gistUsado=gist||GIST_ID;
         if(!gistUsado){mostrarErroLogin('Informe também o Gist ID.');return;}
         if(!tokenUsado){mostrarErroLogin('Informe também o Token do GitHub.');return;}
-        salvarCredenciais(gistUsado,tokenUsado);
+        salvarCredenciais(gistUsado,tokenUsado,
+          token?'digitado agora na tela de login':'cofre cifrado deste navegador');
         tokenDigitado=true;
       }else if(!GH_TOKEN){
         // token guardado cifrado: a própria senha do login é a chave que o abre
@@ -6025,6 +6059,7 @@ async function tentarLogin(){
             const aberto=await abrirCofre(u,p);
             if(!aberto)throw new Error('cofre vazio');
             GH_TOKEN=aberto;
+            ORIGEM_TOKEN='cofre cifrado deste navegador';
             try{sessionStorage.setItem(SS_TOKEN,GH_TOKEN);}catch(e){}
           }catch(e){
             registrarFalhaLogin();

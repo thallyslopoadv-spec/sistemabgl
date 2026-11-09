@@ -489,7 +489,8 @@ async function tentarLogin(){
         const gistUsado=gist||GIST_ID;
         if(!gistUsado){mostrarErroLogin('Informe também o Gist ID.');return;}
         if(!tokenUsado){mostrarErroLogin('Informe também o Token do GitHub.');return;}
-        salvarCredenciais(gistUsado,tokenUsado);
+        salvarCredenciais(gistUsado,tokenUsado,
+          token?'digitado agora na tela de login':'cofre cifrado deste navegador');
         tokenDigitado=true;
       }else if(!GH_TOKEN){
         // token guardado cifrado: a própria senha do login é a chave que o abre
@@ -498,6 +499,7 @@ async function tentarLogin(){
             const aberto=await abrirCofre(u,p);
             if(!aberto)throw new Error('cofre vazio');
             GH_TOKEN=aberto;
+            ORIGEM_TOKEN='cofre cifrado deste navegador';
             try{sessionStorage.setItem(SS_TOKEN,GH_TOKEN);}catch(e){}
           }catch(e){
             registrarFalhaLogin();
